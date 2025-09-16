@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Professor</title>
+  <link rel="stylesheet" href="../css/perfilProf.css">
+</head>
+<body>
+  <header>
+    <img src="/imagens/Regimath_sem fundo cor branco2.png" alt="Logo Regimath" id="logo">
+    <nav>
+      <a href="/logado_prof">Voltar</a>
+      <a href="/logout">Sair</a>
+    </nav>
+  </header>
+
+  <main class="perfil-container">
+    <!-- Foto e informações -->
+    <section class="perfil-info">
+      <img src="/imagens/Regimath_sem fundo cor preto2.png" alt="Foto do Professor" class="foto-perfil">
+      <h1><%= user.nome %></h1>
+      <p class="descricao">descrição do professor</p>
+      <a href="#" target="_blank" class="btn-aula">Assistir aula prévia</a>
+
+      <!-- Disponibilidade -->
+      <div class="disponibilidade">
+        <label for="status">Disponibilidade:</label>
+        <select id="status">
+          <option value="disponivel" <%= user.status === 'disponivel' ? 'selected' : '' %>>Disponível</option>
+          <option value="indisponivel" <%= user.status === 'indisponivel' ? 'selected' : '' %>>Indisponível</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Calendário -->
+    <section class="calendario">
+      <h2>Calendário de aulas</h2>
+      <div id="calendar"></div>
+      <button id="salvar">Salvar alterações</button>
+    </section>
+  </main>
+
+  <footer>
+  </footer>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const dataAtual = new Date();
+    const mes = dataAtual.toLocaleString('pt-BR', { month: 'long' });
+    const ano = dataAtual.getFullYear();
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = `${mes} ${ano}`;
+    calendar.appendChild(titulo);
+
+    const diasContainer = document.createElement('div');
+    diasContainer.classList.add('dias');
+
+    const ultimoDia = new Date(ano, dataAtual.getMonth() + 1, 0).getDate();
+
+    // Array para armazenar os dias com aulas
+    let diasAulas = [];
+
+    for (let d = 1; d <= ultimoDia; d++) {
+      const dia = document.createElement('div');
+      dia.classList.add('dia');
+      dia.textContent = d;
+
+      // Clicar no dia marca/desmarca aula
+      dia.addEventListener('click', () => {
+        dia.classList.toggle('aula');
+
+        if (dia.classList.contains('aula')) {
+          diasAulas.push(d);
+        } else {
+          diasAulas = diasAulas.filter(item => item !== d);
+        }
+      });
+
+      diasContainer.appendChild(dia);
+    }
+
+    calendar.appendChild(diasContainer);
+
+    // Alterar disponibilidade
+    document.getElementById('status').addEventListener('change', function() {
+      alert("Status atualizado para: " + this.value);
+    });
+
+    // Botão para salvar as alterações
+    document.getElementById('salvar').addEventListener('click', () => {
+      alert("Dias de aulas salvos: " + diasAulas.join(", "));
+      /*
+      fetch('/perfil/salvar-calendario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dias: diasAulas })
+      });
+      */
+    });
+  </script>
+</body>
+</html>

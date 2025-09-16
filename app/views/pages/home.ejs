@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regimath</title>
+    <link rel="stylesheet" href="../css/home.css">
+</head>
+<body>
+    <header>
+        <img src="/imagens/Regimath_sem fundo cor branco2.png" alt="Logo Regimath" id="logo">
+        <section class="header-links">
+            <a href="/cadastro" class="btn-cadastro">Cadastre-se</a>
+            <a href="/login" class="btn-cadastro">Login</a>
+        </section>
+        <!-- Ícone do menu hambúrguer -->
+        <img src="/imagens/menu.png" alt="Menu" id="cardapio">
+    </header>
+
+    <!-- Overlay -->
+    <div id="overlay"></div>
+
+    <!-- Menu lateral -->
+    <nav id="menu">
+        <button id="close-menu">&times;</button>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/perfil_aluno">Perfil Aluno</a></li>
+            <li><a href="/perfil_prof">Perfil Professor</a></li>
+            <li><a href="/cadastro">Cadastro</a></li>
+            <li><a href="/login">Login</a></li>
+        </ul>
+    </nav>
+
+    <main>
+      <h1>Bem-vindo ao Regimath</h1>
+      <h2>Aumente sua nota conosco!</h2>
+      <h3>Busque pelo professor ideal para você!</h3>
+
+      <div class="landing-v4-ads">
+        <div class="landing-v4-ads-bloc-container">
+          <div class="landing-v4-ads-bloc tck-announce-link" data-version="2" onclick="location.href='/aulas/ingles/brasil/'">
+            <div class="landing-v4-ads-wrapper">
+              <div class="landing-v4-ads-pic">
+               <img class="img" src="/imagens/Regimath_sem fundo cor preto2.png" alt="Foto do professor">
+               <div class="landing-v4-ads-pic-mask"></div>
+                 <div class="landing-v4-ads-pic-text-container">
+                  <h4>Nome do Professor</h4>
+                  <p>Texto opcional</p>
+               </div>
+              </div>
+            </div>
+          </div>
+       </div>
+      </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        const menuBtn = document.getElementById('cardapio');
+        const menu = document.getElementById('menu');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-menu');
+
+        function toggleMenu() {
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+        closeBtn.addEventListener('click', toggleMenu);
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f9f9f9;
+}
+
+/* Cabeçalho fixo */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #800000;
+  color: #fff;
+  padding: 15px 20px;
+}
+
+header img {
+  width: 60px;
+  height: 60px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+header nav a {
+  color: white;
+  margin-left: 15px;
+  text-decoration: none;
+  font-size: 20px;
+}
+
+/* Mobile first */
+.perfil-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.perfil-info,
+.calendario {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+/* Foto de perfil */
+.foto-perfil {
+  width: 120px;
+  height: 120px;
+  border: solid #ccc 2px;
+  border-radius: 50%;
+  object-fit: cover;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.descricao {
+  margin: 15px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+/* Botão de aula prévia */
+.btn-aula {
+  display: inline-block;
+  margin: 15px 0;
+  padding: 10px 15px;
+  background: #2d89ef;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.btn-aula:hover {
+  background: #1b5fa8;
+}
+
+/* Disponibilidade */
+.disponibilidade {
+  margin-top: 20px;
+}
+
+.disponibilidade label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+#status {
+  padding: 10px 15px;
+  border: 2px solid #2d89ef;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 1rem;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 250px;
+}
+
+#status:hover {
+  border-color: #1b5fa8;
+}
+
+#status:focus {
+  border-color: #27ae60;
+  box-shadow: 0 0 5px rgba(39, 174, 96, 0.6);
+}
+
+/* Calendário */
+.calendario h2 {
+  margin-bottom: 10px;
+}
+
+.dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 15px;
+}
+
+.dia {
+  padding: 12px 0;
+  background: #eee;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-size: 14px;
+}
+
+.dia:hover {
+  transform: scale(1.05);
+}
+
+.aula {
+  background: #2ecc71;
+  color: white;
+  font-weight: bold;
+}
+
+/* Botão salvar */
+#salvar {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+
+#salvar:hover {
+  background: #1e8449;
+}
+
+/* ====== Responsividade ====== */
+@media (min-width: 768px) {
+  .perfil-container {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    padding: 40px;
+  }
+
+  .foto-perfil {
+    width: 150px;
+    height: 150px;
+  }
+
+  .descricao {
+    font-size: 16px;
+  }
+
+  .dia {
+    font-size: 16px;
+    padding: 15px 0;
+  }
+
+  #salvar {
+    max-width: 200px;
+  }
+}

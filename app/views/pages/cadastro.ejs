@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro</title>
+    <link rel="stylesheet" href="../css/cadastro.css">
+    <script>
+        // Função de validação no lado do cliente
+        function validarFormulario() {
+            let email = document.getElementById('email').value;
+            let nome = document.getElementById('nome').value;
+            let senha = document.getElementById('senha').value;
+            let confirmarSenha = document.getElementById('confirmar').value;
+            let tipo = document.getElementById('tipo').value;
+            let erro = false;
+            let mensagensErro = [];
+
+            // Validação do email
+            if (!email || !/\S+@\S+\.\S+/.test(email)) {
+                mensagensErro.push('Por favor, insira um email válido.');
+                erro = true;
+            }
+
+            // Validação do nome
+            if (!nome) {
+                mensagensErro.push('O nome é obrigatório.');
+                erro = true;
+            }
+
+            // Validação da senha
+            if (senha.length < 6) {
+                mensagensErro.push('A senha deve ter pelo menos 6 caracteres.');
+                erro = true;
+            }
+
+            // Validação da confirmação da senha
+            if (senha !== confirmarSenha) {
+                mensagensErro.push('As senhas não coincidem.');
+                erro = true;
+            }
+
+            // Validação do tipo
+            if (!tipo) {
+                mensagensErro.push('Selecione um tipo (Aluno ou Professor).');
+                erro = true;
+            }
+
+            // Exibir erros ou continuar
+            if (erro) {
+                alert(mensagensErro.join("\n"));
+                return false; // Não submete o formulário
+            }
+            return true; // Submete o formulário
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <img src="/imagens/Regimath_branco2.png" alt="Logo Regimath" id="logo">
+    </header>
+    <main>
+        <form action="/cadastro" method="POST" onsubmit="return validarFormulario()">
+            <h2>Se cadastre</h2>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" value="<%= dados?.email || '' %>">
+            <% if (erros.email) { %>
+                <p class="erro"><%= erros.email.msg %></p>
+            <% } %>
+
+            <label for="nome">Nome</label>
+            <input type="text" name="nome" value="<%= dados?.nome || '' %>">
+            <% if (erros.nome) { %>
+                <p class="erro"><%= erros.nome.msg %></p>
+            <% } %>
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" minlength="6">
+            <% if (erros.senha) { %>
+                <p class="erro"><%= erros.senha.msg %></p>
+            <% } %>
+
+            <label for="confirmar_senha">Confirmar senha</label>
+            <input type="password" id="confirmar" name="confirmar">
+            <% if (erros.confirmar) { %>
+                <p class="erro"><%= erros.confirmar.msg %></p>
+            <% } %>
+
+            <label for="tipo">Você é:</label>
+            <select id="tipo" name="tipo">
+                <option value="" disabled selected>Selecione</option>
+                <option value="aluno" <%= dados.tipo === 'aluno' ? 'selected' : '' %>>Aluno</option>
+                <option value="professor" <%= dados.tipo === 'professor' ? 'selected' : '' %>>Professor</option>
+            </select>
+            <% if (erros.tipo) { %>
+                <p class="erro"><%= erros.tipo.msg %></p>
+            <% } %>
+
+            <button type="submit">Enviar</button>
+
+            <p>Já tem uma conta? <a href="/login">Faça login</a></p>
+            <p><a href="/">Voltar para a página inicial</a></p>
+        </form>
+    </main>
+    <footer>
+        <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
