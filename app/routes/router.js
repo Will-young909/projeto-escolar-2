@@ -86,7 +86,7 @@ router.post('/forgot', [
     body('senha')
         .isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
     body('confirmar')
-    .custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),    
+        .custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),    
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
 ], (req, res) => {
     const erros = validationResult(req);
@@ -94,11 +94,20 @@ router.post('/forgot', [
     if (!erros.isEmpty()) {
         return res.render('pages/forgot_password', { erros: erros.mapped(), dados: req.body });
     }
-    
-    // Caso as validações passem, prossiga com o cadastro
-    // Salve o usuário no banco de dados, ou qualquer outro processo necessário
 
-    res.redirect('/');
+    // Aqui seria a autenticação no banco (simulação por enquanto)
+    // Se email e senha forem válidos, salva na sessão
+    req.session.user = {
+        email: req.body.email,
+        tipo: req.body.tipo
+    };
+
+    // Redireciona de acordo com o tipo
+    if (req.body.tipo === "aluno") {
+        return res.redirect('/perfil_aluno');
+    } else {
+        return res.redirect('/perfil_prof');
+    }
 });
 
 router.get('/logado_prof', (req, res) => {

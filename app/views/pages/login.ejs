@@ -24,11 +24,12 @@
                 mensagensErro.push('Selecione um tipo (Aluno ou Professor).');
             }
 
-            if (mensagensErro.length > 0) {
+            // Exibir erros ou continuar
+            if (erro) {
                 alert(mensagensErro.join("\n"));
-                return false;
+                return false; // Não submete o formulário
             }
-            return true;
+            return true; // Submete o formulário
         }
     </script>
 </head>
