@@ -4,10 +4,6 @@ const router = express.Router();
 
 
 router.get('/', (req, res) => {
-    res.render('pages/home2');
-});
-
-router.get('/home', (req, res) => {
     res.render('pages/home');
 });
 
