@@ -2,7 +2,7 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background: #f9f9f9;
+  background: #e5e6e7;
 }
 
 /* Cabeçalho fixo */
@@ -10,21 +10,19 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #800000;
-  color: #fff;
-  padding: 15px 20px;
+  background: #f2f3f4;
+  padding: 2px 15px;
+  height: 60px; 
+  border-bottom: #333 solid 2px;
 }
 
-header img {
-  width: 60px;
-  height: 60px;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+#logo {
+  width: 150px;
+  height: 70px;
 }
 
 header nav a {
-  color: white;
+  color: #333;
   margin-left: 15px;
   text-decoration: none;
   font-size: 20px;
@@ -40,7 +38,7 @@ header nav a {
 
 .perfil-info,
 .calendario {
-  background: white;
+  background: #f2f3f4;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
@@ -54,7 +52,7 @@ header nav a {
   border: solid #ccc 2px;
   border-radius: 50%;
   object-fit: cover;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .descricao {
@@ -63,20 +61,22 @@ header nav a {
   color: #555;
 }
 
-/* Botão de aula prévia */
-.btn-aula {
-  display: inline-block;
-  margin: 15px 0;
-  padding: 10px 15px;
-  background: #2d89ef;
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  transition: background 0.3s;
+label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+  color: #333;
 }
 
-.btn-aula:hover {
-  background: #1b5fa8;
+input[type="text"] {
+  width: 100%;
+  max-width: 300px;
+  padding: 8px;
+  margin-top: 10px;
+  margin-left: -8px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 /* Disponibilidade */
@@ -92,12 +92,12 @@ header nav a {
 }
 
 #status {
-  padding: 10px 15px;
-  border: 2px solid #2d89ef;
+  padding: 5px 15px;
+  border: 2px solid #004c4c;
   border-radius: 8px;
-  background: #fff;
+  background: #333;
   font-size: 1rem;
-  color: #333;
+  color: #f9f9f9;
   cursor: pointer;
   outline: none;
   transition: all 0.3s ease;
@@ -106,7 +106,8 @@ header nav a {
 }
 
 #status:hover {
-  border-color: #1b5fa8;
+  border-color: #333;
+  background-color: #004c4c;
 }
 
 #status:focus {
@@ -128,7 +129,7 @@ header nav a {
 
 .dia {
   padding: 12px 0;
-  background: #eee;
+  background: #e0e0e0;
   text-align: center;
   border-radius: 6px;
   cursor: pointer;
@@ -142,7 +143,7 @@ header nav a {
 
 .aula {
   background: #2ecc71;
-  color: white;
+  color: #f2f3f4;
   font-weight: bold;
 }
 
@@ -151,7 +152,7 @@ header nav a {
   margin-top: 20px;
   padding: 10px 15px;
   background: #27ae60;
-  color: white;
+  color: #f2f3f4;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -160,6 +161,35 @@ header nav a {
 
 #salvar:hover {
   background: #1e8449;
+}
+
+.alunos {
+  width: 92.5%;
+  margin-top: 30px;
+  margin-left: -10px;
+  background: #f2f3f4;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.3);
+}
+
+.alunos h2 {
+  margin-bottom: 10px;
+}
+
+.alunos ul {
+  list-style: none;
+  padding: 0;
+}
+
+.alunos li {
+  padding: 8px 12px;
+  background: #f1f1f1;
+  border-bottom: 1px solid #eee;
+}
+
+.alunos li:last-child {
+  border-bottom: none;
 }
 
 /* ====== Responsividade ====== */

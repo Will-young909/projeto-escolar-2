@@ -57,37 +57,37 @@
 </head>
 <body>
     <header>
-        <img src="/imagens/Regimath_branco2.png" alt="Logo Regimath" id="logo">
+        <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
     </header>
     <main>
         <form action="/cadastro" method="POST" onsubmit="return validarFormulario()">
             <h2>Se cadastre</h2>
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" value="<%= dados?.email || '' %>">
+            <input type="email" id="email" name="email" required value="<%= dados?.email || '' %>">
             <% if (erros.email) { %>
                 <p class="erro"><%= erros.email.msg %></p>
             <% } %>
 
             <label for="nome">Nome</label>
-            <input type="text" name="nome" value="<%= dados?.nome || '' %>">
+            <input type="text" name="nome" required value="<%= dados?.nome || '' %>">
             <% if (erros.nome) { %>
                 <p class="erro"><%= erros.nome.msg %></p>
             <% } %>
 
             <label for="senha">Senha</label>
-            <input type="password" id="senha" name="senha" minlength="6">
+            <input type="password" id="senha" name="senha" minlength="6" required >
             <% if (erros.senha) { %>
                 <p class="erro"><%= erros.senha.msg %></p>
             <% } %>
 
             <label for="confirmar_senha">Confirmar senha</label>
-            <input type="password" id="confirmar" name="confirmar">
+            <input type="password" id="confirmar" name="confirmar" required>
             <% if (erros.confirmar) { %>
                 <p class="erro"><%= erros.confirmar.msg %></p>
             <% } %>
 
             <label for="tipo">Você é:</label>
-            <select id="tipo" name="tipo">
+            <select id="tipo" name="tipo" required>
                 <option value="" disabled selected>Selecione</option>
                 <option value="aluno" <%= dados.tipo === 'aluno' ? 'selected' : '' %>>Aluno</option>
                 <option value="professor" <%= dados.tipo === 'professor' ? 'selected' : '' %>>Professor</option>
