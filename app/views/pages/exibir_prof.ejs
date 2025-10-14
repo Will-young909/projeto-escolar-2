@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= professor.nome %> - Perfil
+  </title>
+  <link rel="stylesheet" href="../css/exibir_prof.css">
+</head>
+
+<body>
+  <header>
+    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
+    <nav class="nav-links" id="navLinks">
+      <a href="#">Denunciar</a>
+    </nav>
+    <nav>
+      <a href="/">Voltar</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">
+        <!-- Ícone SVG estilizado -->
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="5" r="2" />
+          <circle cx="12" cy="12" r="2" />
+          <circle cx="12" cy="19" r="2" />
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <main class="perfil-container">
+    <!-- Informações do professor -->
+    <section class="perfil-info">
+      <img src="/imagens/imagem_perfil.jpg" alt="Foto de <%= professor.nome %>" class="foto-perfil">
+      <h1>
+        <%= professor.nome %>
+      </h1>
+      <p class="descricao">
+        <%= professor.descricao %>
+      </p>
+      <a href="<%= professor.aulaPrevia %>" target="_blank" class="btn-aula">Assistir aula prévia</a><br>
+      <a href="/chat"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28"
+          fill="#800000c8">
+          <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+        </svg>Chat
+      </a>
+
+      <!-- Status visível (não editável) -->
+      <p class="status <%= professor.status %>">
+        <strong>Status:</strong>
+        <%= professor.status==='disponivel' ? 'Disponível' : 'Indisponível' %>
+      </p>
+    </section>
+
+    <!-- Calendário simplificado -->
+    <section class="calendario">
+      <h2>Próximas aulas</h2>
+      <ul class="lista-aulas">
+        <% professor.aulas.forEach(aula=> { %>
+          <li>
+            <span class="data">
+              <%= aula.data %>
+            </span>
+            <span class="hora">
+              <%= aula.hora %>
+            </span>
+          </li>
+          <% }) %>
+      </ul>
+    </section>
+    <!-- Comentários -->
+    <section class="comentarios">
+      <h2>Comentários</h2>
+      <ul class="lista-comentarios">
+        <% professor.comentarios.forEach(comentario=> { %>
+          <li>
+            <strong>
+              <%= comentario.usuario %>:
+            </strong>
+            <span class="texto-comentario">
+              <%= comentario.texto %>
+            </span>
+            <small class="data">(<%= new Date(comentario.data || Date.now()).toLocaleString('pt-BR') %>)</small>
+          </li>
+          <% }) %>
+      </ul>
+
+      <% // Formulário de novo comentário (apenas para usuários logados) %>
+        <% if (session && (session.user_aluno || session.user_prof)) { %>
+          <form action="/exibir_prof/<%= professor.id %>/comentar" method="POST" class="form-comentario">
+            <input name="texto" placeholder="Escreva seu comentário..." required>
+            <button type="submit">Enviar comentário</button>
+          </form>
+          <% } else { %>
+            <p>Faça <a href="/login" class="login">login</a> para deixar um comentário.</p>
+            <% } %>
+    </section>
+  </main>
+
+  <footer>
+
+  </footer>
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    menuBtn.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+      menuBtn.classList.toggle('active');
+    });
+
+  </script>
+</body>
+
+</html>

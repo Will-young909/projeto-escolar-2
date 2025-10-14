@@ -8,9 +8,9 @@
 </head>
 <body>
   <header>
-    <img src="/imagens/Regimath_sem fundo cor branco2.png" alt="Logo Regimath" id="logo">
+    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
     <nav>
-      <a href="/logado_prof">Voltar</a>
+      <a href="/">Voltar</a>
       <a href="/logout">Sair</a>
     </nav>
   </header>
@@ -18,10 +18,11 @@
   <main class="perfil-container">
     <!-- Foto e informações -->
     <section class="perfil-info">
-      <img src="/imagens/Regimath_sem fundo cor preto2.png" alt="Foto do Professor" class="foto-perfil">
+      <img src="/imagens/imagem_perfil.jpg" alt="Foto do Professor" class="foto-perfil">
       <h1><%= user.nome %></h1>
       <p class="descricao">descrição do professor</p>
-      <a href="#" target="_blank" class="btn-aula">Assistir aula prévia</a>
+      <label for="link">Link da aula prévia:</label>
+      <input type="text" id="link" placeholder="Cole o link aqui">
 
       <!-- Disponibilidade -->
       <div class="disponibilidade">
@@ -39,6 +40,20 @@
       <div id="calendar"></div>
       <button id="salvar">Salvar alterações</button>
     </section>
+<br>
+    <!-- Lista de alunos -->
+<div class="alunos">
+  <h2>Seus alunos:</h2>
+  <ul>
+    <% if (user.alunos && user.alunos.length > 0) { %>
+      <% user.alunos.forEach(aluno => { %>
+        <li value="<%= aluno.id %>"><%= aluno.nome %></li>
+      <% }) %>
+    <% } else { %>
+      <li disabled selected>Nenhum aluno cadastrado</li>
+    <% } %>
+  </ul>
+</div>
   </main>
 
   <footer>

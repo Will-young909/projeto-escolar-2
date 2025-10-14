@@ -1,30 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Aluno</title>
-    <link rel="stylesheet" href="../css/perfil.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil do Aluno</title>
+  <link rel="stylesheet" href="../css/perfilAluno.css">
 </head>
 <body>
-    <header>
-        <h2>Área do Aluno</h2>
-    </header>
-    <main>
-        <img src="imagens/Regimath_sem fundo cor preto2.png" alt="foto do perfil" class="profile-pic">
-        <% if (user) { %>
-            <h3>Bem-vindo, <%= user.nome || user.email %>!</h3><br>
-            <p><strong>Email:</strong> <%= user.email %></p><br>
-            <p><strong>Tipo:</strong> <%= user.tipo %></p>
-        <% } else { %>
-            <p>Você não está logado. <a href="/login">Fazer login</a></p>
-        <% } %>
-        <br>
-        <a href="/logado_aluno">Voltar</a>
-        <a href="/logout">Sair</a>
-    </main>
-    <footer>
-        <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
-    </footer>
+  <header>
+    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
+    <nav>
+      <a href="/">Voltar</a>
+      <a href="/logout">Sair</a>
+    </nav>
+  </header>
+
+  <main class="perfil-container">
+    <!-- Foto e informações -->
+    <section class="perfil-info">
+   <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" 
+     alt="Foto do Aluno" 
+     class="foto-perfil">
+   <h1><%= user.nome %></h1>
+   <p class="descricao"><%= user.descricao || "Aluno cadastrado na plataforma." %></p>
+    </section>
+
+    <!-- Informações adicionais -->
+    <section class="dados-aluno">
+      <h2>Informações do Aluno</h2>
+      <ul>
+  <li><strong>Email:</strong> <%= user.email || "Não informado" %></li>
+      </ul>
+    </section>
+
+    <!-- Histórico de aulas -->
+    <section class="historico">
+      <h2>Histórico de Aulas</h2>
+  <% if (user.aulas && user.aulas.length > 0) { %>
+        <ul>
+          <% user.aulas.forEach(aula => { %>
+            <li>
+              <strong><%= aula.data %></strong> — <%= aula.conteudo %>
+            </li>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p>Ainda não tem aulas registradas.</p>
+      <% } %>
+    </section>
+  </main>
+
+  <footer>
+  </footer>
 </body>
 </html>

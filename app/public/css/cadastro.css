@@ -1,153 +1,190 @@
-.erro {
-    color: red;
-    font-size: 0.9em;
-    margin-top: 4px;
-    margin-bottom: 8px;
-  }
-  
-  :root {
-    --bordo: #800020;
-    --dourado: #FFD700;
-    --bege: #F5F5DC;
-    --cinza-escuro: #333333;
-    --branco: #FFFFFF;
-    --sombra: 0 2px 6px rgba(0, 0, 0, 0.2);
-    --raio: 8px;
-    --espacamento: 16px;
-    --fonte: 'Segoe UI', sans-serif;
-  }
-  
-  body {
-    margin: 0;
-    font-family: var(--fonte);
-    background-color: var(--bege);
-    color: var(--cinza-escuro);
-  }
-  
-  #logo {
-      width: 100px;
-      height: 100px;
-      margin: 56px 0px 0 0;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
-      align-self: flex-start;
-  }
-  
-  #logo:hover {
-      transform: scale(1.1);
-  }
-  
-  header {
-    background-color: #800000;
-    color: #f2f3f4;
-    padding: 10px 0;
-    width: 100%;
-    height: 150px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-top: -60px;
-  }
-  
-  main {
-    padding: var(--espacamento);
-    max-width: 500px;
-    margin: 40px auto;
-    background-color: var(--branco);
-    border-radius: var(--raio);
-    box-shadow: var(--sombra);
-  }
-  
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  label {
-    margin-top: var(--espacamento);
-    font-weight: bold;
-  }
-  
-  input {
-    padding: 10px;
-    margin-top: 6px;
-    border: 1px solid var(--bordo);
-    border-radius: var(--raio);
-    font-size: 1em;
-  }
-  
-  select#tipo {
-    padding: 10px;
-    margin-top: 6px;
-    border: 1px solid var(--bordo);
-    border-radius: var(--raio);
-    font-size: 1em;
-    background-color: var(--branco);
-    color: var(--cinza-escuro);
-    appearance: none; /* remove estilo padrão do navegador */
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23800020'%20d='M2%200L0%202h4z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 12px;
-    cursor: pointer;
-  }
-  
-  select#tipo:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--dourado);
-  }
-  
-  button {
-    margin-top: 24px;
-    padding: 12px;
-    background-color: var(--dourado);
-    color: var(--bordo);
-    border: none;
-    border-radius: var(--raio);
-    font-weight: bold;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  button:hover {
-    background-color: #FFA500; /* laranja suave */
-  }
-  
-  footer {
-    width: 100%;
-    height: 30px;
-    background-color: #800020;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #f2f3f4;
-    font-size: 0.9em;
-    position: fixed;
-    bottom: 0;
-  }
+/* Estilos gerais e mobile-first */
+:root {
+  --bordo: #800020;
+  --dourado: #FFD700;
+  --bege: #F5F5DC;
+  --cinza-escuro: #333333;
+  --branco: #F2F3F4;
+  --sombra: 0 2px 6px rgba(0, 0, 0, 0.2);
+  --raio: 8px;
+  --espacamento: 16px;
+  --fonte: 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  background-color: #e5e6e7;
+  color: var(--cinza-escuro);
+  padding: 0;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f2f3f4;
+  padding: 2px 15px;
+  height: 60px;
+  border-bottom: #333 solid 2px;
+}
+
+#logo {
+  width: 120px; /* Ajustando o logo para dispositivos móveis */
+  height: auto;
+}
+
+main {
+  padding: var(--espacamento);
+  max-width: 100%;
+  margin: 40px auto;
+  background-color: var(--branco);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: var(--espacamento);
+  font-weight: bold;
+}
+
+input,
+select#tipo {
+  padding: 12px; /* Aumentando o padding para facilitar a interação em telas pequenas */
+  margin-top: 6px;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raio);
+  font-size: 1em;
+}
+
+select#tipo {
+  background-color: var(--branco);
+  color: var(--cinza-escuro);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%204%205'%3E%3Cpath%20fill='%23800020'%20d='M2%200L0%202h4z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+  cursor: pointer;
+}
+
+button {
+  margin-top: 24px;
+  padding: 12px;
+  background-color: #800000;
+  color: var(--branco);
+  border: none;
+  border-radius: var(--raio);
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--bordo);
+}
+
+footer {
+  width: 100%;
+  height: 30px;
+  background-color: #800020;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #f2f3f4;
+  font-size: 0.9em;
+  position: fixed;
+  bottom: 0;
+}
+
 a {
-    color: #FF7F50;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 600;
-    transition: 0.3s linear;
-    
+  color: #8d3dc8;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: 0.3s linear;
 }
-a:hover, a:focus {
-    outline: none;
-    color: #8d3dc8;
-}
+
+a:hover,
 a:focus {
-    text-decoration: underline;
+  text-decoration: underline;
 }
+
+a:focus {
+  text-decoration: underline;
+}
+
 a:first-of-type {
-    margin-top: 3rem;
+  margin-top: 3rem;
 }
-a + a {
-    margin-top: 1.125rem;
+
+a+a {
+  margin-top: 1.125rem;
 }
+
 a:last-of-type {
-    margin-bottom: 1.125rem;
-}  
+  margin-bottom: 1.125rem;
+}
+
+/* Media Queries para telas maiores */
+
+/* Tablet (768px) */
+@media (min-width: 768px) {
+  main {
+    max-width: 600px;
+  }
+
+  #logo {
+    width: 150px; /* Logo maior para telas médias */
+  }
+
+  button {
+    font-size: 1.1em;
+    padding: 14px;
+  }
+
+  input,
+  select#tipo {
+    font-size: 1.1em;
+  }
+
+  footer {
+    font-size: 1em;
+  }
+
+  a {
+    font-size: 1em;
+  }
+}
+
+/* Desktop (1024px) */
+@media (min-width: 1024px) {
+  main {
+    max-width: 700px;
+  }
+  
+
+  #logo {
+    width: 180px; /* Logo ainda maior para telas grandes */
+  }
+
+  button {
+    font-size: 1.1em;
+    padding: 10px;
+  }
+
+  input,
+  select#tipo {
+    font-size: 0.9em;
+  }
+
+  footer {
+    font-size: 1.1em;
+  }
+}

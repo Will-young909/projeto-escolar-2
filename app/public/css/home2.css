@@ -1,0 +1,451 @@
+/* ============ RESET ============ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", Arial, sans-serif;
+  background: #f7f8fa;
+  color: #222;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ HEADER ============ */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 8px 16px;
+  height: 60px;
+  border-bottom: 2px solid #800020;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  width: 150px;
+  height: 120px;
+  object-fit: contain;
+}
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+/* ============ MENU LATERAL ============ */
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 250px;
+  height: 100vh;
+  background: #800020;
+  display: flex;
+  flex-direction: column;
+  padding-top: 70px;
+  transition: 0.3s ease;
+  z-index: 1002; /* acima do header */
+  overflow: visible; /* permite que o botão fique visível fora do menu */
+}
+
+nav.active {
+  left: 0;
+}
+
+nav a,
+nav p {
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+nav a:hover,
+nav p:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+#close-menu {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Botão de recolher (desktop) - posicionado fora do menu para ficar sempre visível */
+#toggle-menu {
+  position: absolute;
+  top: 18px;
+  right: 0px; /* ficará fora do painel levemente */
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(180deg,#b22222,#8b0f13);
+  border: 2px solid rgba(0,0,0,0.15);
+  display: none; /* mostrado apenas em desktop via media query */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+#toggle-menu:hover { transform: translateY(-2px); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; color: #fff; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001; /* entre header e nav when active */
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Dropdown */
+.dropdown-regimath {
+  margin: 10px 20px;
+}
+
+/* Botão de recolher - escondido no mobile, visível em telas maiores */
+#toggle-menu { display: none; }
+
+.dropdown-toggle {
+  width: 100%;
+  background: #b22222;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-content {
+  display: none;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  margin-top: 5px;
+  padding: 10px;
+}
+
+.pa {
+  display: block;
+  padding: 8px 12px;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.dropdown-regimath.active .dropdown-content {
+  display: block;
+}
+
+/* ============ HERO ============ */
+.hero {
+  background: linear-gradient(135deg, #800020, #b22222);
+  color: #fff;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.hero h2 {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+}
+
+.hero ul {
+  list-style: none;
+  font-size: 0.95rem;
+}
+
+.hero li {
+  margin: 6px 0;
+}
+
+/* ============ SEARCH ============ */
+.search-bar {
+  position: relative;
+  max-width: 100%;
+  
+}
+
+.search-bar input[type="search"] {
+  width: 45px;
+  /* começa pequeno */
+  height: 45px;
+  border-radius: 30px;
+  border: 1px solid #aaa;
+  padding-left: 40px;
+  font-size: 14px;
+  background: #f2f3f4 url('https://cdn-icons-png.flaticon.com/512/622/622669.png') no-repeat 12px center;
+  background-size: 20px 20px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  outline: none;
+}
+
+/* Ao focar → expande */
+.search-bar input[type="search"]:focus {
+  width: 100%;
+  /* ocupa todo espaço do container */
+  border-color: #800000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: text;
+}
+
+/* Hover */
+.search-bar input[type="search"]:hover {
+  background-color: #f0f0f0;
+  border-color: #800020;
+}
+
+/* Placeholder mais suave */
+.search-bar input::placeholder {
+  color: #888;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.search-bar input:focus::placeholder {
+  opacity: 0.5;
+}
+
+/* ============ PROFESSORES ============ */
+.professores {
+  padding: 25px 15px 80px;
+}
+
+.professores h3 {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #800020;
+  margin-bottom: 20px;
+}
+
+/* Container de cards */
+.container {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  justify-items: center;
+}
+
+/* Card individual */
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 340px;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.background img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.content h2 {
+  font-size: 1.1rem;
+  color: #800020;
+}
+
+.limite,
+.avaliacao,
+.descricao {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.avaliacao {
+  color: #f4b400;
+  font-weight: 600;
+}
+
+.btn-previa {
+  margin-top: 8px;
+  text-align: center;
+  background: #800020;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.btn-previa:hover {
+  background: #b22222;
+}
+
+/* ============ FOOTER ============ */
+footer {
+  background: #800020;
+  color: #fff;
+  text-align: center;
+  padding: 12px;
+  font-size: 0.85rem;
+  margin-top: auto;
+}
+
+/* ============ MEDIA QUERIES ============ */
+
+/* === Tablet (768px) === */
+@media (min-width: 768px) {
+  header {
+    padding: 10px 30px;
+  }
+
+  .logo {
+    position: absolute;
+    top: -37px;
+    left: 270px;
+    align-self: center;
+  }
+
+  .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  /* torna o botão de recolher visível em telas maiores */
+  #toggle-menu { display: flex; pointer-events: auto; }
+
+  nav {
+    left: 0;
+    width: 220px;
+    background: #800020;
+    border-right: 2px solid #a52a2a;
+  }
+
+  /* Recolher/expandir (desktop) */
+  nav.collapsed {
+    width: 60px;
+    overflow: hidden;
+  }
+
+  /* Esconde textos dos links quando recolhido */
+  nav.collapsed a,
+  nav.collapsed p,
+  nav.collapsed .dropdown-toggle {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* Ajusta conteúdo principal quando menu recolhido */
+  main {
+    margin-left: 220px;
+    transition: margin-left 0.3s ease;
+  }
+
+  nav.collapsed ~ main {
+    margin-left: 60px;
+  }
+
+  main {
+    margin-left: 220px;
+  }
+
+  .hero {
+    text-align: left;
+    padding: 40px 30px;
+  }
+
+  .hero h2 {
+    font-size: 1.6rem;
+  }
+
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    max-width: 100%;
+  }
+}
+
+/* === Desktop (1024px+) === */
+@media (min-width: 1024px) {
+  header {
+    padding: 15px 40px;
+  }
+
+  .hero {
+    padding: 60px 80px;
+    text-align: left;
+  }
+
+  .hero h2 {
+    font-size: 2rem;
+  }
+
+  .hero ul {
+    font-size: 1.1rem;
+  }
+
+  .container {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 0 40px;
+  }
+
+  .card {
+    max-width: 360px;
+  }
+
+  .content h2 {
+    font-size: 1.2rem;
+  }
+
+  .content p {
+    font-size: 1rem;
+  }
+
+  footer {
+    font-size: 1rem;
+  }
+}

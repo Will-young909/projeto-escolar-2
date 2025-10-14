@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat - Regimath</title>
+  <link rel="stylesheet" href="../css/chat.css">
+</head>
+<body>
+  <header class="chat-header">
+    <div class="chat-header-content">
+      <img src="/imagens/Regimath_curto.png" alt="Logo" class="chat-logo">
+      <h3>Chat</h3>
+    </div>
+    <a href="/exibir_prof/:id" class="chat-exit">← Voltar</a>
+  </header>
+
+  <main class="chat-main" id="chatBody"></main>
+
+  <form id="chatForm" class="chat-form">
+    <input id="chatMessage" type="text" placeholder="Digite sua mensagem..." autocomplete="off" required>
+    <button type="submit" aria-label="Enviar mensagem">➤</button>
+  </form>
+
+  <script>
+    const CHAT_USER = {
+      nome: "<%= (user && user.nome) ? user.nome.replace(/\"/g, '\\"') : 'Visitante' %>",
+      email: "<%= (user && user.email) ? user.email.replace(/\"/g, '\\"') : '' %>"
+    };
+    const CHAT_ROOM = "<%= room %>";
+  </script>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function() {
+      const socket = io();
+      const chatBody = document.getElementById('chatBody');
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatMessage');
+
+      function createMsg(msg) {
+        const div = document.createElement('div');
+        div.classList.add('message', msg.user === CHAT_USER.nome ? 'sent' : 'received');
+
+        const user = document.createElement('span');
+        user.classList.add('msg-user');
+        if (msg.user !== CHAT_USER.nome) user.textContent = msg.user + ': ';
+
+        const text = document.createElement('span');
+        text.classList.add('msg-text');
+        text.textContent = msg.text;
+
+        const time = document.createElement('span');
+        time.classList.add('msg-time');
+        time.textContent = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        div.appendChild(user);
+        div.appendChild(text);
+        div.appendChild(time);
+        return div;
+      }
+
+      // Receber histórico
+      socket.on("roomHistory", (history) => {
+        chatBody.innerHTML = "";
+        history.forEach(m => chatBody.appendChild(createMsg(m)));
+        chatBody.scrollTop = chatBody.scrollHeight;
+      });
+
+      // Nova mensagem
+      socket.on("newMessage", (msg) => {
+        chatBody.appendChild(createMsg(msg));
+        chatBody.scrollTop = chatBody.scrollHeight;
+      });
+
+      // Mensagens do sistema
+      socket.on("systemMessage", (msg) => {
+        const sys = document.createElement("div");
+        sys.classList.add("system-msg");
+        sys.textContent = msg.text;
+        chatBody.appendChild(sys);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      });
+
+      // Entrar na sala
+      socket.emit("joinRoom", { room: CHAT_ROOM, user: CHAT_USER.nome });
+
+      // Enviar mensagem
+      chatForm.addEventListener("submit", e => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+        socket.emit("chatMessage", { room: CHAT_ROOM, user: CHAT_USER.nome, text });
+        chatInput.value = "";
+      });
+    })();
+  </script>
+</body>
+</html>

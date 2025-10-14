@@ -1,5 +1,5 @@
 {
-  "name": "projeto-escolar-2",
+  "name": "projeto-escolar_2",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
-    "express-validator": "^7.2.1"
+    "express-validator": "^7.2.1",
+    "socket.io": "^4.8.1"
   }
 }
