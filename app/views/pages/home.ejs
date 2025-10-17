@@ -1,135 +1,112 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Regimath</title>
-  <link rel="stylesheet" href="../css/home.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regimath</title>
+    <link rel="stylesheet" href="../css/home2.css">
 </head>
-
 <body>
-  <!-- Header -->
   <header>
-    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" class="logo">
-    <button id="menu-btn" class="menu-btn">☰</button>
-  </header>
+        <img src="/imagens/Regimath_sem fundo cor branco2.png" alt="Logo Regimath" id="logo">
+        <section class="header-links">
+            <a href="/cadastro" class="btn-cadastro">Cadastre-se</a>
+            <a href="/login" class="btn-cadastro">Login</a>
+        </section>
+        <!-- Ícone do menu hambúrguer ☰ (apenas mobile) ícone estilizado -->
+        <img src="/imagens/menu.png" alt="Menu" id="cardapio">
+    </header>
 
-  <!-- Overlay (mobile) -->
-  <div id="overlay"></div>
+    <!-- Overlay (mobile) -->
+    <div id="overlay"></div>
 
-  <!-- Menu lateral -->
-  <nav id="menu" class="collapsed">
+    <!-- Menu lateral -->
+    <nav id="menu" class="collapsed">
+        
+        <!-- Botão fechar (mobile) -->
+        <button id="close-menu">&times;</button>
 
-    <!-- Botão fechar (mobile) -->
-    <button id="close-menu">&times;</button>
+        <!-- Botão recolher (desktop) -->
+        <button id="toggle-menu" aria-label="Recolher menu">
+         <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" 
+           viewBox="0 0 24 24" width="24" height="24" fill="white">
+           <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+         </svg>
+        </button>
 
-    <!-- Botão recolher (desktop) -->
-    <button id="toggle-menu" aria-label="Recolher menu">
-      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-      </svg>
-    </button>
+       <p>Sobre Nós</p>
+       <a href="/chat">Chat</a>
+       <a href="/chat2">Chat2</a>
+       <a href="/home2">Home2</a>
+       <button id="toggle-dark">Modo Escuro</button>
 
-    <% if (typeof session !=='undefined' && session.user_prof) { %>
-      <a href="/perfil_prof">Perfil</a>
-      <% } else if (typeof session !=='undefined' && session.user_aluno) { %>
-        <a href="/perfil_aluno">Perfil</a>
-        <% } else { %>
-          <a href="/login">Login</a>
-          <% } %>
-            <div class="dropdown-regimath">
-              <button class="dropdown-toggle">
-                <span class="label">Ver mais</span>
-                <span class="arrow">▼</span>
-              </button>
+    </nav>
 
-              <div class="dropdown-content">
-                <p class="pa">Sobre nós</p>
+    <main>
+      <h1>Bem-vindo ao Regimath</h1>
+      <h2>Aumente sua nota conosco!</h2>
+      <h3>Busque pelo professor ideal para você!</h3>
+
+      <div class="landing-v4-ads">
+        <div class="landing-v4-ads-bloc-container">
+          <div class="landing-v4-ads-bloc tck-announce-link" data-version="2" onclick="location.href='/exibir_prof/:id'">
+            <div class="landing-v4-ads-wrapper">
+              <div class="landing-v4-ads-pic">
+               <img class="img" src="/imagens/Regimath_sem fundo cor preto2.png" alt="Foto do professor">
+               <div class="landing-v4-ads-pic-mask"></div>
+                 <div class="landing-v4-ads-pic-text-container">
+                  <h4>Nome do Professor</h4>
+                  <p>Texto opcional</p>
+               </div>
               </div>
             </div>
-
-  </nav>
-  <main>
-    <!-- Seção destaque -->
-    <section class="hero">
-      <h2>Aumente sua nota e aprendizado conosco!</h2>
-      <ul>
-        <li>O melhor site de aulas particulares</li>
-        <li>+ de 20 mil professores</li>
-        <li>Encontre o professor perfeito para você</li>
-      </ul>
-
-      <!-- Busca -->
-      <div class="search-bar">
-        <input type="search" placeholder="Pesquisar..." id="pesquisar" name="pesquisar" aria-label="Pesquisar">
-      </div>
-
-    </section>
-
-    <!-- Lista de professores -->
-    <section class="professores">
-      <h3>Nossos professores</h3>
-
-      <div class="container">
-        <article class="card">
-          <div class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
           </div>
-          <div class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </div>
+       </div>
       </div>
+    </main>
 
-      </div>
-    </section>
-  </main>
-  <footer>
-    <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
-  </footer>
-  <script>
-    const menuBtn = document.getElementById('menu-btn');
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('overlay');
-    const closeBtn = document.getElementById('close-menu');
-    const toggleBtn = document.getElementById("toggle-menu");
+    <footer>
+        <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
+    </footer>
 
-    // Mobile toggle
-    function toggleMenu() {
-      menu.classList.toggle('active');
-      overlay.classList.toggle('active');
+    <script>
+
+    // Dark mode toggle
+    const darkBtn = document.getElementById('toggle-dark');
+    darkBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark-mode');
+      // Salva preferência no localStorage
+      if(document.documentElement.classList.contains('dark-mode')) {
+        localStorage.setItem('dark-mode', 'on');
+      } else {
+        localStorage.setItem('dark-mode', 'off');
+      }
+    });
+    // Carrega preferência ao abrir
+    if(localStorage.getItem('dark-mode') === 'on') {
+      document.documentElement.classList.add('dark-mode');
     }
-    if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
-    if (overlay) overlay.addEventListener('click', toggleMenu);
-    if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
+        const menuBtn = document.getElementById('cardapio');
+        const menu = document.getElementById('menu');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-menu');
+        const toggleBtn = document.getElementById("toggle-menu");
 
-    // Desktop recolher
-    if (toggleBtn) {
-      toggleBtn.addEventListener("click", () => {
-        menu.classList.toggle("collapsed");
-      });
-
-      const dropdown = document.querySelector('.dropdown-regimath');
-      const toggle = dropdown.querySelector('.dropdown-toggle');
-
-      toggle.addEventListener('click', () => {
-        dropdown.classList.toggle('active');
-      });
-
-      // Fecha ao clicar fora
-      document.addEventListener('click', (e) => {
-        if (!dropdown.contains(e.target)) {
-          dropdown.classList.remove('active');
+        // Mobile toggle
+        function toggleMenu() {
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
         }
-      });
-    }
-  </script>
-  </script>
-</body>
+        if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
+        if (overlay) overlay.addEventListener('click', toggleMenu);
+        if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
 
+        // Desktop recolher
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", () => {
+                menu.classList.toggle("collapsed");
+            });
+        }
+    </script>
+</body>
 </html>

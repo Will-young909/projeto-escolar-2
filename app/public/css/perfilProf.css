@@ -1,198 +1,238 @@
-body {
-  font-family: Arial, sans-serif;
+/* ============================
+   ESTILO BASE — MOBILE FIRST
+   ============================ */
+ 
+* {
   margin: 0;
   padding: 0;
-  background: #e5e6e7;
+  box-sizing: border-box;
+  font-family: "Poppins", Arial, sans-serif;
 }
-
-/* Cabeçalho fixo */
+ 
+body {
+  background: #f7f8fa;
+  color: #333;
+  line-height: 1.6;
+}
+ 
+/* ---------- HEADER ---------- */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f2f3f4;
-  padding: 2px 15px;
-  height: 60px; 
-  border-bottom: #333 solid 2px;
+  background: #ffffff;
+  padding: 12px 18px;
+  border-bottom: 2px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
-
+ 
 #logo {
-  width: 150px;
-  height: 70px;
+  width: 120px;
+  height: auto;
 }
-
+ 
 header nav a {
   color: #333;
   margin-left: 15px;
   text-decoration: none;
-  font-size: 20px;
+  font-weight: 600;
+  transition: color 0.3s ease;
 }
-
-/* Mobile first */
+ 
+header nav a:hover {
+  color: #800000;
+}
+ 
+/* ---------- CONTAINER ---------- */
 .perfil-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
 }
-
+ 
+/* ---------- SEÇÕES ---------- */
 .perfil-info,
-.calendario {
-  background: #f2f3f4;
+.calendario,
+.alunos {
+  background: #ffffff;
   padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+ 
+.perfil-info {
   text-align: center;
 }
-
-/* Foto de perfil */
+ 
+/* ---------- FOTO DE PERFIL ---------- */
 .foto-perfil {
   width: 120px;
   height: 120px;
-  border: solid #ccc 2px;
   border-radius: 50%;
+  border: 3px solid #800000;
   object-fit: cover;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
-
+ 
+.perfil-info h1 {
+  font-size: 1.4rem;
+  color: #222;
+  margin-top: 8px;
+}
+ 
 .descricao {
-  margin: 15px 0;
-  font-size: 14px;
+  margin: 8px 0 15px;
+  font-size: 0.95rem;
   color: #555;
 }
-
+ 
+/* ---------- CAMPOS DE TEXTO ---------- */
 label {
   display: block;
-  margin-top: 15px;
-  font-weight: bold;
+  margin-top: 10px;
+  font-weight: 600;
   color: #333;
+  text-align: left;
 }
-
+ 
 input[type="text"] {
   width: 100%;
-  max-width: 300px;
-  padding: 8px;
-  margin-top: 10px;
-  margin-left: -8px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 10px 12px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  margin-top: 6px;
+  transition: border-color 0.3s ease;
+  font-size: 0.95rem;
 }
-
-/* Disponibilidade */
+ 
+input[type="text"]:focus {
+  border-color: #800000;
+  outline: none;
+}
+ 
+/* ---------- DISPONIBILIDADE ---------- */
 .disponibilidade {
   margin-top: 20px;
+  text-align: left;
 }
-
-.disponibilidade label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #333;
-}
-
+ 
 #status {
-  padding: 5px 15px;
-  border: 2px solid #004c4c;
-  border-radius: 8px;
-  background: #333;
-  font-size: 1rem;
-  color: #f9f9f9;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.3s ease;
   width: 100%;
-  max-width: 250px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid #004c4c;
+  background: #333;
+  color: #fff;
+  font-weight: 500;
+  transition: 0.3s;
 }
-
+ 
 #status:hover {
   border-color: #333;
-  background-color: #004c4c;
+  background: #004c4c;
 }
-
-#status:focus {
-  border-color: #27ae60;
-  box-shadow: 0 0 5px rgba(39, 174, 96, 0.6);
-}
-
-/* Calendário */
+ 
+/* ---------- CALENDÁRIO ---------- */
 .calendario h2 {
+  color: #800000;
+  font-size: 1.2rem;
   margin-bottom: 10px;
+  border-left: 4px solid #800000;
+  padding-left: 10px;
 }
-
+ 
 .dias {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
   margin-top: 15px;
 }
-
+ 
 .dia {
+  background: #ececec;
   padding: 12px 0;
-  background: #e0e0e0;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.2s;
-  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
-
+ 
 .dia:hover {
+  background: #ddd;
   transform: scale(1.05);
 }
-
+ 
 .aula {
-  background: #2ecc71;
-  color: #f2f3f4;
-  font-weight: bold;
+  background: #27ae60;
+  color: #fff;
 }
-
-/* Botão salvar */
+ 
+/* ---------- BOTÃO SALVAR ---------- */
 #salvar {
   margin-top: 20px;
-  padding: 10px 15px;
+  padding: 12px 15px;
   background: #27ae60;
-  color: #f2f3f4;
+  color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   width: 100%;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.3s ease;
 }
-
+ 
 #salvar:hover {
   background: #1e8449;
 }
-
-.alunos {
-  width: 92.5%;
-  margin-top: 30px;
-  margin-left: -10px;
-  background: #f2f3f4;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0px 2px 8px rgba(0,0,0,0.3);
-}
-
+ 
+/* ---------- ALUNOS ---------- */
 .alunos h2 {
-  margin-bottom: 10px;
+  color: #800000;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  border-left: 4px solid #800000;
+  padding-left: 10px;
 }
-
+ 
 .alunos ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
-
+ 
 .alunos li {
-  padding: 8px 12px;
-  background: #f1f1f1;
-  border-bottom: 1px solid #eee;
+  padding: 10px 14px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
-
-.alunos li:last-child {
-  border-bottom: none;
+ 
+/* ---------- ANIMAÇÃO ---------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
-/* ====== Responsividade ====== */
+ 
+/* ============================
+   TELAS MÉDIAS (TABLET)
+   ============================ */
 @media (min-width: 768px) {
   .perfil-container {
     display: grid;
@@ -200,22 +240,66 @@ input[type="text"] {
     gap: 30px;
     padding: 40px;
   }
-
+ 
+  .perfil-info {
+    text-align: left;
+  }
+ 
   .foto-perfil {
     width: 150px;
     height: 150px;
   }
-
-  .descricao {
-    font-size: 16px;
+ 
+  input[type="text"],
+  #status {
+    max-width: 400px;
   }
-
-  .dia {
-    font-size: 16px;
-    padding: 15px 0;
-  }
-
+ 
   #salvar {
-    max-width: 200px;
+    max-width: 250px;
+  }
+ 
+  .alunos {
+    grid-column: span 2;
   }
 }
+ 
+/* ============================
+   TELAS GRANDES (DESKTOP)
+   ============================ */
+@media (min-width: 1024px) {
+  .perfil-container {
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 40px auto;
+  }
+ 
+  .perfil-info {
+    padding: 30px;
+  }
+ 
+  .foto-perfil {
+    width: 180px;
+    height: 180px;
+  }
+ 
+  .descricao {
+    font-size: 1rem;
+  }
+ 
+  .calendario h2,
+  .alunos h2 {
+    font-size: 1.3rem;
+  }
+ 
+  .dia {
+    padding: 16px 0;
+    font-size: 1rem;
+  }
+ 
+  #salvar {
+    font-size: 1.05rem;
+  }
+}
+ 

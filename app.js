@@ -44,9 +44,19 @@ const roomsMessages = {}; // { roomName: [ {user, text, time} ] }
 
 // Socket.IO
 io.on("connection", (socket) => {
-  console.log("Socket conectado:", socket.id);
+  console.log("Usuário conectado:", socket.id);
 
-  // receber pedido para entrar em sala (envio feito pelo cliente)
+  // Video call handlers
+  socket.on("join-room", (room) => {
+    socket.join(room);
+    socket.to(room).emit("user-connected", socket.id);
+
+    socket.on("offer", (data) => socket.to(room).emit("offer", data));
+    socket.on("answer", (data) => socket.to(room).emit("answer", data));
+    socket.on("ice-candidate", (data) => socket.to(room).emit("ice-candidate", data));
+  });
+
+  // Chat handlers (existing code)
   socket.on("joinRoom", ({ room, user }) => {
     socket.join(room);
     console.log(`${user} entrou na sala ${room}`);
@@ -59,25 +69,28 @@ io.on("connection", (socket) => {
     socket.to(room).emit("systemMessage", { text: `${user} entrou no chat.`, time: Date.now() });
   });
 
-  // receber mensagem
   socket.on("chatMessage", ({ room, user, text }) => {
-    // sanitização leve no server: remover tags (p/ demo)
     const cleanText = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const msg = { user, text: cleanText, time: Date.now() };
 
-    // guarda no histórico (demo)
     roomsMessages[room] = roomsMessages[room] || [];
     roomsMessages[room].push(msg);
-    // limitar histórico para evitar encher memória
     if (roomsMessages[room].length > 200) roomsMessages[room].shift();
 
-    // enviar para todos na sala
     io.to(room).emit("newMessage", msg);
   });
 
   socket.on("disconnect", () => {
-    console.log("Socket desconectado:", socket.id);
+    socket.rooms.forEach(room => {
+      socket.to(room).emit("user-disconnected", socket.id);
+    });
+    console.log("Usuário saiu:", socket.id);
   });
+});
+
+app.get("/video/:room", (req, res) => {
+  const room = req.params.room;
+  res.render("pages/video_call", { room });
 });
 
 // inicializa servidor

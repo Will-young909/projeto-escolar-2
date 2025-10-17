@@ -139,7 +139,7 @@ router.get('/exibir_prof/:id', (req, res) => {
         nome: "Nome do Professor",
         foto: "/imagens/professor.jpg",
         descricao: "Descrição do professor.",
-        aulaPrevia: "/aulas/aula1",
+        aulaPrevia: "#",
         status: "disponivel",
         aulas: [
             { data: "2025-01-01", hora: "10:00" },
