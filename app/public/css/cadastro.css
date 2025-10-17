@@ -1,3 +1,10 @@
+.erro {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
 /* Estilos gerais e mobile-first */
 :root {
   --bordo: #800020;

@@ -4,10 +4,6 @@ const router = express.Router();
 
 
 router.get('/', (req, res) => {
-    res.render('pages/home2');
-});
-
-router.get('/home', (req, res) => {
     res.render('pages/home');
 });
 
@@ -143,7 +139,7 @@ router.get('/exibir_prof/:id', (req, res) => {
         nome: "Nome do Professor",
         foto: "/imagens/professor.jpg",
         descricao: "Descrição do professor.",
-        aulaPrevia: "/aulas/aula1",
+        aulaPrevia: "#",
         status: "disponivel",
         aulas: [
             { data: "2025-01-01", hora: "10:00" },

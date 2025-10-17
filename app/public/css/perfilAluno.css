@@ -141,17 +141,6 @@
      TELAS MÉDIAS (TABLET)
      ============================ */
   @media (min-width: 768px) {
-
-    header {
-     margin-top: 0px; 
-    }
-
-    #logo {
-      height: 90px;
-      margin-top: -50px;
-      margin-bottom: -20px;
-    }
-
     .perfil-container {
       flex-direction: row;
       flex-wrap: wrap;
@@ -197,8 +186,6 @@
    
     header {
       width: 100%;
-      justify-content: space-around;
-      padding: 20px 40px;
     }
    
     .perfil-container {
