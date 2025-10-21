@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Perfil do Professor</title>
   <link rel="stylesheet" href="../css/perfilProf.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
 </head>
 <body>
   <header>
-    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
+    <a href="/"><img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo"></a>
     <nav>
+      <a href="/aulas">Aulas</a>
       <a href="/">Voltar</a>
       <a href="/logout">Sair</a>
     </nav>
@@ -20,29 +22,30 @@
     <section class="perfil-info">
       <img src="/imagens/imagem_perfil.jpg" alt="Foto do Professor" class="foto-perfil">
       <h1><%= user.nome %></h1>
-      <p class="descricao">descrição do professor</p>
+      <label for="descricao">Descrição:</label>
+      <input type="text" id="descricao" placeholder="Coloque sua descrição aqui">
       <label for="link">Link da aula prévia:</label>
       <input type="text" id="link" placeholder="Cole o link aqui">
 
       <!-- Disponibilidade -->
-      <div class="disponibilidade">
+      <section class="disponibilidade">
         <label for="status">Disponibilidade:</label>
         <select id="status">
           <option value="disponivel" <%= user.status === 'disponivel' ? 'selected' : '' %>>Disponível</option>
           <option value="indisponivel" <%= user.status === 'indisponivel' ? 'selected' : '' %>>Indisponível</option>
         </select>
-      </div>
+      </section>
     </section>
 
     <!-- Calendário -->
     <section class="calendario">
       <h2>Calendário de aulas</h2>
-      <div id="calendar"></div>
+      <section id="calendar"></section>
       <button id="salvar">Salvar alterações</button>
     </section>
 <br>
     <!-- Lista de alunos -->
-<div class="alunos">
+<section class="alunos">
   <h2>Seus alunos:</h2>
   <ul>
     <% if (user.alunos && user.alunos.length > 0) { %>
@@ -53,11 +56,8 @@
       <li disabled selected>Nenhum aluno cadastrado</li>
     <% } %>
   </ul>
-</div>
+</section>
   </main>
-
-  <footer>
-  </footer>
 
   <script>
     const calendar = document.getElementById('calendar');
@@ -69,7 +69,7 @@
     titulo.textContent = `${mes} ${ano}`;
     calendar.appendChild(titulo);
 
-    const diasContainer = document.createElement('div');
+    const diasContainer = document.createElement('section');
     diasContainer.classList.add('dias');
 
     const ultimoDia = new Date(ano, dataAtual.getMonth() + 1, 0).getDate();
@@ -78,7 +78,7 @@
     let diasAulas = [];
 
     for (let d = 1; d <= ultimoDia; d++) {
-      const dia = document.createElement('div');
+      const dia = document.createElement('section');
       dia.classList.add('dia');
       dia.textContent = d;
 

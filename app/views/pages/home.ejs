@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Regimath</title>
   <link rel="stylesheet" href="../css/home.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
 </head>
 
 <body>
@@ -45,7 +46,8 @@
               </button>
 
               <section class="dropdown-content">
-                <p class="pa">Sobre nós</p>
+                <a href="/politica" class="pa">Política de Privacidade</a>
+                <a href="/termos" class="pa">Termos de Uso</a>
               </section>
             </section>
 
@@ -72,80 +74,31 @@
       <h3>Nossos professores</h3>
 
       <section class="container">
-        <article class="card">
-          <section class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
-          </section>
-          <section class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </section>
-        </article>
-
-        <article class="card">
-          <section class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
-          </section>
-          <section class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </section>
-        </article>
-
-        <article class="card">
-          <section class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
-          </section>
-          <section class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </section>
-        </article>
-
-        <article class="card">
-          <section class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
-          </section>
-          <section class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </section>
-        </article>
-
-        <article class="card">
-          <section class='background'>
-            <img src="/imagens/imagem_perfil.jpg" alt="profile">
-          </section>
-          <section class='content'>
-            <h2>Jaxon Reed
-            </h2>
-            <p class="limite">Máximo de 5 aulas por mês</p>
-            <p class="avaliacao">⭐ 5 (57 avaliações)</p>
-            <p class="descricao">Professor com 7 doutorados na USP, dei aula pra Einstein...</p>
-            <a href="/exibir_prof/:id" class="btn-previa">Ver Aula Prévia</a>
-          </section>
-        </article>
-    </section>
+          <% professores.forEach(professor => { %>
+            <article class="card">
+              <section class='background'>
+                <img src="<%= professor.foto %>" alt="Foto do professor <%= professor.nome %>">
+              </section>
+              <section class='content'>
+                <h2><%= professor.nome %></h2>
+                <p class="limite">Máximo de 5 aulas por mês</p>
+                <p class="avaliacao">⭐ <%= Math.floor(Math.random() * 2) + 4 %> (<%= Math.floor(Math.random() * 80) + 20 %> avaliações)</p>
+                <p class="descricao"><%= professor.descricao %></p>
+                <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil</a>
+              </section>
+            </article>
+          <% }); %>
+      </section>
 
   </main>
   <footer>
-    <p>&copy; 2025 Regimath. Todos os direitos reservados.</p>
+    <p>Contato:<a href="https://mail.google.com/mail/u/0/#search/regimath.equipe%40gmail.com"><svg
+          xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0078ff"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-mail">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2" class="icon-mail"></rect>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+      </a></p>
   </footer>
   <script>
     const menuBtn = document.getElementById('menu-btn');

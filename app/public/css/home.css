@@ -240,7 +240,7 @@ nav p:hover {
   border: 1px solid #ddd;
   border-radius: 12px;
   overflow: hidden;
-  max-width: 340px;
+  width: 290px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
@@ -302,6 +302,17 @@ footer {
   padding: 12px;
   font-size: 0.85rem;
   margin-top: auto;
+}
+
+.icon-mail {
+  font-family: "Poppins", Arial, sans-serif;
+  transition: transform 0.3s ease, stroke 0.3s ease;
+  stroke: #f2f2f2;
+  margin-bottom: -6px;
+}
+.icon-mail:hover {
+  transform: scale(1.1);
+  stroke: #f2f2f2;
 }
 
 /* ============ MEDIA QUERIES ============ */
@@ -409,7 +420,7 @@ footer {
   }
 
   .card {
-    max-width: 360px;
+    width: 360px;
   }
 
   .content h2 {

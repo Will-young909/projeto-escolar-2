@@ -15,7 +15,7 @@
   --sombra: 0 2px 6px rgba(0, 0, 0, 0.2);
   --raio: 8px;
   --espacamento: 16px;
-  --fonte: 'Segoe UI', sans-serif;
+  --fonte: "Poppins", Arial, sans-serif;
 }
 
 body {
@@ -37,6 +37,7 @@ header {
 }
 
 #logo {
+  margin-top: -25px;
   width: 120px; /* Ajustando o logo para dispositivos móveis */
   height: auto;
 }

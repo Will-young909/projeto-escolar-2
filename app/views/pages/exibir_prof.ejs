@@ -8,13 +8,14 @@
     <%= professor.nome %> - Perfil
   </title>
   <link rel="stylesheet" href="../css/exibir_prof.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
 </head>
 
 <body>
   <header>
-    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo">
+    <a href="/"><img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo"></a>
     <nav class="nav-links" id="navLinks">
-      <a href="#">Denunciar</a>
+      <a href="/denuncia">Denunciar</a>
     </nav>
     <nav>
       <a href="/">Voltar</a>
@@ -59,12 +60,12 @@
       <ul class="lista-aulas">
         <% professor.aulas.forEach(aula=> { %>
           <li>
-            <span class="data">
+            <p class="data">
               <%= aula.data %>
-            </span>
-            <span class="hora">
+            </p>
+            <p class="hora">
               <%= aula.hora %>
-            </span>
+            </p>
           </li>
           <% }) %>
       </ul>
@@ -78,9 +79,9 @@
             <strong>
               <%= comentario.usuario %>:
             </strong>
-            <span class="texto-comentario">
+            <p class="texto-comentario">
               <%= comentario.texto %>
-            </span>
+            </p>
             <small class="data">(<%= new Date(comentario.data || Date.now()).toLocaleString('pt-BR') %>)</small>
           </li>
           <% }) %>
@@ -98,9 +99,6 @@
     </section>
   </main>
 
-  <footer>
-
-  </footer>
   <script>
     const menuBtn = document.getElementById('menuBtn');
     const navLinks = document.getElementById('navLinks');

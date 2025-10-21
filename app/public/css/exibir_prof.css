@@ -1,338 +1,339 @@
 /* =========================
    ESTILO BASE — MOBILE FIRST
    ========================= */
-   * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: "Poppins", Arial, sans-serif;
-  }
-   
-  body {
-    background: #f4f4f6;
-    color: #222;
-  }
-   
-  /* -------- Cabeçalho -------- */
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    border-bottom: 2px solid #ccc;
-    padding: 10px 16px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-   
-  #logo {
-    width: 120px;
-    height: auto;
-  }
-   
-  header nav a {
-    color: #333;
-    font-weight: 600;
-    text-decoration: none;
-    margin-left: 10px;
-    transition: color 0.2s;
-  }
-   
-  header nav a:hover {
-    color: #800000;
-  }
-   
-  /* -------- Menu dropdown (mobile) -------- */
-  .menu-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    object-fit: contain;
-  }
-  
-  a {
-    color: #333;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  
-  .login {
-    color: #8d3dc8;
-  }
-   
-  .nav-links {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: absolute;
-    top: 64px;
-    left: 0;
-    width: 100%;
-    background: #800000;
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
-    opacity: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-   
-  .nav-links.open {
-    max-height: 300px;
-    opacity: 1;
-  }
-   
-  .nav-links a {
-    color: #fff;
-    font-weight: 500;
-    padding: 12px 18px;
-    transition: background 0.2s;
-  }
-   
-  .nav-links a:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 8px;
-  }
-   
-  /* -------- Conteúdo principal -------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", Arial, sans-serif;
+}
+ 
+body {
+  background: #f4f4f6;
+  color: #222;
+}
+ 
+/* -------- Cabeçalho -------- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-bottom: 2px solid #ccc;
+  padding: 10px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+ 
+#logo {
+  width: 120px;
+  height: auto;
+}
+ 
+header nav a {
+  color: #333;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 10px;
+  transition: color 0.2s;
+}
+ 
+header nav a:hover {
+  color: #800000;
+}
+ 
+/* -------- Menu dropdown (mobile) -------- */
+.menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  object-fit: contain;
+}
+
+a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login {
+  color: #8d3dc8;
+}
+ 
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: #333;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  opacity: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+ 
+.nav-links.open {
+  max-height: 300px;
+  opacity: 1;
+}
+ 
+.nav-links a {
+  color: #fff;
+  font-weight: 500;
+  padding: 12px 18px;
+  transition: background 0.2s;
+}
+ 
+.nav-links a:hover {
+  color: #fff;
+  background: #004c4c;
+  border-radius: 8px;
+}
+ 
+/* -------- Conteúdo principal -------- */
+.perfil-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  max-width: 100%;
+}
+ 
+/* Bloco do perfil */
+.perfil-info {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+ 
+.foto-perfil {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #800000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+ 
+.descricao {
+  font-size: 0.95rem;
+  color: #555;
+  margin: 10px 0 15px;
+  line-height: 1.4;
+}
+ 
+.btn-aula {
+  display: inline-block;
+  margin: 12px 0;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #800000, #a83232);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.3s, background 0.3s;
+}
+ 
+.btn-aula:hover {
+  background: linear-gradient(90deg, #a83232, #800000);
+  transform: translateY(-2px);
+}
+ 
+.status {
+  margin-top: 8px;
+  font-weight: bold;
+}
+ 
+.status.disponivel {
+  color: #27ae60;
+}
+ 
+.status.indisponivel {
+  color: #e74c3c;
+}
+ 
+/* -------- Calendário -------- */
+.calendario {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  animation: fadeIn 0.6s ease;
+}
+ 
+.calendario h2 {
+  color: #333;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #800000;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+ 
+.lista-aulas {
+  list-style: none;
+  margin-top: 12px;
+  padding: 0;
+}
+ 
+.lista-aulas li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
+}
+ 
+.lista-aulas li:last-child {
+  border-bottom: none;
+}
+ 
+/* -------- Comentários -------- */
+.comentarios {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  padding: 20px;
+  animation: fadeIn 0.8s ease;
+}
+ 
+.comentarios h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+ 
+.lista-comentarios {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+}
+ 
+.lista-comentarios li {
+  padding: 8px 0;
+  border-bottom: 1px dashed #ddd;
+  line-height: 1.4;
+}
+ 
+.texto-comentario {
+  margin-left: 6px;
+}
+ 
+.data {
+  color: #888;
+  font-size: 12px;
+  margin-left: 6px;
+}
+ 
+input {
+  padding: 10px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  border: 1px solid #800000;
+  border-radius: 8px;
+  width: 100%;
+}
+ 
+.form-comentario button {
+  background: #800000;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+ 
+.form-comentario button:hover {
+  background: #a83232;
+}
+ 
+/* -------- Animação -------- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+ 
+/* =========================
+   TELAS MÉDIAS (TABLET)
+   ========================= */
+@media (min-width: 768px) {
   .perfil-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 40px;
+    gap: 30px;
+  }
+ 
+  .perfil-info {
+    flex: 1;
+    max-width: 35%;
+  }
+ 
+  .calendario {
+    flex: 1;
+    max-width: 60%;
+  }
+ 
+  .comentarios {
+    flex-basis: 100%;
+    margin-top: 20px;
+  }
+ 
+  .foto-perfil {
+    width: 150px;
+    height: 150px;
+  }
+}
+ 
+/* =========================
+   TELAS GRANDES (DESKTOP)
+   ========================= */
+@media (min-width: 1024px) {
+  body {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding: 20px;
-    max-width: 100%;
+    align-items: center;
   }
-   
-  /* Bloco do perfil */
-  .perfil-info {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    padding: 20px;
-    text-align: center;
-    animation: fadeIn 0.5s ease;
+ 
+  main.perfil-container {
+    max-width: 1100px;
+    margin: 30px auto;
   }
-   
-  .foto-perfil {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #800000;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  }
-   
-  .descricao {
-    font-size: 0.95rem;
-    color: #555;
-    margin: 10px 0 15px;
-    line-height: 1.4;
-  }
-   
-  .btn-aula {
-    display: inline-block;
-    margin: 12px 0;
-    padding: 10px 18px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #800000, #a83232);
-    color: #fff;
-    font-weight: 600;
-    text-decoration: none;
-    transition: transform 0.3s, background 0.3s;
-  }
-   
-  .btn-aula:hover {
-    background: linear-gradient(90deg, #a83232, #800000);
-    transform: translateY(-2px);
-  }
-   
-  .status {
-    margin-top: 8px;
-    font-weight: bold;
-  }
-   
-  .status.disponivel {
-    color: #27ae60;
-  }
-   
-  .status.indisponivel {
-    color: #e74c3c;
-  }
-   
-  /* -------- Calendário -------- */
-  .calendario {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    padding: 20px;
-    animation: fadeIn 0.6s ease;
-  }
-   
-  .calendario h2 {
-    color: #333;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #800000;
-    display: inline-block;
-    padding-bottom: 4px;
-  }
-   
-  .lista-aulas {
-    list-style: none;
-    margin-top: 12px;
-    padding: 0;
-  }
-   
-  .lista-aulas li {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 0.95rem;
-  }
-   
-  .lista-aulas li:last-child {
-    border-bottom: none;
-  }
-   
-  /* -------- Comentários -------- */
-  .comentarios {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    padding: 20px;
-    animation: fadeIn 0.8s ease;
-  }
-   
-  .comentarios h2 {
-    color: #333;
-    margin-bottom: 10px;
-  }
-   
-  .lista-comentarios {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 12px 0;
-  }
-   
-  .lista-comentarios li {
-    padding: 8px 0;
-    border-bottom: 1px dashed #ddd;
-    line-height: 1.4;
-  }
-   
-  .texto-comentario {
-    margin-left: 6px;
-  }
-   
-  .data {
-    color: #888;
-    font-size: 12px;
-    margin-left: 6px;
-  }
-   
-  input {
-    padding: 10px;
-    margin-top: 6px;
-    margin-bottom: 6px;
-    border: 1px solid #800000;
-    border-radius: 8px;
+ 
+  header {
     width: 100%;
+    padding: 15px 30px;
   }
-   
-  .form-comentario button {
-    background: #800000;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
+ 
+  .perfil-info {
+    text-align: left;
+    padding: 30px;
   }
-   
-  .form-comentario button:hover {
-    background: #a83232;
+ 
+  .perfil-info h1 {
+    font-size: 1.6rem;
   }
-   
-  /* -------- Animação -------- */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+ 
+  .descricao {
+    font-size: 1rem;
   }
-   
-  /* =========================
-     TELAS MÉDIAS (TABLET)
-     ========================= */
-  @media (min-width: 768px) {
-    .perfil-container {
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      padding: 40px;
-      gap: 30px;
-    }
-   
-    .perfil-info {
-      flex: 1;
-      max-width: 35%;
-    }
-   
-    .calendario {
-      flex: 1;
-      max-width: 60%;
-    }
-   
-    .comentarios {
-      flex-basis: 100%;
-      margin-top: 20px;
-    }
-   
-    .foto-perfil {
-      width: 150px;
-      height: 150px;
-    }
+ 
+  .calendario h2,
+  .comentarios h2 {
+    font-size: 1.4rem;
   }
-   
-  /* =========================
-     TELAS GRANDES (DESKTOP)
-     ========================= */
-  @media (min-width: 1024px) {
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-   
-    main.perfil-container {
-      max-width: 1100px;
-      margin: 30px auto;
-    }
-   
-    header {
-      width: 100%;
-      padding: 15px 30px;
-    }
-   
-    .perfil-info {
-      text-align: left;
-      padding: 30px;
-    }
-   
-    .perfil-info h1 {
-      font-size: 1.6rem;
-    }
-   
-    .descricao {
-      font-size: 1rem;
-    }
-   
-    .calendario h2,
-    .comentarios h2 {
-      font-size: 1.4rem;
-    }
-   
-    .comentarios {
-      margin-top: 30px;
-    }
+ 
+  .comentarios {
+    margin-top: 30px;
   }
-   
+}
+ 

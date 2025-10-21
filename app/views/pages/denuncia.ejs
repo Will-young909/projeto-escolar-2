@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Denúncia - Regimath</title>
+  <link rel="stylesheet" href="/css/cadastro.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+</head>
+<body>
+  <header>
+    <img src="/imagens/Regimath_curto.png" alt="Regimath" id="logo">
+  </header>
+
+  <main>
+    <h1>Denúncia</h1>
+    <p class="subtitle">Use este formulário para reportar comportamentos ou conteúdos inadequados.</p>
+
+    <form id="denunciaForm" action="/denuncia" method="POST" novalidate>
+      <!-- campo tipo -->
+      <label for="tipo">Tipo de denúncia</label>
+      <select id="tipo" name="tipo" required>
+        <option value="" disabled <%= !dados?.tipo ? 'selected' : '' %>>Selecione</option>
+        <option value="conteudo" <%= dados?.tipo==='conteudo' ? 'selected' : '' %>>Conteúdo</option>
+        <option value="comportamento" <%= dados?.tipo==='comportamento' ? 'selected' : '' %>>Comportamento</option>
+        <option value="outro" <%= dados?.tipo==='outro' ? 'selected' : '' %>>Outro</option>
+      </select>
+      <% if (erros && erros.tipo) { %><p class="erro"><%= erros.tipo.msg %></p><% } %>
+  <p class="erro" id="err-tipo"></p>
+
+      <!-- título -->
+      <label for="titulo">Título</label>
+  <input id="titulo" name="titulo" type="text" maxlength="100" value="<%= dados?.titulo || '' %>" required>
+  <% if (erros && erros.titulo) { %><p class="erro"><%= erros.titulo.msg %></p><% } %>
+  <p class="erro" id="err-titulo"></p>
+
+      <!-- descrição -->
+      <label for="descricao">Descrição (conte o que ocorreu)</label>
+  <textarea id="descricao" name="descricao" rows="6" required><%= dados?.descricao || '' %></textarea>
+  <% if (erros && erros.descricao) { %><p class="erro"><%= erros.descricao.msg %></p><% } %>
+  <p class="erro" id="err-descricao"></p>
+
+      <!-- opcional: evidência url -->
+      <label for="evidencia">Link de evidência (opcional)</label>
+  <input id="evidencia" name="evidencia" type="url" placeholder="https://..." value="<%= dados?.evidencia || '' %>">
+  <% if (erros && erros.evidencia) { %><p class="erro"><%= erros.evidencia.msg %></p><% } %>
+  <p class="erro" id="err-evidencia"></p>
+
+      <!-- contato opcional -->
+      <label for="email">Seu e-mail (opcional, para retorno)</label>
+  <input id="email" name="email" type="email" placeholder="seu@email.com" value="<%= dados?.email || '' %>">
+  <% if (erros && erros.email) { %><p class="erro"><%= erros.email.msg %></p><% } %>
+  <p class="erro" id="err-email"></p>
+
+      <!-- anonimato -->
+      <label style="margin-top:12px;">
+        <input type="checkbox" id="anonimo" name="anonimo" value="1" <%= dados?.anonimo ? 'checked' : '' %> >
+        Enviar como anônimo
+      </label>
+
+      <button type="submit">Enviar denúncia</button>
+    </form>
+  </main>
+
+<script>
+/* ===== Front-end validation (mobile-first friendly) ===== */
+(function(){
+  const form = document.getElementById('denunciaForm');
+
+  form.addEventListener('submit', function(e){
+    // simple client-side checks mirror server rules
+    const tipo = document.getElementById('tipo').value.trim();
+    const titulo = document.getElementById('titulo').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const evidencia = document.getElementById('evidencia').value.trim();
+
+    // limpa mensagens anteriores
+    ['err-tipo','err-titulo','err-descricao','err-evidencia','err-email'].forEach(id=>{
+      const el = document.getElementById(id); if (el) el.textContent = '';
+    });
+
+    const errors = [];
+
+    if (!tipo) errors.push({ msg: 'Selecione o tipo de denúncia.' });
+    if (!titulo || titulo.length < 5) errors.push({ msg: 'O título deve ter ao menos 5 caracteres.' });
+    if (!descricao || descricao.length < 10) errors.push({ msg: 'A descrição deve ter ao menos 10 caracteres.' });
+
+    if (email) {
+      const re = /\\S+@\\S+\\.\\S+/;
+      if (!re.test(email)) errors.push({ msg: 'E-mail inválido.' });
+    }
+
+    if (evidencia) {
+      try {
+        new URL(evidencia);
+      } catch (_) {
+        errors.push({ msg: 'O link de evidência não é uma URL válida.' });
+      }
+    }
+
+    if (errors.length) {
+      e.preventDefault();
+      // preenche mensagens inline correspondentes
+      errors.forEach(err => {
+        // err.param opcional; usamos msg para identificar qual campo se refere caso exista
+        if (err.param) {
+          const el = document.getElementById('err-' + err.param);
+          if (el) el.textContent = err.msg;
+        } else {
+          // mapeia por texto (quando criado no client-side)
+          if (err.msg.includes('tipo')) document.getElementById('err-tipo').textContent = err.msg;
+          if (err.msg.includes('título')) document.getElementById('err-titulo').textContent = err.msg;
+          if (err.msg.includes('descrição')) document.getElementById('err-descricao').textContent = err.msg;
+          if (err.msg.includes('E-mail')) document.getElementById('err-email').textContent = err.msg;
+          if (err.msg.includes('evidência')) document.getElementById('err-evidencia').textContent = err.msg;
+        }
+      });
+    }
+  });
+})();
+</script>
+</body>
+</html>

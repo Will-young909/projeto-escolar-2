@@ -166,7 +166,6 @@ input[type="text"]:focus {
 }
  
 .dia:hover {
-  background: #ddd;
   transform: scale(1.05);
 }
  
@@ -276,7 +275,11 @@ input[type="text"]:focus {
   }
  
   .perfil-info {
-    padding: 30px;
+    width: 140%;
+  }
+
+  input {
+    width: 100%;
   }
  
   .foto-perfil {
@@ -286,6 +289,12 @@ input[type="text"]:focus {
  
   .descricao {
     font-size: 1rem;
+  }
+
+  .calendario {
+    position: absolute;
+    width: 50%;
+    right: 10%;
   }
  
   .calendario h2,

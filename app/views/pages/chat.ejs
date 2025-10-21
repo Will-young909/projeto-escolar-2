@@ -1,99 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chat - Regimath</title>
   <link rel="stylesheet" href="../css/chat.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
 </head>
+
 <body>
   <header class="chat-header">
-    <div class="chat-header-content">
-      <img src="/imagens/Regimath_curto.png" alt="Logo" class="chat-logo">
+    <section class="chat-header-content">
+      <a href="/video/sala1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#800020"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-video">
+          <rect x="3" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          <polygon points="19 7 23 12 19 17 19 7"></polygon>
+        </svg>
+
+      </a>
       <h3>Chat</h3>
-    </div>
-    <a href="/exibir_prof/:id" class="chat-exit">← Voltar</a>
+    </section>
+    <a href="/" class="chat-exit">← Voltar</a>
   </header>
 
-  <main class="chat-main" id="chatBody"></main>
+  <!-- UI opcional para professor criar cobrança -->
+  <% if (user && user.tipo==='professor' ) { %>
+    <section class="payment-request-ui" id="paymentUI" style="padding:12px 16px;">
+      <input id="payDescricao" placeholder="Descrição (ex: Aula 1h)"
+        style="padding:8px;border-radius:10px;border:1px solid #ddd;width:58%" />
+      <input id="payValor" placeholder="Valor (ex: 50.00)"
+        style="padding:8px;border-radius:10px;border:1px solid #ddd;width:20%;margin-left:8px" type="number" step="0.01"
+        min="0" />
+      <button id="sendPaymentReq" class="btn-billing"
+        style="margin-left:8px;padding:8px 12px;border-radius:10px;border:none;cursor:pointer">Cobrar</button>
+    </section>
+    <% } %>
 
-  <form id="chatForm" class="chat-form">
-    <input id="chatMessage" type="text" placeholder="Digite sua mensagem..." autocomplete="off" required>
-    <button type="submit" aria-label="Enviar mensagem">➤</button>
-  </form>
+      <main class="chat-main" id="chatBody"></main>
 
-  <script>
-    const CHAT_USER = {
-      nome: "<%= (user && user.nome) ? user.nome.replace(/\"/g, '\\"') : 'Visitante' %>",
-      email: "<%= (user && user.email) ? user.email.replace(/\"/g, '\\"') : '' %>"
+      <form id="chatForm" class="chat-form">
+        <input id="chatMessage" type="text" placeholder="Digite sua mensagem..." autocomplete="off" required>
+        <button type="submit" aria-label="Enviar mensagem">➤</button>
+      </form>
+
+      <script>
+        const CHAT_USER = {
+          nome: "<%= (user && user.nome) ? user.nome.replace(/\"/g, '\\"') : 'Visitante' %>",
+      email: "<%= (user && user.email) ? user.email.replace(/\"/g, '\\"') : '' %>",
+      tipo: "<%= (user && user.tipo) ? user.tipo : 'visitante' %>"
     };
-    const CHAT_ROOM = "<%= room %>";
-  </script>
+        const CHAT_ROOM = "<%= room %>";
+      </script>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    (function() {
-      const socket = io();
-      const chatBody = document.getElementById('chatBody');
-      const chatForm = document.getElementById('chatForm');
-      const chatInput = document.getElementById('chatMessage');
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        (function () {
+          const socket = io();
+          const chatBody = document.getElementById('chatBody');
+          const chatForm = document.getElementById('chatForm');
+          const chatInput = document.getElementById('chatMessage');
 
-      function createMsg(msg) {
-        const div = document.createElement('div');
-        div.classList.add('message', msg.user === CHAT_USER.nome ? 'sent' : 'received');
+          function createMsg(msg) {
+            const div = document.createElement('section');
+            div.classList.add('message', msg.user === CHAT_USER.nome ? 'sent' : 'received');
 
-        const user = document.createElement('span');
-        user.classList.add('msg-user');
-        if (msg.user !== CHAT_USER.nome) user.textContent = msg.user + ': ';
+            const user = document.createElement('p');
+            user.classList.add('msg-user');
+            if (msg.user !== CHAT_USER.nome) user.textContent = msg.user + ': ';
 
-        const text = document.createElement('span');
-        text.classList.add('msg-text');
-        text.textContent = msg.text;
+            const text = document.createElement('p');
+            text.classList.add('msg-text');
+            text.textContent = msg.text;
 
-        const time = document.createElement('span');
-        time.classList.add('msg-time');
-        time.textContent = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const time = document.createElement('p');
+            time.classList.add('msg-time');
+            time.textContent = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-        div.appendChild(user);
-        div.appendChild(text);
-        div.appendChild(time);
-        return div;
-      }
+            div.appendChild(user);
+            div.appendChild(text);
+            div.appendChild(time);
+            return div;
+          }
 
-      // Receber histórico
-      socket.on("roomHistory", (history) => {
-        chatBody.innerHTML = "";
-        history.forEach(m => chatBody.appendChild(createMsg(m)));
-        chatBody.scrollTop = chatBody.scrollHeight;
-      });
+          // Receber histórico
+          socket.on("roomHistory", (history) => {
+            chatBody.innerHTML = "";
+            history.forEach(m => chatBody.appendChild(createMsg(m)));
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
 
-      // Nova mensagem
-      socket.on("newMessage", (msg) => {
-        chatBody.appendChild(createMsg(msg));
-        chatBody.scrollTop = chatBody.scrollHeight;
-      });
+          // Nova mensagem
+          socket.on("newMessage", (msg) => {
+            chatBody.appendChild(createMsg(msg));
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
 
-      // Mensagens do sistema
-      socket.on("systemMessage", (msg) => {
-        const sys = document.createElement("div");
-        sys.classList.add("system-msg");
-        sys.textContent = msg.text;
-        chatBody.appendChild(sys);
-        chatBody.scrollTop = chatBody.scrollHeight;
-      });
+          // Mensagens do sistema
+          socket.on("systemMessage", (msg) => {
+            const sys = document.createElement("div");
+            sys.classList.add("system-msg");
+            sys.textContent = msg.text;
+            chatBody.appendChild(sys);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
 
-      // Entrar na sala
-      socket.emit("joinRoom", { room: CHAT_ROOM, user: CHAT_USER.nome });
+          // Entrar na sala
+          socket.emit("joinRoom", { room: CHAT_ROOM, user: CHAT_USER.nome });
 
-      // Enviar mensagem
-      chatForm.addEventListener("submit", e => {
-        e.preventDefault();
-        const text = chatInput.value.trim();
-        if (!text) return;
-        socket.emit("chatMessage", { room: CHAT_ROOM, user: CHAT_USER.nome, text });
-        chatInput.value = "";
-      });
-    })();
-  </script>
+          // Enviar mensagem
+          chatForm.addEventListener("submit", e => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text) return;
+            socket.emit("chatMessage", { room: CHAT_ROOM, user: CHAT_USER.nome, text });
+            chatInput.value = "";
+          });
+
+          // ---------- Receber solicitação de pagamento (renderiza no chat) ----------
+          socket.on('paymentRequest', (data) => {
+            const wrap = document.createElement('section');
+            wrap.className = 'message received payment-card';
+            wrap.innerHTML = `
+          <section style="font-weight:700;margin-bottom:6px">Solicitação de pagamento</section>
+          <section style="opacity:0.9">${(data.descricao) ? data.descricao : 'Pagamento'}</section>
+          <section style="margin-top:8px;font-weight:700">R$ ${Number(data.valor).toFixed(2)}</section>
+          <section style="margin-top:10px">
+            <a href="${data.link}" target="_blank" class="btn-pagar" style="display:inline-block;padding:8px 12px;border-radius:8px;text-decoration:none">Pagar agora</a>
+            <small style="display:block;margin-top:6px;color:#666">Clique para abrir o checkout seguro do Mercado Pago</small>
+          </section>
+        `;
+            chatBody.appendChild(wrap);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
+
+          // ---------- Receber confirmação de pagamento ----------
+          socket.on('paymentConfirmed', (info) => {
+            const div = document.createElement('section');
+            div.className = 'system-msg';
+            const amt = Number(info.amount || 0).toFixed(2);
+            div.textContent = `Pagamento confirmado: R$ ${amt} (${info.payer || 'pagador desconhecido'})`;
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+          });
+
+          // ---------- Enviar requestPayment (apenas se for professor) ----------
+          const sendPaymentBtn = document.getElementById('sendPaymentReq');
+          if (sendPaymentBtn) {
+            sendPaymentBtn.addEventListener('click', () => {
+              const desc = document.getElementById('payDescricao').value.trim() || 'Aula';
+              const valor = parseFloat(document.getElementById('payValor').value) || 0;
+              if (!valor || valor <= 0) {
+                alert('Informe um valor válido.');
+                return;
+              }
+              socket.emit('requestPayment', {
+                room: CHAT_ROOM,
+                valor,
+                descricao: desc,
+                // payerEmail: opcional se souber o email
+              });
+              // opcional: aviso no chat
+              const aviso = document.createElement('section');
+              aviso.className = 'system-msg';
+              aviso.textContent = `Pedido de pagamento enviado: R$ ${valor.toFixed(2)} — aguardando pagamento.`;
+              chatBody.appendChild(aviso);
+              chatBody.scrollTop = chatBody.scrollHeight;
+            });
+          }
+        })();
+      </script>
 </body>
+
 </html>
