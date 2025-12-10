@@ -1,3 +1,26 @@
+/* ============ VARIÁVEIS CSS (PALETA TESTE) ============ */
+:root {
+  /* CORES PRIMÁRIAS E FUNDO */
+  --color-primary: #800020;         /* Vinho/Bordô Principal (Header, Botões, Títulos) */
+  --color-secondary: #b22222;       /* Vermelho Escuro (Hover) */
+  --color-background: #f7f8fa;      /* Fundo Leve */
+  --color-card-bg: #fff;            /* Fundo dos Cards */
+  
+  /* CORES DE TEXTO E ÊNFASE */
+  --color-text-dark: #222;          /* Texto principal (Legível) */
+  --color-text-secondary: #4a4a4a;  /* Texto de parágrafo (Mais suave) */
+  --color-text-light: #fff;         /* Texto sobre fundo escuro */
+  
+  /* CORES DE ALERTA E AVALIAÇÃO */
+  --color-star: #ffd700;            /* Amarelo Estrela (Avaliações) */
+  --color-accent: #E8AE1E;          /* Dourado/Âmbar (Opcional: CTA de destaque) */
+
+  /* Espaçamento */
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+
 /* ============ RESET ============ */
 * {
   margin: 0;
@@ -7,12 +30,21 @@
 
 body {
   font-family: "Poppins", Arial, sans-serif;
-  background: #f7f8fa;
-  color: #222;
+  background: var(--color-background);
+  color: var(--color-text-dark);
   line-height: 1.6;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Evita o scroll do corpo em mobile quando o menu está ativo */
+body.no-scroll {
+    overflow: hidden;
+}
+
+main {
+    flex-grow: 1; /* Garante que o main ocupe o espaço restante */
 }
 
 /* ============ HEADER ============ */
@@ -20,18 +52,22 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  padding: 8px 16px;
+  background: var(--color-text-light);
+  padding: 8px var(--spacing-md);
   height: 60px;
-  border-bottom: 2px solid #800020;
+  width: 100%;
+  border-bottom: 2px solid var(--color-primary);
   position: sticky;
   top: 0;
   z-index: 1000;
 }
 
 .logo {
-  width: 150px;
-  height: 120px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 70px;
   object-fit: contain;
 }
 
@@ -39,7 +75,7 @@ header {
   font-size: 1.8rem;
   background: none;
   border: none;
-  color: #800020;
+  color: var(--color-primary);
   cursor: pointer;
 }
 
@@ -47,68 +83,76 @@ header {
 nav {
   position: fixed;
   top: 0;
-  left: -260px;
-  width: 250px;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
   height: 100vh;
-  background: #800020;
-  display: flex;
-  flex-direction: column;
-  padding-top: 70px;
-  transition: 0.3s ease;
-  z-index: 1002; /* acima do header */
-  overflow: visible; /* permite que o botão fique visível fora do menu */
+  background: var(--color-primary);
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
 }
 
 nav.active {
   left: 0;
 }
 
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 nav a,
-nav p {
-  color: #fff;
+nav .dropdown-toggle {
+  color: var(--color-text-light);
   text-decoration: none;
-  padding: 12px 24px;
+  padding: var(--spacing-sm) var(--spacing-lg);
   font-size: 1rem;
   transition: background 0.3s;
+  display: block;
 }
 
 nav a:hover,
-nav p:hover {
-  background: rgba(255, 255, 255, 0.15);
+nav .dropdown-toggle:hover {
+  background: var(--color-secondary);
 }
 
 #close-menu {
   position: absolute;
-  top: 15px;
-  right: 20px;
+  top: 10px;
+  right: 15px;
   background: none;
   border: none;
   font-size: 2rem;
-  color: #fff;
+  color: var(--color-text-light);
   cursor: pointer;
 }
 
-/* Botão de recolher (desktop) - posicionado fora do menu para ficar sempre visível */
+/* Botão de recolher (desktop) */
 #toggle-menu {
   position: absolute;
-  top: 18px;
-  right: 0px; /* ficará fora do painel levemente */
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: linear-gradient(180deg,#b22222,#8b0f13);
-  border: 2px solid rgba(0,0,0,0.15);
-  display: none; /* mostrado apenas em desktop via media query */
+  background: var(--color-primary);
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 1003;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-#toggle-menu:hover { transform: translateY(-2px); }
+#toggle-menu:hover { transform: scale(1.05); }
 
-#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; color: #fff; }
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
 
 /* Overlay */
 #overlay {
@@ -118,7 +162,7 @@ nav p:hover {
   opacity: 0;
   visibility: hidden;
   transition: 0.3s;
-  z-index: 1001; /* entre header e nav when active */
+  z-index: 1001;
 }
 
 #overlay.active {
@@ -126,308 +170,419 @@ nav p:hover {
   visibility: visible;
 }
 
-/* Dropdown */
-.dropdown-regimath {
-  margin: 10px 20px;
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: var(--color-text-light);
 }
 
-/* Botão de recolher - escondido no mobile, visível em telas maiores */
-#toggle-menu { display: none; }
+/* Dropdown */
+.dropdown-regimath {
+  position: relative;
+}
 
 .dropdown-toggle {
   width: 100%;
-  background: #b22222;
-  color: #fff;
+  background: none;
   border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+.dropdown-regimath.active .arrow {
+    transform: rotate(180deg);
+}
+
 .dropdown-content {
-  display: none;
-  background: #fff;
-  color: #333;
-  border-radius: 8px;
-  margin-top: 5px;
-  padding: 10px;
+  background: var(--color-secondary);
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.pa {
-  display: block;
-  padding: 8px 12px;
-  color: #333;
-  text-decoration: none;
-  border-radius: 6px;
-  transition: background 0.2s;
-}
-
-.dropdown-regimath.active .dropdown-content {
-  display: block;
+/* Links do dropdown */
+.dropdown-content a {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.95rem;
+  background: none;
 }
 
 /* ============ HERO ============ */
 .hero {
-  background: linear-gradient(135deg, #800020, #b22222);
-  color: #fff;
-  padding: 30px 20px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-text-light);
+  padding: 30px var(--spacing-md);
   text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.hero h2 {
-  font-size: 1.4rem;
-  margin-bottom: 12px;
+.hero h1 {
+  font-size: 1.8rem;
+  margin-bottom: var(--spacing-md);
 }
 
 .hero ul {
   list-style: none;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .hero li {
   margin: 6px 0;
+  /* Adiciona um pequeno recuo para alinhar melhor o texto */
+  text-indent: -1.5em; 
+  padding-left: 1.5em;
 }
 
-/* ============ SEARCH ============ */
+/* ============ SEARCH (APRIMORADO) ============ */
 .search-bar {
-  margin-top: 15px;
+  margin-top: var(--spacing-lg);
+  padding: 0 var(--spacing-sm);
+}
+
+.search-bar form {
+    display: flex;
+    justify-content: center;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    background: var(--color-text-light);
+    border-radius: 25px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(128, 0, 32, 0.4);
 }
 
 .search-bar input[type="search"] {
-  width: 80%;
-  max-width: 380px;
-  height: 42px;
-  border-radius: 25px;
-  border: 1px solid #ccc;
-  padding-left: 40px;
-  background: #fff url('https://cdn-icons-png.flaticon.com/512/622/622669.png') no-repeat 12px center;
-  background-size: 18px;
-  transition: 0.3s;
+    flex-grow: 1;
+    height: 44px; 
+    border-radius: 25px;
+    border: none;
+    padding: 0 15px;
+    background: none;
+    font-size: 1rem;
 }
 
 .search-bar input[type="search"]:focus {
-  border-color: #fff;
-  outline: none;
-  box-shadow: 0 0 6px rgba(255,255,255,0.3);
+    outline: none;
+}
+
+.search-bar button[type="submit"] {
+    /* Usando a cor primária para o botão */
+    background: var(--color-primary);
+    border: none;
+    border-radius: 0 25px 25px 0;
+    width: 45px;
+    height: 44px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.search-bar button[type="submit"]:hover {
+    background: var(--color-secondary);
+}
+
+.search-bar button[type="submit"] svg {
+    stroke: var(--color-text-light);
 }
 
 /* ============ PROFESSORES ============ */
 .professores {
-  padding: 25px 15px 80px;
+  padding: var(--spacing-lg) var(--spacing-md);
 }
 
 .professores h3 {
   text-align: center;
-  font-size: 1.2rem;
-  color: #800020;
-  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
 }
 
 /* Container de cards */
 .container {
   display: grid;
-  gap: 16px;
+  gap: var(--spacing-md);
   grid-template-columns: 1fr;
   justify-items: center;
 }
 
 /* Card individual */
 .card {
-  background: #fff;
+  background: var(--color-card-bg); /* Usando variável do card background */
   border: 1px solid #ddd;
   border-radius: 12px;
   overflow: hidden;
-  width: 290px;
+  width: 100%;
+  max-width: 340px;
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
-.background img {
+.card-header img {
   width: 100%;
-  height: 160px;
+  height: 180px;
   object-fit: cover;
 }
 
-.content {
-  padding: 15px;
+.card-content {
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.content h2 {
-  font-size: 1.1rem;
-  color: #800020;
+.card-content h2 {
+  font-size: 1.2rem;
+  color: var(--color-primary);
 }
 
 .limite,
 .avaliacao,
 .descricao {
-  font-size: 0.9rem;
-  color: #444;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary); /* NOVO: Cor mais suave para texto secundário */
 }
 
 .avaliacao {
-  color: #f4b400;
+  color: var(--color-star);
   font-weight: 600;
 }
 
+/* Descrição limitada para uniformizar a altura do card */
+.descricao {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  /* Limita a 3 linhas */
+  line-clamp: 3;
+  /* Standard property for compatibility */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .btn-previa {
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
   text-align: center;
-  background: #800020;
-  color: #fff;
-  padding: 8px;
+  background: var(--color-primary);
+  color: var(--color-text-light);
+  padding: 10px;
   border-radius: 6px;
   text-decoration: none;
+  font-weight: 600;
   transition: background 0.3s;
 }
 
 .btn-previa:hover {
-  background: #b22222;
+  background: var(--color-secondary);
+}
+
+/* Call to Action (Ver Todos) */
+.call-to-action {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+}
+
+.btn-primary {
+    display: inline-block;
+    /* NOVO: Usando cor de destaque (Accent) para o CTA */
+    background: var(--color-accent); 
+    color: var(--color-text-dark); /* Texto escuro sobre destaque */
+    text-decoration: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: background 0.3s, transform 0.2s;
+}
+
+.btn-primary:hover {
+    background: var(--color-star); /* Um pouco mais claro no hover */
+    transform: translateY(-2px);
 }
 
 /* ============ FOOTER ============ */
 footer {
-  background: #800020;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-text-light);
   text-align: center;
-  padding: 12px;
-  font-size: 0.85rem;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
   margin-top: auto;
 }
 
 .icon-mail {
-  font-family: "Poppins", Arial, sans-serif;
-  transition: transform 0.3s ease, stroke 0.3s ease;
-  stroke: #f2f2f2;
+  stroke: var(--color-text-light);
   margin-bottom: -6px;
+  margin-left: 5px;
+  transition: transform 0.3s ease, stroke 0.3s ease;
 }
 .icon-mail:hover {
   transform: scale(1.1);
-  stroke: #f2f2f2;
+  stroke: var(--color-star); /* NOVO: Cor da estrela para destaque no hover */
 }
 
-/* ============ MEDIA QUERIES ============ */
+/* ============ NOVO ESTILO PARA RESULTADOS VAZIOS (professores.ejs) ============ */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    margin: 40px auto;
+    max-width: 500px;
+    background: var(--color-card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state h3 {
+    color: var(--color-secondary); /* Vermelho escuro para alerta */
+    font-size: 1.6rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state .btn-primary {
+    /* Reutiliza o estilo do botão primário */
+    background: var(--color-primary); 
+    color: var(--color-text-light); 
+}
+
+.empty-state .btn-primary:hover {
+    background: var(--color-secondary); 
+}
+
+/* ============ MEDIA QUERIES (Mesmas regras de responsividade/colapso) ============ */
 
 /* === Tablet (768px) === */
 @media (min-width: 768px) {
-  header {
-    padding: 10px 30px;
-  }
-
-  .logo {
-    position: absolute;
-    top: -37px;
-    left: 270px;
-    align-self: center;
-  }
-
   .menu-btn,
   #overlay,
   #close-menu {
     display: none;
   }
 
-  /* torna o botão de recolher visível em telas maiores */
-  #toggle-menu { display: flex; pointer-events: auto; }
+  #toggle-menu { display: flex; }
 
   nav {
     left: 0;
-    width: 220px;
-    background: #800020;
-    border-right: 2px solid #a52a2a;
+    width: 260px;
+    border-right: 2px solid var(--color-secondary);
+    padding-top: 0;
   }
 
-  /* Recolher/expandir (desktop) */
-  nav.collapsed {
-    width: 60px;
-    overflow: hidden;
-  }
-
-  /* Esconde textos dos links quando recolhido */
-  nav.collapsed a,
-  nav.collapsed p,
-  nav.collapsed .dropdown-toggle {
-    text-indent: -9999px;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-
-  /* Ajusta conteúdo principal quando menu recolhido */
   main {
-    margin-left: 220px;
+    margin-left: 260px;
     transition: margin-left 0.3s ease;
   }
 
-  nav.collapsed ~ main {
-    margin-left: 60px;
+  nav.collapsed {
+    width: 70px;
   }
 
-  main {
-    margin-left: 220px;
+  nav.collapsed ~ main {
+    margin-left: 70px;
+  }
+
+  nav.collapsed a,
+  nav.collapsed .dropdown-toggle .label {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  nav.collapsed .dropdown-toggle {
+      justify-content: center;
+  }
+
+  nav.collapsed .dropdown-toggle .arrow {
+      display: none;
   }
 
   .hero {
     text-align: left;
-    padding: 40px 30px;
+    padding: 40px var(--spacing-lg);
   }
 
-  .hero h2 {
-    font-size: 1.6rem;
+  .hero h1 {
+    font-size: 2rem;
   }
 
   .container {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: var(--spacing-lg);
   }
 
   .card {
     max-width: 100%;
   }
+
+  .search-bar {
+      padding: 0;
+  }
+
+  .search-bar form {
+      justify-content: flex-start;
+  }
+
+  .logo {
+    position: absolute;
+    top: 0px;
+    left: 225px;
+    width: 175px;
+  }
 }
 
 /* === Desktop (1024px+) === */
 @media (min-width: 1024px) {
-  header {
-    padding: 15px 40px;
-  }
-
   .hero {
     padding: 60px 80px;
-    text-align: left;
   }
 
-  .hero h2 {
-    font-size: 2rem;
-  }
-
-  .hero ul {
-    font-size: 1.1rem;
+  .hero h1 {
+    font-size: 2.5rem;
   }
 
   .container {
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+    gap: 30px;
     padding: 0 40px;
   }
-
-  .card {
-    width: 360px;
-  }
-
-  .content h2 {
-    font-size: 1.2rem;
-  }
-
-  footer {
-    font-size: 1rem;
-  }
 }
+  

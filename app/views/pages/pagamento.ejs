@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finalizar Pagamento | RegiMath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
+  <link rel="stylesheet" href="../css/checkout.css" />
+</head>
+
+<body>
+  <header class="checkout-header">
+    <a href="/" class="logo-link">
+      <img src="/imagens/RM_bordo.png" alt="Logo RegiMath" class="logo">
+    </a>
+  </header>
+
+  <h1>Finalizar Pedido</h1>
+
+  <main class="checkout-container">
+    <!-- CARD: Pagamento -->
+    <div class="payment-method-card">
+      <h2><i class="fas fa-credit-card"></i> Opções de Pagamento</h2>
+      <p class="payment-tip">Escolha o método e clique em <strong>"Pagar Agora"</strong> para continuar em ambiente seguro.</p>
+
+      <form action="/create_preference" method="POST">
+        <input type="hidden" name="user_id" value="<%= user.id %>">
+        <input type="hidden" name="amount" value="365.00">
+        <input type="hidden" name="description" value="Pacote de Aulas RegiMath">
+
+        <div class="payment-options">
+          <label class="radio-option active">
+            <input type="radio" name="method" value="credit_card" checked>
+            <i class="fas fa-credit-card"></i> Cartão de Crédito / Débito
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="method" value="pix">
+            <i class="fas fa-qrcode"></i> PIX (Pagamento Instantâneo)
+          </label>
+        </div>
+
+        <button type="submit" class="btn checkout-btn">
+          <i class="fas fa-lock"></i> Pagar Agora (R$ 365,00)
+        </button>
+      </form>
+    </div>
+
+    <!-- CARD: Resumo -->
+    <div class="order-summary-card">
+      <h2><i class="fas fa-shopping-cart"></i> Resumo do Pedido</h2>
+
+      <div class="item-list">
+        <div class="item">
+          <span>Pacote de 5 Aulas - Matemática (Nível Intermediário)</span>
+          <strong>R$ 350,00</strong>
+        </div>
+        <div class="item">
+          <span>Taxa de Serviço</span>
+          <strong>R$ 15,00</strong>
+        </div>
+      </div>
+
+      <div class="total-row">
+        <span>Total a Pagar:</span>
+        <strong class="total-price">R$ 365,00</strong>
+      </div>
+    </div>
+  </main>
+
+  <footer class="checkout-footer">
+    <p><i class="fas fa-shield-alt"></i> Pagamento 100% seguro e processado por parceiros confiáveis.</p>
+  </footer>
+
+  <script>
+    document.querySelectorAll('.radio-option').forEach(label => {
+      label.addEventListener('click', function () {
+        document.querySelectorAll('.radio-option').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Perfil | <%= user.nome %> - Regimath</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/editar_perfil.css" />
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" type="image/png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" crossorigin="anonymous" defer></script>
+  <style>
+    /* Modal change password - estilos similares aos usados em editar_perfil_prof */
+    .error-feedback {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 4px;
+      margin-bottom: 0;
+      font-style: italic;
+    }
+    .discipline-item {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+      align-items: flex-start;
+    }
+    .discipline-item input {
+      flex: 1;
+    }
+    /* Modal de alterar senha */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.5);
+      z-index: 1200;
+      padding: 1rem;
+    }
+    .modal[aria-hidden="false"] { display: flex; }
+    .modal-content {
+      background: #fff;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #changePasswordForm .form-group { margin-bottom: 1rem; }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+  </header>
+
+  <div id="overlay"></div>
+
+  <nav id="menu" class="overlay collapsed">
+
+    <button id="close-menu" aria-label="Fechar menu">&times;</button>
+
+    <button id="toggle-menu" aria-label="Recolher menu">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+
+    <ul class="nav-links">
+      <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+
+      <% if (session.user_aluno) { %>
+          <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
+          <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
+          <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
+          <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+      <% } %>
+    </ul>
+  </nav>
+
+  <main class="perfil-container">
+    <section class="conteudo-principal">
+      
+      <article class="card form-card width-fix" aria-labelledby="titulo-editar">
+        <h2 id="titulo-editar"><i class="fas fa-user-edit"></i> Editar Perfil</h2>
+
+
+
+        <form action="/perfil/editar" method="POST" class="form-edicao" enctype="multipart/form-data" id="editarPerfilForm" novalidate>
+          
+          <div class="form-group foto-upload">
+            <label for="foto">Foto de Perfil</label>
+            <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
+            <button type="button" class="btn-trocar-foto"><i class="fas fa-camera"></i> Trocar Foto</button>
+            <input type="file" id="foto" name="foto" accept="image/*" hidden />
+            <p class="input-dica">Arquivos aceitos: JPG, PNG até 5MB</p>
+          </div>
+
+          <div class="form-group">
+            <label for="nome">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="nome" name="nome" value="<%= dados?.nome || user.nome %>" required
+                   class="<%= erros?.nome ? 'invalid' : '' %>"
+                   aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
+                   aria-describedby="err-nome" />
+            <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
+          </div>
+
+          <div class="form-group">
+            <label for="email">E-mail <span class="required">*</span></label>
+            <input type="email" id="email" name="email" value="<%= dados?.email || user.email %>" required
+                   class="<%= erros?.email ? 'invalid' : '' %>"
+                   aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
+                   aria-describedby="err-email" />
+            <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
+          </div>
+
+          <div class="form-group">
+            <label for="descricao">Descrição / Biografia</label>
+            <textarea id="descricao" name="descricao" rows="4" placeholder="Conte um pouco sobre você..."><%= dados?.descricao || user.descricao || '' %></textarea>
+          </div>
+
+          <div class="form-actions">
+            <section>
+                <button type="submit" class="btn-salvar"><i class="fas fa-save"></i> Salvar</button>
+            </section><br>
+            <a href="/perfil_aluno" class="btn-cancelar">Cancelar</a>
+          </div>
+        </form>
+      </article>
+
+      <article class="card seguranca-card" aria-labelledby="titulo-seguranca">
+        <h2 id="titulo-seguranca"><i class="fas fa-lock"></i> Segurança</h2>
+        <p>Deseja mudar sua senha? Clique abaixo:</p>
+        <button id="open-change-password" type="button" class="btn-alterar-senha">Alterar Senha</button>
+
+        <!-- Modal: Alterar Senha -->
+        <div id="change-password-modal" class="modal" aria-hidden="true">
+          <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
+            <button class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
+            <h3 id="change-password-title">Alterar Senha</h3>
+            <form id="changePasswordForm" action="/alterar-senha" method="POST">
+              <div class="form-group">
+                <label for="current_password">Senha atual <span class="required">*</span></label>
+                <input type="password" id="current_password" name="current_password" required
+                  value="<%= (!user.password && user.initial_password) ? user.initial_password : '' %>" />
+                <div id="currentPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="new_password">Nova senha <span class="required">*</span></label>
+                <input type="password" id="new_password" name="new_password" required minlength="6" />
+                <div id="newPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
+
+              <div class="btns">
+                <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
+                <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const menu = document.getElementById('menu');
+    const overlay = document.getElementById('overlay');
+    const closeBtn = document.getElementById('close-menu');
+    const toggleBtn = document.getElementById("toggle-menu");
+    const dropdown = document.querySelector('.dropdown-regimath');
+
+    function toggleMobileMenu() {
+      menu.classList.toggle('active');
+      overlay.classList.toggle('active');
+      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+    }
+
+    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+
+    if (toggleBtn) {
+      const toggleIcon = document.getElementById('toggle-icon');
+      const isCollapsed = menu.classList.contains('collapsed');
+      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        menu.classList.toggle("collapsed");
+        const isNowCollapsed = menu.classList.contains('collapsed');
+        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    }
+
+    // Photo preview logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('foto');
+      const preview = document.querySelector('.foto-preview');
+      const btnTrocar = document.querySelector('.btn-trocar-foto');
+      if (btnTrocar && input) btnTrocar.addEventListener('click', () => input.click());
+      if (input) input.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file && preview) preview.src = URL.createObjectURL(file);
+      });
+    });
+
+    // ==================== VALIDAÇÃO DO FORMULÁRIO (Aluno) ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      const formAluno = document.getElementById('editarPerfilForm');
+      if (!formAluno) return;
+
+      function validateField(input) {
+        let errorMsg = '';
+        let isValid = true;
+        if (input.hasAttribute('required') && !input.value.trim()) {
+          errorMsg = 'Este campo é obrigatório.';
+          isValid = false;
+        } else if (input.id === 'email' && input.value.trim()) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(input.value.trim())) {
+            errorMsg = 'Por favor, insira um email válido.';
+            isValid = false;
+          }
+        } else if (input.id === 'nome' && input.value.trim().length < 3) {
+          errorMsg = 'O nome deve ter pelo menos 3 caracteres.';
+          isValid = false;
+        }
+        return { isValid, errorMsg };
+      }
+
+      formAluno.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fieldIds = ['nome', 'email'];
+        let allValid = true;
+
+        fieldIds.forEach(id => {
+          const input = document.getElementById(id);
+          if (input) {
+            const { isValid, errorMsg } = validateField(input);
+            const errorElement = document.getElementById(`err-${id}`);
+            if (!isValid) {
+              input.classList.add('invalid');
+              input.classList.remove('valid');
+              input.setAttribute('aria-invalid', 'true');
+              if (errorElement) { errorElement.textContent = errorMsg; errorElement.style.display = 'block'; }
+              allValid = false;
+            } else {
+              input.classList.remove('invalid');
+              input.classList.add('valid');
+              input.setAttribute('aria-invalid', 'false');
+              if (errorElement) { errorElement.textContent = ''; errorElement.style.display = 'none'; }
+            }
+          }
+        });
+
+        if (allValid) {
+          const submitBtn = formAluno.querySelector('button[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
+          formAluno.submit();
+        }
+      });
+
+      // Real-time validation
+      const inputs = formAluno.querySelectorAll('input[type="text"], input[type="email"], textarea');
+      inputs.forEach(input => {
+        const onChange = () => {
+          const { isValid, errorMsg } = validateField(input);
+          const errorElement = document.getElementById(`err-${input.id}`);
+          if (!isValid) {
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            input.setAttribute('aria-invalid', 'true');
+            if (errorElement) { errorElement.textContent = errorMsg; errorElement.style.display = 'block'; }
+          } else {
+            input.classList.remove('invalid');
+            input.classList.add('valid');
+            input.setAttribute('aria-invalid', 'false');
+            if (errorElement) { errorElement.textContent = ''; errorElement.style.display = 'none'; }
+          }
+        };
+        input.addEventListener('input', onChange);
+        input.addEventListener('change', onChange);
+      });
+    });
+
+    // Change-password modal + validation
+    (function () {
+      const openBtn = document.getElementById('open-change-password');
+      const modal = document.getElementById('change-password-modal');
+      const closeBtn = document.getElementById('close-change-password');
+      const cancelBtn = document.getElementById('cancelChangePassword');
+      const form = document.getElementById('changePasswordForm');
+      const currentInput = document.getElementById('current_password');
+      const newInput = document.getElementById('new_password');
+      const curErr = document.getElementById('currentPasswordError');
+      const newErr = document.getElementById('newPasswordError');
+      let currentVerified = false;
+      let verifyTimer = null;
+
+      function openModal() {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        currentInput.focus();
+      }
+      function closeModal() {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        // limpa estados
+        currentVerified = false;
+        curErr.textContent = '';
+        currentInput.classList.remove('valid','invalid');
+        newInput.classList.remove('valid','invalid');
+        form.reset();
+      }
+
+      if (openBtn) openBtn.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+      // Fecha ao clicar fora do conteúdo
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      // ESC fecha
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+      });
+
+      function setCurrentValid(valid, msg) {
+        currentVerified = !!valid;
+        curErr.textContent = msg || '';
+        currentInput.classList.toggle('valid', !!valid);
+        currentInput.classList.toggle('invalid', !valid && currentInput.value.length>0);
+      }
+
+      function setNewValid(valid, msg) {
+        newErr.textContent = msg || '';
+        newInput.classList.toggle('valid', !!valid);
+        newInput.classList.toggle('invalid', !valid && newInput.value.length>0);
+      }
+
+      // Debounced verification of current password via AJAX
+      function verifyCurrentPasswordDebounced() {
+        clearTimeout(verifyTimer);
+        currentVerified = false;
+        curErr.textContent = '';
+        currentInput.classList.remove('valid','invalid');
+        verifyTimer = setTimeout(async () => {
+          const val = (currentInput.value || '').trim();
+          if (!val) {
+            setCurrentValid(false, 'Informe sua senha atual.');
+            return;
+          }
+          try {
+            const resp = await fetch('/api/verify-current-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ current_password: val })
+            });
+            const data = await resp.json();
+            if (resp.ok && data.valid) {
+              setCurrentValid(true);
+            } else {
+              setCurrentValid(false, data.msg || 'Senha atual incorreta.');
+            }
+          } catch (err) {
+            setCurrentValid(false, 'Erro ao verificar senha.');
+          }
+        }, 500);
+      }
+
+      // Real-time handlers
+      currentInput.addEventListener('input', () => {
+        setCurrentValid(false);
+        verifyCurrentPasswordDebounced();
+      });
+
+      newInput.addEventListener('input', () => {
+        const v = newInput.value || '';
+        if (v.length < 6) {
+          setNewValid(false, 'A nova senha precisa ter ao menos 6 caracteres.');
+        } else {
+          setNewValid(true);
+        }
+      });
+
+      // On submit: garante que a senha atual foi verificada e que nova senha é válida
+      form.addEventListener('submit', async (e) => {
+        // checagens client-side
+        e.preventDefault();
+        const newVal = (newInput.value || '').trim();
+        if (newVal.length < 6) {
+          setNewValid(false, 'A nova senha precisa ter ao menos 6 caracteres.');
+          newInput.focus();
+          return;
+        }
+
+        // se já não estiver verificada, verifique uma última vez
+        if (!currentVerified) {
+          try {
+            const resp = await fetch('/api/verify-current-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ current_password: (currentInput.value || '').trim() })
+            });
+            const data = await resp.json();
+            if (!(resp.ok && data.valid)) {
+              setCurrentValid(false, data.msg || 'Senha atual incorreta.');
+              currentInput.focus();
+              return;
+            }
+            setCurrentValid(true);
+          } catch (err) {
+            setCurrentValid(false, 'Erro ao verificar senha.');
+            return;
+          }
+        }
+
+        // tudo ok: submete o formulário
+        form.submit();
+      });
+    })();
+  </script>
+</body>
+</html>

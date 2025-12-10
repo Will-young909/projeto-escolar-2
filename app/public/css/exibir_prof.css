@@ -1,339 +1,627 @@
+/* ============ VARIÁVEIS CSS (PALETA REGIMATH PADRÃO) ============ */
+:root {
+    /* Cores da Paleta Regimath (Vinho/Bordô) */
+    --color-primary: #800020;      /* Vinho/Bordô Principal */
+    --color-secondary: #b22222;    /* Vermelho Escuro (Hover) */
+    --color-accent: #E8AE1E;       /* Amarelo/Dourado (Avaliação, Botão Secundário) */
+    --color-star: #f4b400;         /* Amarelo Estrela */
+    --color-success: #27ae60;      /* Cor para disponível */
+    --color-error: #e74c3c;        /* Cor para indisponível/erro */
+    
+    /* Cores de Fundo e Texto */
+    --color-background: #f7f8fa;   /* Fundo Leve (body) */
+    --color-card-bg: #fff;         /* Fundo principal (cards) */
+    --color-text-dark: #222;       /* Texto principal */
+    --color-text-secondary: #666;  /* Texto de parágrafo/link */
+    --color-border: #ddd;          /* Cor da borda leve */
+
+    /* Padrões de Design */
+    --shadow: 0 6px 15px rgba(0, 0, 0, 0.1); /* Sombra mais destacada */
+    --border-radius: 12px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --font-family: "Poppins", Arial, sans-serif;
+}
+
 /* =========================
-   ESTILO BASE — MOBILE FIRST
-   ========================= */
+    ESTILO BASE — MOBILE FIRST
+    ========================= */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "Poppins", Arial, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
 }
- 
+
 body {
-  background: #f4f4f6;
-  color: #222;
+    background: var(--color-background);
+    color: var(--color-text-dark);
 }
- 
-/* -------- Cabeçalho -------- */
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* Esconde elementos visualmente, mas os mantém para leitores de tela */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* -------- Cabeçalho (Padronizado) -------- */
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff;
-  border-bottom: 2px solid #ccc;
-  padding: 10px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-card-bg);
+    border-bottom: 2px solid var(--color-primary);
+    padding: 10px var(--spacing-md);
+    height: 70px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
- 
-#logo {
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
   width: 120px;
-  height: auto;
-}
- 
-header nav a {
-  color: #333;
-  font-weight: 600;
-  text-decoration: none;
-  margin-left: 10px;
-  transition: color 0.2s;
-}
- 
-header nav a:hover {
-  color: #800000;
-}
- 
-/* -------- Menu dropdown (mobile) -------- */
-.menu-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
+  height: 70px;
   object-fit: contain;
 }
 
-a {
-  color: #333;
-  text-decoration: none;
-  font-weight: 600;
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
 }
 
-.login {
-  color: #8d3dc8;
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
+  height: 100vh;
+  background: #800020;
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
 }
- 
+
+nav.active {
+  left: 0px;
+}
+
 .nav-links {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
+}
+
+nav a:hover {
+  background: #b22222;
+}
+
+#close-menu {
   position: absolute;
-  top: 64px;
-  left: 0;
-  width: 100%;
-  background: #333;
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.4s ease, opacity 0.3s ease;
-  opacity: 0;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
- 
-.nav-links.open {
-  max-height: 300px;
-  opacity: 1;
-}
- 
-.nav-links a {
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
   color: #fff;
-  font-weight: 500;
-  padding: 12px 18px;
-  transition: background 0.2s;
+  cursor: pointer;
 }
- 
-.nav-links a:hover {
-  color: #fff;
-  background: #004c4c;
+
+/* Botão de recolher (desktop) */
+#toggle-menu {
+  position: absolute;
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
+  width: 42px;
+  height: 42px;
   border-radius: 8px;
+  background: #800020;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
- 
+
+#toggle-menu:hover { transform: scale(1.05); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001;
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+.btn-denounce {
+    color: var(--color-error); /* Destaca o botão de denúncia */
+}
+
+.btn-denounce:hover {
+    color: var(--color-secondary);
+}
+
 /* -------- Conteúdo principal -------- */
 .perfil-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-  max-width: 100%;
-}
- 
-/* Bloco do perfil */
-.perfil-info {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-  text-align: center;
-  animation: fadeIn 0.5s ease;
-}
- 
-.foto-perfil {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #800000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
- 
-.descricao {
-  font-size: 0.95rem;
-  color: #555;
-  margin: 10px 0 15px;
-  line-height: 1.4;
-}
- 
-.btn-aula {
-  display: inline-block;
-  margin: 12px 0;
-  padding: 10px 18px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #800000, #a83232);
-  color: #fff;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.3s, background 0.3s;
-}
- 
-.btn-aula:hover {
-  background: linear-gradient(90deg, #a83232, #800000);
-  transform: translateY(-2px);
-}
- 
-.status {
-  margin-top: 8px;
-  font-weight: bold;
-}
- 
-.status.disponivel {
-  color: #27ae60;
-}
- 
-.status.indisponivel {
-  color: #e74c3c;
-}
- 
-/* -------- Calendário -------- */
-.calendario {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-  animation: fadeIn 0.6s ease;
-}
- 
-.calendario h2 {
-  color: #333;
-  margin-bottom: 10px;
-  border-bottom: 2px solid #800000;
-  display: inline-block;
-  padding-bottom: 4px;
-}
- 
-.lista-aulas {
-  list-style: none;
-  margin-top: 12px;
-  padding: 0;
-}
- 
-.lista-aulas li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
-}
- 
-.lista-aulas li:last-child {
-  border-bottom: none;
-}
- 
-/* -------- Comentários -------- */
-.comentarios {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  padding: 20px;
-  animation: fadeIn 0.8s ease;
-}
- 
-.comentarios h2 {
-  color: #333;
-  margin-bottom: 10px;
-}
- 
-.lista-comentarios {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 12px 0;
-}
- 
-.lista-comentarios li {
-  padding: 8px 0;
-  border-bottom: 1px dashed #ddd;
-  line-height: 1.4;
-}
- 
-.texto-comentario {
-  margin-left: 6px;
-}
- 
-.data {
-  color: #888;
-  font-size: 12px;
-  margin-left: 6px;
-}
- 
-input {
-  padding: 10px;
-  margin-top: 6px;
-  margin-bottom: 6px;
-  border: 1px solid #800000;
-  border-radius: 8px;
-  width: 100%;
-}
- 
-.form-comentario button {
-  background: #800000;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
-}
- 
-.form-comentario button:hover {
-  background: #a83232;
-}
- 
-/* -------- Animação -------- */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
- 
-/* =========================
-   TELAS MÉDIAS (TABLET)
-   ========================= */
-@media (min-width: 768px) {
-  .perfil-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    padding: 40px;
-    gap: 30px;
-  }
- 
-  .perfil-info {
-    flex: 1;
-    max-width: 35%;
-  }
- 
-  .calendario {
-    flex: 1;
-    max-width: 60%;
-  }
- 
-  .comentarios {
-    flex-basis: 100%;
-    margin-top: 20px;
-  }
- 
-  .foto-perfil {
-    width: 150px;
-    height: 150px;
-  }
-}
- 
-/* =========================
-   TELAS GRANDES (DESKTOP)
-   ========================= */
-@media (min-width: 1024px) {
-  body {
     display: flex;
     flex-direction: column;
-    align-items: center;
-  }
- 
-  main.perfil-container {
-    max-width: 1100px;
-    margin: 30px auto;
-  }
- 
-  header {
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
     width: 100%;
-    padding: 15px 30px;
-  }
- 
-  .perfil-info {
-    text-align: left;
-    padding: 30px;
-  }
- 
-  .perfil-info h1 {
-    font-size: 1.6rem;
-  }
- 
-  .descricao {
-    font-size: 1rem;
-  }
- 
-  .calendario h2,
-  .comentarios h2 {
-    font-size: 1.4rem;
-  }
- 
-  .comentarios {
-    margin-top: 30px;
-  }
 }
- 
+
+.card {
+    background: var(--color-card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: var(--spacing-lg);
+    animation: fadeIn 0.5s ease;
+}
+
+/* Título de Seção dentro do Card (Novo) */
+.section-title {
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 5px;
+    margin: var(--spacing-lg) 0 var(--spacing-md) 0;
+    font-weight: 600;
+}
+
+.section-title i {
+    margin-right: 8px;
+    color: var(--color-secondary);
+}
+
+/* -------- PERFIL INFO -------- */
+.perfil-info {
+    order: 0; /* Garante que fica no topo em mobile */
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.foto-perfil {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-primary);
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+.info-text {
+    flex-grow: 1;
+}
+
+.perfil-info h1 {
+    font-size: 1.6rem;
+    color: var(--color-text-dark);
+    margin-top: 0;
+    line-height: 1.2;
+}
+
+.descricao {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    margin: 10px 0 20px;
+    line-height: 1.5;
+}
+
+/* Status */
+.status-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: block;
+    margin-top: 5px;
+}
+
+.status-label i {
+    margin-right: 5px;
+    font-size: 0.8em;
+}
+
+.status-disponivel {
+    color: var(--color-success);
+}
+
+.status-indisponivel {
+    color: var(--color-error);
+}
+
+/* NOVO: Destaques (Avaliação e Preço) */
+.perfil-destaques {
+    display: flex;
+    justify-content: space-around;
+    padding: var(--spacing-md) 0;
+    margin-bottom: var(--spacing-md);
+    border-top: 1px dashed var(--color-border);
+    border-bottom: 1px dashed var(--color-border);
+}
+
+.destaque {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.destaque i {
+    margin-right: 5px;
+}
+
+.avaliacao {
+    color: var(--color-star);
+}
+.preco {
+    color: var(--color-primary);
+}
+
+/* NOVO: Tags de Disciplinas */
+.tags-disciplinas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.tag {
+    background: #e9e9e9;
+    color: var(--color-text-secondary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* -------- BOTÕES CTA -------- */
+.btn-primary, .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.3s, transform 0.2s;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    border: 2px solid var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-secondary);
+}
+
+.btn-primary.disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background-color: var(--color-accent);
+    color: var(--color-text-dark);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-star);
+    transform: translateY(-1px);
+}
+
+.btn-chat {
+    margin-top: var(--spacing-md);
+}
+
+/* -------- CALENDÁRIO -------- */
+.calendario {
+    order: 2;
+}
+
+.lista-aulas {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-aulas li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-background);
+    border-radius: 6px;
+    padding: 10px var(--spacing-md);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.lista-aulas li i {
+    color: var(--color-primary);
+}
+
+.data {
+    font-weight: 600;
+}
+
+.empty-state {
+    font-style: italic;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-sm);
+    text-align: center;
+}
+
+/* -------- COMENTÁRIOS -------- */
+.comentarios {
+    order: 3;
+}
+
+.lista-comentarios {
+    list-style: none;
+    padding: 0;
+    margin-bottom: var(--spacing-md);
+}
+
+.lista-comentarios li {
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--color-border);
+    line-height: 1.4;
+}
+
+.lista-comentarios li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.comentario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.rating {
+    color: var(--color-star);
+    font-size: 0.9rem;
+}
+
+.texto-comentario {
+    display: block;
+    font-size: 0.9rem;
+    margin: 4px 0 2px;
+    color: var(--color-text-secondary);
+}
+
+small.data {
+    color: #888;
+    font-size: 10px;
+    display: block;
+}
+
+/* Formulário de Comentário */
+.form-comentario textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-family: var(--font-family);
+    resize: vertical;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-comentario textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 5px rgba(128, 0, 32, 0.2);
+    outline: none;
+}
+
+.btn-comment {
+    width: auto;
+    display: inline-flex;
+    margin-top: 0;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+}
+
+.login-prompt {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+
+.link-primary {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* -------- ANIMAÇÃO -------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+    TELAS MÉDIAS (TABLET)
+    ========================= */
+@media (min-width: 768px) {
+    .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid var(--bordo);
+    padding-top: 0;
+  }
+
+  nav.collapsed {
+    width: 70px;
+  }
+
+  nav.collapsed ~ .perfil-container {
+    margin-left: 70px;
+    transition: margin-left 0.3s ease;
+  }
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
+
+    .perfil-container {
+        display: grid;
+        gap: 30px;
+        padding: 40px;
+        max-width: 500px;
+        margin-left: 260px;
+        transition: margin-left 0.3s ease;
+        position: sticky;
+        left: 25%;
+    }
+
+    .perfil-info {
+        padding-bottom: var(--spacing-lg); 
+    }
+    
+    /* NOVO: Coluna Secundária para Calendário e Comentários */
+    .secondary-column {
+        
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        
+    }
+    
+    .calendario {
+        margin-bottom: 0; /* Removido para usar gap do secondary-column */
+    }
+
+    .comentarios {
+        margin-bottom: 0; /* Removido para usar gap do secondary-column */
+    }
+
+    /* Altera o layout do perfil-info para desktop/tablet */
+    .profile-header {
+        text-align: left;
+    }
+
+    /* Reduz o impacto do CTA no tablet/desktop para não ocupar toda a largura da coluna */
+    .btn-primary, .btn-secondary {
+        max-width: 300px; 
+    }
+
+    .btn-primary.disabled {
+        pointer-events: none; /* Garante que não há interação */
+    }
+}
+
+/* =========================
+    TELAS GRANDES (DESKTOP)
+    ========================= */
+@media (min-width: 1024px) {
+    .perfil-container {
+        grid-template-columns: 2fr 1fr; /* Coluna secundária mais estreita */
+        max-width: 900px;
+        transition: max-width 1.5s ease;
+    }
+    
+    .perfil-info {
+        padding: 50px;
+    }
+
+    nav.collapsed ~ .perfil-container {
+      max-width: 1400px;
+      transition: max-width 1.5s ease;
+    }
+}

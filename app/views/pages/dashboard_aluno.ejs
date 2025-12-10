@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Perfil | <%= user.nome %> - Regimath</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <title>Dashboard do Aluno | RegiMath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="../css/perfilAluno.css" />
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" type="image/png" />
+  <link rel="stylesheet" href="../css/dashboard_aluno.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
+
 <body>
-  
   <header>
     <a href="/">
       <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -34,7 +34,7 @@
       <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
 
       <% if (session.user_aluno) { %>
-        <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
+          <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
           <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
           <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
           <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
@@ -43,73 +43,58 @@
     </ul>
   </nav>
 
-  <main class="perfil-container" role="main">
-    
-    <aside class="perfil-card" aria-labelledby="perfil-nome-titulo">
-      <div class="perfil-foto">
-        <img
-          src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>"
-          alt="Foto de perfil de <%= user.nome %>"
-          class="foto-perfil"
-          loading="lazy"
-        />
+  <main class="dashboard">
+    <section class="welcome">
+      <div>
+        <h1>Olá, <span class="highlight"><%= user.nome || "JAVASCRIPT" %></span></h1>
+        <p>Bem-vindo ao seu painel! Aqui você pode acompanhar suas aulas, professores e progresso.</p>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="card">
+        <i class="fas fa-calendar-check icon primary"></i>
+        <h3>Próximas 24h</h3>
+        <p class="value">2 aulas agendadas</p>
+        <a href="/agenda" class="link">Ver agenda <i class="fas fa-arrow-right"></i></a>
       </div>
 
-      <h1 class="perfil-nome" id="perfil-nome-titulo"><%= user.nome %></h1>
-      <p class="perfil-descricao">
-        <%= user.descricao || "Aluno cadastrado na plataforma Regimath." %>
-      </p>
+      <div class="card">
+        <i class="fa-solid fa-star icon warning"></i>
+        <h3>Avaliações Recebidas</h3>
+        <p class="value">4.6 / 5.0</p>
+        <a href="/feedbacks" class="link">Ver feedbacks <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </section>
 
-      <a href="/editar_perfil_aluno" class="btn-edit" aria-label="Editar configurações do perfil">
-        <i class="fas fa-user-edit"></i> Editar Perfil
-      </a>
-    </aside>
+    <section class="next-class">
+      <div class="class-info">
+        <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
+        <p><strong>15:30 - Álgebra Linear</strong></p>
+        <p><i class="fas fa-user"></i> Professor: Maria Souza</p>
+        <p><i class="fas fa-calendar-day"></i> Hoje, 04 de Novembro</p>
+      </div>
+      <div class="class-actions">
+        <a class="btn primary"><i class="fas fa-video"></i> Entrar na Aula</a>
+        <a href="/chat/mariasouza" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
+      </div>
+    </section>
 
-    <section class="conteudo-principal">
-      
-      <article class="dados-aluno card" aria-labelledby="dados-titulo">
-        <h2 id="dados-titulo"><i class="fas fa-info-circle"></i> Meus Dados</h2>
-        <dl class="data-list">
-          <div class="data-item">
-            <dt>Tipo:</dt>
-            <dd>Aluno</dd>
-          </div>
-          <div class="data-item">
-            <dt>Email:</dt>
-            <dd class="highlight-data"><%= user.email || "Não informado" %></dd>
-          </div>
-          <div class="data-item">
-            <dt>Registro:</dt>
-            <dd><%= user.registro_id || "N/A" %></dd>
-          </div>
-        </dl>
-      </article>
-
-      <article class="historico card" aria-labelledby="historico-titulo">
-        <h2 id="historico-titulo"><i class="fas fa-book-open"></i> Histórico de Atividades</h2>
-        
-        <% if (user.aulas && user.aulas.length > 0) { %>
-          <ul class="historico-list">
-            <% user.aulas.forEach(aula => { %>
-              <li class="historico-item" aria-label="Aula sobre <%= aula.conteudo %> na data <%= aula.data %>">
-                <time datetime="<%= aula.data %>" class="aula-data">
-                  <%= new Date(aula.data).toLocaleDateString('pt-BR') %>
-                </time> 
-                — 
-                <span class="aula-conteudo">**<%= aula.conteudo %>**</span>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="empty-state" aria-live="polite" style="background: #f5f5f5;">
-            <i class="fas fa-exclamation-circle"></i> Ainda não há atividades ou aulas registradas no seu histórico.
-          </p>
-        <% } %>
-      </article>
+    <section class="manage">
+      <h2><i class="fas fa-cogs"></i> Acesso Rápido</h2>
+      <div class="manage-grid">
+        <a href="/pesquisar_profs" class="manage-item">
+          <i class="fas fa-search"></i>
+          <p>Encontrar Professores</p>
+        </a>
+        <a href="/agenda" class="manage-item">
+          <i class="fas fa-history"></i>
+          <p>Histórico de Aulas</p>
+        </a>
+      </div>
     </section>
   </main>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" integrity="sha512-uD1gA8M/c2V5q0kE/J7jL/W4hFz6vF+2lB5/Y0Fw+z0wJ0I3Q8Qz1zL0P1H6hG+1+1+2/3/9/A5v" crossorigin="anonymous" defer></script>
+
   <script>
     const menuBtn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');
@@ -142,7 +127,6 @@
         toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
       });
     }
-
   </script>
 </body>
 </html>

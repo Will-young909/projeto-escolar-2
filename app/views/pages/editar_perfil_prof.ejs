@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Perfil | <%= user.nome %> - Regimath</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/editar_perfil.css" /> 
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" type="image/png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" crossorigin="anonymous" defer></script>
+  <style>
+    /*.invalid {
+      border-color: #c0392b !important;
+      box-shadow: 0 0 4px rgba(192, 57, 43, 0.5) !important;
+    }
+    .valid {
+      border-color: #27ae60 !important;
+      box-shadow: 0 0 4px rgba(39, 174, 96, 0.5) !important;
+    }*/
+    .error-feedback {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 4px;
+      margin-bottom: 0;
+      font-style: italic;
+    }
+    .discipline-item {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+      align-items: flex-start;
+    }
+    .discipline-item input {
+      flex: 1;
+    }
+    /* Modal de alterar senha */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.5);
+      z-index: 1200;
+      padding: 1rem;
+    }
+    .modal[aria-hidden="false"] { display: flex; }
+    .modal-content {
+      background: #fff;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #changePasswordForm .form-group { margin-bottom: 1rem; }  
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo" />
+    </a>
+    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+  </header>
+
+  <div id="overlay"></div>
+
+  <nav id="menu" class="overlay collapsed">
+
+    <button id="close-menu" aria-label="Fechar menu">&times;</button>
+
+    <button id="toggle-menu" aria-label="Recolher menu">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+
+    <ul class="nav-links"> 
+      <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+
+      <% if (session.user_prof) { %>
+          <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil professor</a></li>
+          <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Professor</a></li>
+          <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Aulas</a></li>
+          <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  
+  <main class="perfil-container">
+    
+    <section class="conteudo-principal">
+      <article class="card form-card width-fix" aria-labelledby="titulo-editar">
+        <h2 id="titulo-editar"><i class="fas fa-user-edit"></i> Editar Perfil de Professor</h2>
+
+        <form action="/perfil/editar" method="POST" class="form-edicao" enctype="multipart/form-data" id="editarPerfilForm" novalidate>
+          
+          <div class="form-group foto-upload">
+            <label for="foto">Foto de Perfil</label>
+            <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
+            <button type="button" class="btn-trocar-foto"><i class="fas fa-camera"></i> Trocar Foto</button>
+            <input type="file" id="foto" name="foto" accept="image/*" hidden />
+            <p class="input-dica">Arquivos aceitos: JPG, PNG até 5MB</p>
+          </div>
+
+          <div class="form-group">
+            <label for="nome">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="nome" name="nome" value="<%= dados?.nome || user.nome %>" required 
+                   class="<%= erros?.nome ? 'invalid' : '' %>"
+                   aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
+                   aria-describedby="err-nome" />
+            <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
+          </div>
+
+          <div class="form-group">
+            <label for="email">E-mail <span class="required">*</span></label>
+            <input type="email" id="email" name="email" value="<%= dados?.email || user.email %>" required 
+                   class="<%= erros?.email ? 'invalid' : '' %>"
+                   aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
+                   aria-describedby="err-email" />
+            <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
+          </div>
+
+          <div class="form-group">
+            <label for="descricao">Descrição Profissional</label>
+            <textarea id="descricao" name="descricao" rows="4" placeholder="Fale um pouco sobre você, sua formação e metodologia de ensino."><%= dados?.descricao || user.descricao || '' %></textarea>
+          </div>
+
+          <div class="form-group" id="form-group-disciplinas">
+            <label for="disciplinas">Matérias Lecionadas <span class="required">*</span></label>
+
+            <div id="disciplinas-container"
+                 class="<%= erros?.['disciplinas[]'] ? 'invalid' : '' %>"
+                 aria-invalid="<%= erros?.['disciplinas[]'] ? 'true' : 'false' %>"
+                 aria-describedby="err-disciplinas">
+              <% 
+                const disciplinas = dados?.['disciplinas[]'] || user.disciplinas || [];
+                const disciplinaArray = Array.isArray(disciplinas) ? disciplinas : (disciplinas ? [disciplinas] : []);
+                disciplinaArray.forEach(function(disc) { 
+              %>
+                <div class="discipline-item">
+                  <input type="text" name="disciplinas[]" value="<%= disc %>" placeholder="Nome da matéria" required />
+                  <button type="button" class="remove-discipline">Remover</button>
+                </div>
+              <% }) %>
+            </div>
+
+            <button type="button" id="add-discipline" class="btn-add">Adicionar matéria</button>
+            <p id="err-disciplinas" class="error-feedback"><%= erros?.['disciplinas[]']?.msg || '' %></p>
+            <p class="input-dica">Adicione cada matéria que você ministra. Você pode remover campos antes de salvar.</p>
+          </div>
+          
+          <div class="form-group">
+            <label for="link_previa">Link da Aula Prévia (Vídeo de Apresentação)</label>
+            <input type="url" id="link_previa" name="link_previa" value="<%= dados?.link_previa || user.link_previa || '' %>" placeholder="Ex: https://youtube.com/watch?v=seu-video"
+                   class="<%= erros?.link_previa ? 'invalid' : '' %>"
+                   aria-invalid="<%= erros?.link_previa ? 'true' : 'false' %>"
+                   aria-describedby="err-link_previa" />
+            <p id="err-link_previa" class="error-feedback"><%= erros?.link_previa?.msg || '' %></p>
+            <p class="input-dica">Um vídeo curto melhora seu perfil!</p>
+          </div>
+          
+          <div class="form-group">
+            <label for="status">Status de Disponibilidade</label>
+            <select id="status" name="status"
+                    class="<%= erros?.status ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.status ? 'true' : 'false' %>"
+                    aria-describedby="err-status">
+              <option value="disponivel" <%= (dados?.status || user.status) === 'disponivel' ? 'selected' : '' %>>🟢 Disponível para Novos Alunos</option>
+              <option value="indisponivel" <%= (dados?.status || user.status) === 'indisponivel' ? 'selected' : '' %>>🟡 Indisponível no Momento</option>
+            </select>
+            <p id="err-status" class="error-feedback"><%= erros?.status?.msg || '' %></p>
+          </div>
+
+          <div class="form-actions">
+            <section>
+              <button type="submit" class="btn-salvar" id="btn-submit"><i class="fas fa-save"></i> Salvar</button>
+            </section><br>
+            <a href="/perfil_prof" class="btn-cancelar">Cancelar</a>
+          </div>
+        </form>
+      </article>
+
+      <!--<article class="card calendario-card" aria-labelledby="titulo-calendario">
+        <h2 id="titulo-calendario"><i class="fas fa-calendar-alt"></i> Gerenciar Agenda</h2>
+        <p class="input-dica">Selecione os dias em que você deseja abrir horários para aulas particulares.</p>
+        
+        <div id="calendar" class="calendar-grid">
+          </div>
+
+        <button id="salvar-calendario" class="btn-salvar-agenda"><i class="fas fa-calendar-check"></i> Salvar Agenda</button>
+      </article>-->
+
+      <article class="card seguranca-card" aria-labelledby="titulo-seguranca">
+        <h2 id="titulo-seguranca"><i class="fas fa-lock"></i> Segurança da Conta</h2>
+        <button type="button" id="open-change-password" class="btn-alterar-senha">Alterar Senha</button>
+       <!--<a href="/config-pagamento" class="btn-alterar-senha btn-pagamento">Configurar Pagamento</a>-->
+
+        <!-- Modal de Alterar Senha -->
+        <div id="change-password-modal" class="modal" aria-hidden="<%= (erros?.current_password || erros?.new_password) ? 'false' : 'true' %>" role="dialog" aria-labelledby="modal-title">
+          <div class="modal-content">
+            <button class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
+            <h3 id="modal-title">Alterar Senha</h3>
+            <form id="changePasswordForm" action="/alterar-senha" method="POST" novalidate>
+              <div class="form-group">
+                <label for="current_password">Senha atual</label>
+                  <input type="password" id="current_password" name="current_password" required aria-describedby="err-current_password"
+                    value="<%= dados?.current_password || ((user?.initial_password && !user?.password) ? user.initial_password : '') || user?.new_password %>" />
+                <p id="err-current_password" class="error-feedback"><%= erros?.current_password?.msg || '' %></p>
+              </div>
+              <div class="form-group">
+                <label for="new_password">Nova senha</label>
+                <input type="password" id="new_password" name="new_password" required aria-describedby="err-new_password" />
+                <p id="err-new_password" class="error-feedback"><%= erros?.new_password?.msg || '' %></p>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
+                <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <script>
+    const menuBtn = document.getElementById('menu-btn');
+    const menu = document.getElementById('menu');
+    const overlay = document.getElementById('overlay');
+    const closeBtn = document.getElementById('close-menu');
+    const toggleBtn = document.getElementById("toggle-menu");
+    const dropdown = document.querySelector('.dropdown-regimath');
+
+    function toggleMobileMenu() {
+      menu.classList.toggle('active');
+      overlay.classList.toggle('active');
+      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+    }
+
+    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+
+    if (toggleBtn) {
+      const toggleIcon = document.getElementById('toggle-icon');
+      const isCollapsed = menu.classList.contains('collapsed');
+      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        menu.classList.toggle("collapsed");
+        const isNowCollapsed = menu.classList.contains('collapsed');
+        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    }
+
+    // Photo preview logic
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputFoto = document.getElementById('foto');
+      const previewFoto = document.querySelector('.foto-preview');
+      const btnTrocar = document.querySelector('.btn-trocar-foto');
+      if (btnTrocar && inputFoto) btnTrocar.addEventListener('click', () => inputFoto.click());
+      if (inputFoto) inputFoto.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file && previewFoto) previewFoto.src = URL.createObjectURL(file);
+      });
+
+      // Calendar logic
+      const calendarContainer = document.getElementById('calendar');
+      const dataAtual = new Date();
+      const mes = dataAtual.toLocaleString('pt-BR', { month: 'long' });
+      const ano = dataAtual.getFullYear();
+
+      const titulo = document.createElement('h3');
+      titulo.textContent = `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${ano}`;
+      if (calendarContainer) calendarContainer.appendChild(titulo);
+
+      const diasContainer = document.createElement('div');
+      diasContainer.classList.add('dias');
+
+      const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      nomesDias.forEach(nome => {
+        const header = document.createElement('div');
+        header.classList.add('dia-header');
+        header.textContent = nome;
+        diasContainer.appendChild(header);
+      });
+      
+      const primeiroDiaMes = new Date(ano, dataAtual.getMonth(), 1).getDay();
+      for (let i = 0; i < primeiroDiaMes; i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.classList.add('dia-vazio');
+        diasContainer.appendChild(emptyDay);
+      }
+
+      const ultimoDia = new Date(ano, dataAtual.getMonth() + 1, 0).getDate();
+      let diasAulas = <%= JSON.stringify(user.agenda || [5, 12, 19, 26]) %>;
+      for (let d = 1; d <= ultimoDia; d++) {
+        const dia = document.createElement('div');
+        dia.classList.add('dia');
+        dia.textContent = d;
+        dia.setAttribute('data-dia', d);
+        dia.setAttribute('role', 'button');
+        dia.setAttribute('aria-pressed', diasAulas.includes(d) ? 'true' : 'false');
+
+        if (diasAulas.includes(d)) {
+          dia.classList.add('aula');
+        }
+
+        dia.addEventListener('click', () => {
+          const isAula = dia.classList.toggle('aula');
+          dia.setAttribute('aria-pressed', isAula ? 'true' : 'false');
+
+          const diaSelecionado = parseInt(dia.getAttribute('data-dia'));
+
+          if (isAula) {
+            diasAulas.push(diaSelecionado);
+          } else {
+            diasAulas = diasAulas.filter(item => item !== diaSelecionado);
+          }
+        });
+
+        diasContainer.appendChild(dia);
+      }
+
+      if (calendarContainer) calendarContainer.appendChild(diasContainer);
+
+      const salvarBtn = document.getElementById('salvar-calendario');
+      if (salvarBtn) salvarBtn.addEventListener('click', () => {
+        const diasOrdenados = diasAulas.sort((a,b) => a - b);
+        alert("Dias de aulas salvos (simulado): " + diasOrdenados.join(", "));
+      });
+    });
+
+    // Adiciona um novo campo de disciplina dentro do container
+    function adicionarInput(valor = '') {
+      const container = document.getElementById('disciplinas-container');
+      if (!container) return;
+
+      const divItem = document.createElement('div');
+      divItem.className = 'discipline-item';
+
+      const novoInput = document.createElement('input');
+      novoInput.type = 'text';
+      novoInput.name = 'disciplinas[]';
+      novoInput.placeholder = 'Nome da matéria';
+      if (valor) novoInput.value = valor;
+      novoInput.required = true;
+
+      const botaoRemover = document.createElement('button');
+      botaoRemover.type = 'button';
+      botaoRemover.className = 'remove-discipline';
+      botaoRemover.textContent = 'Remover';
+      botaoRemover.addEventListener('click', () => divItem.remove());
+
+      divItem.appendChild(novoInput);
+      divItem.appendChild(botaoRemover);
+      container.appendChild(divItem);
+      novoInput.focus();
+    }
+
+    // Delegação: listener para o botão de adicionar (no caso alguém deixou onclick inline)
+    document.addEventListener('DOMContentLoaded', () => {
+      const addBtn = document.getElementById('add-discipline');
+      if (addBtn) addBtn.addEventListener('click', () => adicionarInput());
+
+      // Permite remover itens existentes que foram renderizados pelo servidor
+      document.getElementById('disciplinas-container')?.addEventListener('click', (e) => {
+        if (e.target && e.target.matches('.remove-discipline')) {
+          const item = e.target.closest('.discipline-item');
+          if (item) item.remove();
+        }
+      });
+
+      // ==================== VALIDAÇÃO DO FORMULÁRIO ====================
+      // Função de validação por campo
+      function validateField(input) {
+        let errorMsg = '';
+        let isValid = true;
+
+        // Campos obrigatórios
+        if (input.hasAttribute('required') && !input.value.trim()) {
+          errorMsg = 'Este campo é obrigatório.';
+          isValid = false;
+        } 
+        // Email: validar formato
+        else if (input.id === 'email' && input.value.trim()) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(input.value.trim())) {
+            errorMsg = 'Por favor, insira um email válido.';
+            isValid = false;
+          }
+        }
+        // Link prévia: validar URL (se fornecido)
+        else if (input.id === 'link_previa' && input.value.trim()) {
+          try {
+            new URL(input.value.trim());
+          } catch (e) {
+            errorMsg = 'Por favor, insira uma URL válida.';
+            isValid = false;
+          }
+        }
+        // Nome: verificar comprimento mínimo
+        else if (input.id === 'nome' && input.value.trim().length < 3) {
+          errorMsg = 'O nome deve ter pelo menos 3 caracteres.';
+          isValid = false;
+        }
+
+        return { isValid, errorMsg };
+      }
+
+      // Função especial para validar o campo de disciplinas (array)
+      function validateDisciplinas() {
+        const container = document.getElementById('disciplinas-container');
+        const inputs = container ? Array.from(container.querySelectorAll('input[name="disciplinas[]"]')) : [];
+        
+        // Verifica se há pelo menos uma disciplina
+        if (inputs.length === 0) {
+          return { isValid: false, errorMsg: 'Adicione pelo menos uma matéria.' };
+        }
+
+        // Verifica se todas as disciplinas têm conteúdo
+        for (let input of inputs) {
+          if (!input.value.trim()) {
+            return { isValid: false, errorMsg: 'Todas as matérias devem ter um nome preenchido.' };
+          }
+        }
+
+        return { isValid: true, errorMsg: '' };
+      }
+
+      // Handler do formulário
+      const form = document.getElementById('editarPerfilForm');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+
+          // Validar cada campo regular
+          const fieldIds = ['nome', 'email', 'link_previa', 'status'];
+          let allValid = true;
+
+          fieldIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+              const { isValid, errorMsg } = validateField(input);
+              const errorElement = document.getElementById(`err-${id}`);
+              
+              if (!isValid) {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                input.setAttribute('aria-invalid', 'true');
+                if (errorElement) {
+                  errorElement.textContent = errorMsg;
+                  errorElement.style.display = 'block';
+                }
+                allValid = false;
+              } else {
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                input.setAttribute('aria-invalid', 'false');
+                if (errorElement) {
+                  errorElement.textContent = '';
+                  errorElement.style.display = 'none';
+                }
+              }
+            }
+          });
+
+          // Validar campo especial: disciplinas
+          const { isValid: discValid, errorMsg: discError } = validateDisciplinas();
+          const disciplinaContainer = document.getElementById('disciplinas-container');
+          const disciplinaError = document.getElementById('err-disciplinas');
+
+          if (!discValid) {
+            if (disciplinaContainer) {
+              disciplinaContainer.classList.add('invalid');
+              disciplinaContainer.classList.remove('valid');
+              disciplinaContainer.setAttribute('aria-invalid', 'true');
+            }
+            if (disciplinaError) {
+              disciplinaError.textContent = discError;
+              disciplinaError.style.display = 'block';
+            }
+            allValid = false;
+          } else {
+            if (disciplinaContainer) {
+              disciplinaContainer.classList.remove('invalid');
+              disciplinaContainer.classList.add('valid');
+              disciplinaContainer.setAttribute('aria-invalid', 'false');
+            }
+            if (disciplinaError) {
+              disciplinaError.textContent = '';
+              disciplinaError.style.display = 'none';
+            }
+          }
+
+          // Se tudo válido, enviar formulário
+          if (allValid) {
+            const submitBtn = document.getElementById('btn-submit');
+            if (submitBtn) submitBtn.disabled = true;
+            form.submit();
+          }
+        });
+
+        // Listeners para validação em tempo real (input/change)
+        const inputs = form.querySelectorAll('input[type="text"], input[type="email"], input[type="url"], select');
+        inputs.forEach(input => {
+          if (['nome', 'email', 'link_previa', 'status'].includes(input.id)) {
+            const validateOnEvent = () => {
+              const { isValid, errorMsg } = validateField(input);
+              const errorElement = document.getElementById(`err-${input.id}`);
+
+              if (!isValid) {
+                input.classList.add('invalid');
+                input.classList.remove('valid');
+                input.setAttribute('aria-invalid', 'true');
+                if (errorElement) {
+                  errorElement.textContent = errorMsg;
+                  errorElement.style.display = 'block';
+                }
+              } else {
+                input.classList.remove('invalid');
+                input.classList.add('valid');
+                input.setAttribute('aria-invalid', 'false');
+                if (errorElement) {
+                  errorElement.textContent = '';
+                  errorElement.style.display = 'none';
+                }
+              }
+            };
+
+            input.addEventListener('input', validateOnEvent);
+            input.addEventListener('change', validateOnEvent);
+          }
+        });
+
+        // Validação em tempo real para disciplinas (quando adicionar/remover campos)
+        const disciplinaContainer = document.getElementById('disciplinas-container');
+        if (disciplinaContainer) {
+          const validateDisciplinasOnEvent = () => {
+            const { isValid, errorMsg } = validateDisciplinas();
+            const errorElement = document.getElementById('err-disciplinas');
+
+            if (!isValid) {
+              disciplinaContainer.classList.add('invalid');
+              disciplinaContainer.classList.remove('valid');
+              disciplinaContainer.setAttribute('aria-invalid', 'true');
+              if (errorElement) {
+                errorElement.textContent = errorMsg;
+                errorElement.style.display = 'block';
+              }
+            } else {
+              disciplinaContainer.classList.remove('invalid');
+              disciplinaContainer.classList.add('valid');
+              disciplinaContainer.setAttribute('aria-invalid', 'false');
+              if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+              }
+            }
+          };
+
+          // Trigger na mudança de inputs de disciplinas
+          disciplinaContainer.addEventListener('input', (e) => {
+            if (e.target && e.target.matches('input[name="disciplinas[]"]')) {
+              validateDisciplinasOnEvent();
+            }
+          });
+
+          // Também validar quando adicionar campo novo
+          const addBtn = document.getElementById('add-discipline');
+          const originalAdicionarInput = window.adicionarInput;
+          window.adicionarInput = function(valor = '') {
+            originalAdicionarInput(valor);
+            validateDisciplinasOnEvent();
+          };
+        }
+      }
+
+        // ========== Modal: Alterar Senha ==========
+        const openChangeBtn = document.getElementById('open-change-password');
+        const modal = document.getElementById('change-password-modal');
+        const closeModalBtn = document.getElementById('close-change-password');
+        const cancelChangeBtn = document.getElementById('btn-cancel-change');
+        const changeForm = document.getElementById('changePasswordForm');
+
+        function openModal() {
+          if (!modal) return;
+          modal.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+          const first = modal.querySelector('#current_password');
+          if (first) first.focus();
+        }
+
+        function closeModal() {
+          if (!modal) return;
+          modal.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+        }
+
+        if (openChangeBtn) openChangeBtn.addEventListener('click', openModal);
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+        if (cancelChangeBtn) cancelChangeBtn.addEventListener('click', closeModal);
+
+        // fecha com Esc
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && modal && modal.getAttribute('aria-hidden') === 'false') {
+            closeModal();
+          }
+        });
+
+        // click fora fecha modal
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+          });
+        }
+
+        // Validação do formulário de alteração de senha
+        if (changeForm) {
+          changeForm.addEventListener('submit', (e) => {
+            const cur = document.getElementById('current_password');
+            const nw = document.getElementById('new_password');
+            let ok = true;
+            if (!cur || !cur.value.trim()) {
+              document.getElementById('err-current_password').textContent = 'Informe sua senha atual.';
+              cur?.classList?.add('invalid');
+              ok = false;
+            } else {
+              document.getElementById('err-current_password').textContent = '';
+              cur?.classList?.remove('invalid');
+            }
+            if (!nw || nw.value.trim().length < 6) {
+              document.getElementById('err-new_password').textContent = 'A nova senha precisa ter ao menos 6 caracteres.';
+              nw?.classList?.add('invalid');
+              ok = false;
+            } else {
+              document.getElementById('err-new_password').textContent = '';
+              nw?.classList?.remove('invalid');
+            }
+            if (!ok) {
+              e.preventDefault();
+              return;
+            }
+            const submitBtn = document.getElementById('btn-change-password');
+            if (submitBtn) submitBtn.disabled = true;
+            // deixa o formulário submeter para o backend /alterar-senha
+          });
+
+          // Validação em tempo real para os campos de senha (current + new)
+          const curInput = document.getElementById('current_password');
+          const newInput = document.getElementById('new_password');
+          const curErrorEl = document.getElementById('err-current_password');
+          const newErrorEl = document.getElementById('err-new_password');
+
+          function validateCurrent() {
+            if (!curInput) return true;
+            const v = curInput.value || '';
+            if (!v.trim()) {
+              curInput.classList.add('invalid');
+              curInput.classList.remove('valid');
+              curInput.setAttribute('aria-invalid', 'true');
+              if (curErrorEl) { curErrorEl.textContent = 'Informe sua senha atual.'; curErrorEl.style.display = 'block'; }
+              return false;
+            }
+            curInput.classList.remove('invalid');
+            curInput.classList.add('valid');
+            curInput.setAttribute('aria-invalid', 'false');
+            if (curErrorEl) { curErrorEl.textContent = ''; curErrorEl.style.display = 'none'; }
+            return true;
+          }
+
+          function validateNew() {
+            if (!newInput) return true;
+            const v = newInput.value || '';
+            if (v.trim().length < 6) {
+              newInput.classList.add('invalid');
+              newInput.classList.remove('valid');
+              newInput.setAttribute('aria-invalid', 'true');
+              if (newErrorEl) { newErrorEl.textContent = 'A nova senha precisa ter ao menos 6 caracteres.'; newErrorEl.style.display = 'block'; }
+              return false;
+            }
+            newInput.classList.remove('invalid');
+            newInput.classList.add('valid');
+            newInput.setAttribute('aria-invalid', 'false');
+            if (newErrorEl) { newErrorEl.textContent = ''; newErrorEl.style.display = 'none'; }
+            return true;
+          }
+
+          let currentVerified = false;
+          let verifyTimer = null;
+
+          async function verifyCurrentPasswordAjax() {
+            if (!curInput) return false;
+            const val = curInput.value || '';
+            if (!val.trim()) {
+              currentVerified = false;
+              return false;
+            }
+            try {
+              const res = await fetch('/api/verify-current-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: val })
+              });
+              const json = await res.json();
+              if (res.ok && json.valid) {
+                currentVerified = true;
+                if (curErrorEl) { curErrorEl.textContent = ''; curErrorEl.style.display = 'none'; }
+                curInput.classList.remove('invalid'); curInput.classList.add('valid'); curInput.setAttribute('aria-invalid','false');
+                return true;
+              } else {
+                currentVerified = false;
+                if (curErrorEl) { curErrorEl.textContent = json.msg || 'Senha atual incorreta.'; curErrorEl.style.display = 'block'; }
+                curInput.classList.add('invalid'); curInput.classList.remove('valid'); curInput.setAttribute('aria-invalid','true');
+                return false;
+              }
+            } catch (err) {
+              currentVerified = false;
+              if (curErrorEl) { curErrorEl.textContent = 'Erro ao verificar senha.'; curErrorEl.style.display = 'block'; }
+              return false;
+            }
+          }
+
+          function scheduleVerifyCurrent() {
+            if (verifyTimer) clearTimeout(verifyTimer);
+            verifyTimer = setTimeout(() => {
+              verifyCurrentPasswordAjax();
+            }, 500);
+          }
+
+          if (curInput) {
+            curInput.addEventListener('input', (e) => { validateCurrent(); scheduleVerifyCurrent(); });
+            curInput.addEventListener('change', (e) => { validateCurrent(); verifyCurrentPasswordAjax(); });
+          }
+          if (newInput) {
+            newInput.addEventListener('input', validateNew);
+            newInput.addEventListener('change', validateNew);
+          }
+
+          // Ensure current password is verified before allowing submit: update the submit handler to await verification
+          const originalSubmitHandler = changeForm.onsubmit; // not used but kept
+          changeForm.addEventListener('submit', async (e) => {
+            // we perform the existing checks above first via the other submit listener
+            // if basic client-side checks passed, ensure server verification
+            const curOk = validateCurrent();
+            const newOk = validateNew();
+            if (!curOk || !newOk) {
+              e.preventDefault();
+              return;
+            }
+
+            if (!currentVerified) {
+              // try to verify now
+              const ok = await verifyCurrentPasswordAjax();
+              if (!ok) {
+                e.preventDefault();
+                return;
+              }
+            }
+            // allow submission to continue (the earlier submit listener disables the button)
+          }, { passive: false });
+        }
+      }
+    );
+
+  </script>
+</body>
+</html>

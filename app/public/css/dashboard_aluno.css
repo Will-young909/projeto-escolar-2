@@ -1,0 +1,486 @@
+/* =======================
+      VARIÁVEIS
+======================= */
+:root {
+  --bordo: #800020;
+  --bordo-claro: #a83244;
+  --bordo-escuro: #b22222;
+  --dourado: #ffd700;
+  --branco: #fff;
+  --cinza-fundo: #f7f8fa;
+  --cinza-texto: #555;
+  --cinza-leve: rgba(0, 0, 0, 0.1);
+  --verde: #27ae60;
+  --laranja: #f39c12;
+  --azul: #004c4c;
+
+  --radius: 12px;
+  --radius-small: 8px;
+
+  --font: "Poppins", sans-serif;
+
+  --shadow-light: 0 2px 8px var(--cinza-leve);
+  --shadow-card: 0 3px 10px rgba(0, 0, 0, 0.08);
+
+  --transition: .3s ease;
+}
+
+/* =======================
+        RESET
+======================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--cinza-fundo);
+  color: var(--cinza-texto);
+  line-height: 1.6;
+}
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* =======================
+        LAYOUT
+======================= */
+main {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+header {
+  background: var(--branco);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: sticky;
+  top: 0;
+  margin-left: -20px;
+  z-index: 100;
+  border-bottom: 2px solid var(--bordo);
+  height: 60px;
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+/* ============ MENU LATERAL ============ */
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
+  height: 100vh;
+  background: #800020;
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
+}
+
+nav.active {
+  left: 0px;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
+}
+
+nav a:hover {
+  background: #b22222;
+}
+
+#close-menu {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Botão de recolher (desktop) */
+#toggle-menu {
+  position: absolute;
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #800020;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#toggle-menu:hover { transform: scale(1.05); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001;
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+/* =======================
+        TITULAÇÃO
+======================= */
+section {
+  margin-bottom: 2rem;
+}
+
+section h2 {
+  font-size: 1.3rem;
+  color: var(--bordo);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+/* =======================
+        BOAS-VINDAS
+======================= */
+.welcome {
+  background: linear-gradient(135deg, var(--bordo), var(--bordo-claro));
+  color: var(--branco);
+  padding: 1.8rem 1.4rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+.welcome h1 {
+  font-size: 1.7rem;
+  margin-bottom: .4rem;
+}
+
+.welcome .highlight {
+  color: var(--dourado);
+  font-weight: bold;
+}
+
+.welcome p {
+  opacity: .95;
+}
+
+/* =======================
+      GRID DE ESTATÍSTICAS
+======================= */
+.stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+}
+
+.card {
+  background: var(--branco);
+  padding: 1.3rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  border-left: 4px solid transparent;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+
+.card h3 {
+  font-size: .95rem;
+  margin-bottom: .8rem;
+  font-weight: 600;
+}
+
+.card .value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--bordo);
+  margin-bottom: .7rem;
+}
+
+.card .link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-weight: 600;
+  color: var(--bordo);
+  text-decoration: none;
+  font-size: .9rem;
+}
+
+.card .link:hover {
+  gap: .7rem;
+}
+
+.icon {
+  font-size: 2rem;
+  margin-bottom: .6rem;
+}
+
+.icon.primary { color: var(--bordo); }
+.icon.success { color: var(--verde); }
+.icon.warning { color: var(--dourado); }
+
+/* =======================
+      PRÓXIMA AULA
+======================= */
+.next-class {
+  background: var(--branco);
+  padding: 1.3rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  border-left: 4px solid var(--bordo);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.class-info h2 { margin-bottom: .8rem; }
+
+.class-info p {
+  font-size: .95rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.class-info i {
+  color: var(--bordo);
+}
+
+.class-actions {
+  display: flex;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+
+/* =======================
+        BOTÕES
+======================= */
+.btn {
+  padding: .7rem 1.1rem;
+  border-radius: var(--radius-small);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn:active { transform: scale(.97); }
+
+.btn.primary {
+  background: var(--verde);
+  color: var(--branco);
+}
+
+.btn.primary:hover { background: #1e8c50; }
+
+.btn.secondary {
+  background: var(--azul);
+  color: var(--branco);
+}
+
+.btn.secondary:hover { background: #003838; }
+
+/* =======================
+    ACESSO RÁPIDO
+======================= */
+.manage-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.manage-item {
+  text-decoration: none;
+  background: var(--branco);
+  padding: 1.2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.manage-item:hover {
+  transform: translateY(-3px);
+  border-color: var(--bordo);
+}
+
+.manage-item i {
+  font-size: 2.2rem;
+  color: var(--bordo);
+}
+
+.manage-item p {
+  font-weight: 600;
+  color: var(--bordo);
+}
+
+/* =======================
+    MEDIA QUERIES
+======================= */
+
+/* Tablets (>= 700px) */
+@media (min-width: 768px) {
+  .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid var(--bordo);
+    padding-top: 0;
+  }
+
+  main {
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+    position: sticky;
+    left: 25%;
+  }
+
+  nav.collapsed {
+    width: 70px;
+  }
+
+  nav.collapsed ~ main {
+    margin-left: 70px;
+  }
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .manage-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .next-class {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .class-actions {
+    justify-content: flex-end;
+    flex: 0 1 auto;
+  }
+}
+
+/* Desktop (>= 1024px) */
+@media (min-width: 1024px) {
+
+  main{
+    padding: 2rem -50rem;
+    width: 1000px;
+    position: sticky;
+    left: 25%;
+  }
+
+  .manage-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .welcome h1 {
+    font-size: 2.1rem;
+  }
+}

@@ -1,0 +1,209 @@
+/* ===================== VARIÁVEIS E TEMA ===================== */
+:root {
+  --vinho: #800020;
+  --vinho-claro: #a63a4f;
+  --branco: #ffffff;
+  --fundo: #f7f7fa;
+  --texto: #2c3e50;
+  --sucesso: #27ae60;
+  --erro: #e74c3c;
+  --pendente: #f39c12;
+  --sombra: rgba(0, 0, 0, 0.12);
+  --fonte: "Poppins", sans-serif;
+}
+
+/* ===================== BASE ===================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--fonte);
+  background: var(--fundo);
+  color: var(--texto);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* ===================== CARD PRINCIPAL ===================== */
+.status-card {
+  background: var(--branco);
+  padding: 50px 35px;
+  border-radius: 20px;
+  box-shadow: 0 10px 35px var(--sombra);
+  max-width: 500px;
+  width: 90%;
+  animation: fadeIn 0.6s ease;
+  transition: all 0.3s ease;
+}
+
+.status-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* ===================== ÍCONES ===================== */
+.icon-section {
+  margin-bottom: 25px;
+}
+
+.icon-section i {
+  font-size: 4.8rem;
+  animation: pop 0.5s ease;
+}
+
+.success-icon {
+  color: var(--sucesso);
+}
+
+.error-icon {
+  color: var(--erro);
+}
+
+.pending-icon {
+  color: var(--pendente);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+/* ===================== TEXTOS ===================== */
+.status-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--vinho);
+  margin-bottom: 10px;
+}
+
+.status-card.success .status-title {
+  color: var(--sucesso);
+}
+
+.status-card.error .status-title {
+  color: var(--erro);
+}
+
+.status-card.pending .status-title {
+  color: var(--pendente);
+}
+
+.status-message {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.status-tip {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 15px auto;
+  background: #f0f0f5;
+  padding: 12px;
+  border-left: 4px solid var(--vinho);
+  border-radius: 8px;
+  max-width: 90%;
+  line-height: 1.5;
+}
+
+/* ===================== BOTÕES ===================== */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  padding: 13px 22px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn i {
+  font-size: 1.1rem;
+}
+
+.btn.primary {
+  background: var(--vinho);
+  color: var(--branco);
+}
+
+.btn.primary:hover {
+  background: var(--vinho-claro);
+  transform: scale(1.03);
+}
+
+.btn.secondary {
+  background: #e9ecef;
+  color: var(--texto);
+  border: 1px solid #d0d0d0;
+}
+
+.btn.secondary:hover {
+  background: #ddd;
+  transform: scale(1.03);
+}
+
+.btn.danger {
+  background: var(--erro);
+  color: var(--branco);
+}
+
+.btn.danger:hover {
+  background: #c0392b;
+}
+
+/* ===================== ANIMAÇÕES ===================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* ===================== RESPONSIVIDADE ===================== */
+@media (min-width: 600px) {
+  .actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

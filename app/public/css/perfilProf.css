@@ -1,314 +1,600 @@
+/* ============ VARIÁVEIS CSS (PALETA REGIMATH PADRÃO) ============ */ 
+:root {
+  --color-primary: #800020;         /* Vinho/Bordô Principal */
+  --color-secondary: #b22222;       /* Vermelho Escuro (Hover) */
+  --color-success: #27ae60;         /* Cor para sucesso/disponível (Agenda) */
+  --color-warning: #f39c12;         /* Amarelo/Laranja (Indisponível) */
+  
+  --color-background: #f7f8fa;      /* Fundo Leve (body) */
+  --color-card-bg: #fff;            /* Fundo principal (cards) */
+  --color-text-dark: #222;          /* Texto principal */
+  --color-text-secondary: #666;     /* Texto de parágrafo/link */
+  --color-text-light: #fff;         /* Texto sobre fundo escuro */
+  --color-border: #ddd;             /* Cor da borda leve */
+
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+  --spacing-sm: 10px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --font-family: "Poppins", Arial, sans-serif;
+}
+
 /* ============================
    ESTILO BASE — MOBILE FIRST
    ============================ */
- 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", Arial, sans-serif;
+  font-family: var(--font-family);
 }
- 
+
 body {
-  background: #f7f8fa;
-  color: #333;
+  background: var(--color-background);
+  color: var(--color-text-dark);
   line-height: 1.6;
+  min-height: 100vh;
 }
- 
-/* ---------- HEADER ---------- */
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ---------- HEADER & NAVEGAÇÃO ---------- */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
-  padding: 12px 18px;
-  border-bottom: 2px solid #ddd;
+  background: var(--color-card-bg);
+  padding: 10px var(--spacing-lg);
+  height: 70px;
+  border-bottom: 2px solid var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
- 
-#logo {
+
+header {
+  background: var(--color-card-bg);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid var(--color-primary);
+  height: 60px;
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
   width: 120px;
-  height: auto;
+  height: 70px;
+  object-fit: contain;
 }
- 
-header nav a {
-  color: #333;
-  margin-left: 15px;
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
+  height: 100vh;
+  background: #800020;
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
+}
+
+nav.active {
+  left: 0px;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav a {
+  color: #fff;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
+  padding: 8px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
 }
- 
-header nav a:hover {
-  color: #800000;
+
+nav a:hover {
+  background: #b22222;
 }
- 
-/* ---------- CONTAINER ---------- */
+
+#close-menu {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Botão de recolher (desktop) */
+#toggle-menu {
+  position: absolute;
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #800020;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#toggle-menu:hover { transform: scale(1.05); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001;
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+/* ---------- CONTAINER PRINCIPAL ---------- */
 .perfil-container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px;
-  max-width: 100%;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  width: 100%;
   margin: 0 auto;
   animation: fadeIn 0.5s ease;
 }
- 
-/* ---------- SEÇÕES ---------- */
-.perfil-info,
-.calendario,
-.alunos {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+
+.btn-edit {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  background: #800020;
+  color: #fff;
+  padding: 12px 25px; /* Padding melhorado */
+  border-radius: 30px; /* Botão mais arredondado */
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
- 
+
+.btn-edit:hover {
+  background: #5e0018;
+  box-shadow: 0 5px 15px rgba(128, 0, 32, 0.4); /* Sombra no hover */
+}
+
+/* ---------- CARDS (SEÇÕES) ---------- */
+.card {
+  background: var(--color-card-bg);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card h2 {
+  color: var(--color-primary);
+  font-size: 1.4rem;
+  margin-bottom: var(--spacing-md);
+  border-left: 5px solid var(--color-primary);
+  padding-left: 10px;
+  display: flex; /* Para alinhar o ícone com o texto */
+  align-items: center;
+  gap: 8px;
+}
+
+.card-subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: var(--spacing-lg); /* Mais espaço antes do conteúdo */
+}
+
+/* ---------- PERFIL INFO & EDIÇÃO ---------- */
 .perfil-info {
   text-align: center;
 }
- 
-/* ---------- FOTO DE PERFIL ---------- */
+
+.profile-header {
+    margin-bottom: var(--spacing-lg);
+}
+
 .foto-perfil {
-  width: 120px;
-  height: 120px;
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
-  border: 3px solid #800000;
+  border: 4px solid var(--color-primary);
   object-fit: cover;
   margin-bottom: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
 }
- 
+
 .perfil-info h1 {
-  font-size: 1.4rem;
-  color: #222;
-  margin-top: 8px;
+  font-size: 1.8rem; /* Aumenta o tamanho do nome */
+  color: var(--color-text-dark);
+  margin-bottom: 5px;
 }
- 
-.descricao {
-  margin: 8px 0 15px;
-  font-size: 0.95rem;
-  color: #555;
+
+.user-type {
+    font-size: 1rem;
+    color: var(--color-primary); /* Cor principal para o tipo de usuário */
+    font-weight: 600;
 }
- 
-/* ---------- CAMPOS DE TEXTO ---------- */
+
+/* Link de Edição Completa */
+.btn-edit-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: var(--color-secondary); /* Usa cor secundária ou diferente para distinção */
+    margin-bottom: var(--spacing-lg);
+}
+.btn-edit-profile:hover {
+    background-color: #991c1c;
+}
+
+/* Form de Edição Rápida */
+.edit-form {
+    text-align: left;
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
 label {
   display: block;
-  margin-top: 10px;
+  margin-bottom: 5px;
   font-weight: 600;
-  color: #333;
-  text-align: left;
-}
- 
-input[type="text"] {
-  width: 100%;
-  padding: 10px 12px;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  margin-top: 6px;
-  transition: border-color 0.3s ease;
+  color: var(--color-text-dark);
   font-size: 0.95rem;
 }
- 
-input[type="text"]:focus {
-  border-color: #800000;
+
+input[type="url"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    margin-top: 4px;
+    transition: border-color 0.3s ease, box-shadow 0.3s;
+    font-size: 0.95rem;
+    font-family: var(--font-family);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary);
   outline: none;
+  box-shadow: 0 0 5px rgba(128, 0, 32, 0.2);
 }
- 
-/* ---------- DISPONIBILIDADE ---------- */
-.disponibilidade {
-  margin-top: 20px;
-  text-align: left;
+
+textarea {
+    resize: vertical;
 }
- 
-#status {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 2px solid #004c4c;
-  background: #333;
-  color: #fff;
-  font-weight: 500;
-  transition: 0.3s;
-}
- 
-#status:hover {
-  border-color: #333;
-  background: #004c4c;
-}
- 
-/* ---------- CALENDÁRIO ---------- */
-.calendario h2 {
-  color: #800000;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  border-left: 4px solid #800000;
-  padding-left: 10px;
-}
- 
-.dias {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-top: 15px;
-}
- 
-.dia {
-  background: #ececec;
-  padding: 12px 0;
-  text-align: center;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
- 
-.dia:hover {
-  transform: scale(1.05);
-}
- 
-.aula {
-  background: #27ae60;
-  color: #fff;
-}
- 
-/* ---------- BOTÃO SALVAR ---------- */
-#salvar {
-  margin-top: 20px;
+
+/* ---------- BOTÕES ---------- */
+.btn-primary {
   padding: 12px 15px;
-  background: #27ae60;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   width: 100%;
   font-size: 1rem;
   font-weight: 600;
-  transition: background 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s;
 }
- 
-#salvar:hover {
-  background: #1e8449;
+
+.btn-primary:hover {
+  background-color: var(--color-secondary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
- 
-/* ---------- ALUNOS ---------- */
-.alunos h2 {
-  color: #800000;
-  font-size: 1.1rem;
-  margin-bottom: 12px;
-  border-left: 4px solid #800000;
-  padding-left: 10px;
+
+.btn-save {
+    margin-top: var(--spacing-md);
 }
- 
-.alunos ul {
+
+.btn-calendar {
+    margin-top: var(--spacing-md);
+    background-color: var(--color-success); /* Cor verde para botões de agendamento */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-calendar:hover {
+    background-color: #1e8449;
+}
+
+/* ---------- CALENDÁRIO ---------- */
+.calendar-grid h3 {
+    text-align: center;
+    color: var(--color-primary);
+    font-size: 1.4rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.dia-header {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+.dia,
+.dia-vazio {
+  background: var(--color-background);
+  padding: 10px 0;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.dia:hover {
+  background: #ebebeb;
+}
+
+.dia-vazio {
+    background: transparent;
+    cursor: default;
+}
+
+.aula {
+  background: var(--color-primary); /* Vinho para aula marcada */
+  color: var(--color-text-light);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.aula:hover {
+    background: var(--color-secondary);
+    transform: scale(1.05);
+}
+
+/* ---------- LISTA DE ALUNOS ---------- */
+.alunos-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin-top: var(--spacing-md);
 }
- 
-.alunos li {
-  padding: 10px 14px;
-  background: #fafafa;
+
+.aluno-item {
+  padding: 12px 16px;
+  background: var(--color-background);
   border-radius: 8px;
   margin-bottom: 8px;
-  font-size: 0.95rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
- 
+
+.aluno-item a {
+    color: var(--color-text-dark);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.aluno-item a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.empty-state {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  padding: 10px 0;
+}
+
 /* ---------- ANIMAÇÃO ---------- */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
- 
+
 /* ============================
    TELAS MÉDIAS (TABLET)
    ============================ */
 @media (min-width: 768px) {
+  .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid var(--bordo);
+    padding-top: 0;
+  }
+
+  nav.collapsed {
+    width: 70px;
+  }
+
+  nav.collapsed ~ .perfil-container {
+    margin-left: 70px;
+  }
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
+
   .perfil-container {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+    position: sticky;
+    left: 25%;
     gap: 30px;
     padding: 40px;
+    max-width: 500px;
   }
- 
-  .perfil-info {
-    text-align: left;
+  
+  .profile-header h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
   }
- 
+  
+  /* Garante que a foto tenha espaço no grid */
   .foto-perfil {
-    width: 150px;
-    height: 150px;
+      margin-bottom: 0;
   }
- 
-  input[type="text"],
-  #status {
-    max-width: 400px;
-  }
- 
-  #salvar {
-    max-width: 250px;
-  }
- 
-  .alunos {
-    grid-column: span 2;
+
+  .edit-form {
+      padding-top: 0;
+      border-top: none;
+      margin-top: var(--spacing-md);
   }
 }
- 
+
 /* ============================
    TELAS GRANDES (DESKTOP)
    ============================ */
 @media (min-width: 1024px) {
   .perfil-container {
-    grid-template-columns: 1fr 2fr 1fr;
+    display: grid;
+    grid-template-columns: 1.2fr 1.8fr; /* Ajusta a proporção: info um pouco menor, agenda maior */
     gap: 40px;
     max-width: 1200px;
-    margin: 40px auto;
+    padding: 40px;
   }
- 
+  
   .perfil-info {
-    width: 140%;
-  }
-
-  input {
-    width: 100%;
-  }
- 
-  .foto-perfil {
-    width: 180px;
-    height: 180px;
-  }
- 
-  .descricao {
-    font-size: 1rem;
+    grid-column: 1 / 2;
   }
 
   .calendario {
-    position: absolute;
-    width: 50%;
-    right: 10%;
+    grid-column: 2 / 3;
   }
- 
-  .calendario h2,
-  .alunos h2 {
-    font-size: 1.3rem;
+
+  .alunos {
+    grid-column: 1 / 3; /* Alunos continua na largura total da linha de baixo */
   }
- 
-  .dia {
-    padding: 16px 0;
-    font-size: 1rem;
+  
+  .perfil-info {
+      text-align: left; /* Altera o alinhamento para o grid */
   }
- 
-  #salvar {
-    font-size: 1.05rem;
+  
+  .profile-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+  }
+
+  .profile-header h1 {
+      margin-top: var(--spacing-md);
+      font-size: 1.8rem;
+  }
+  
+  .foto-perfil {
+    width: 150px;
+    height: 150px;
+  }
+
+  .btn-primary {
+      width: auto; /* Permite que os botões se ajustem ao conteúdo */
+      min-width: 180px;
+      align-self: flex-start; /* Alinha o botão de Edição/Salvar no início */
+  }
+  
+  .btn-save {
+      align-self: stretch; /* Garante que o botão de salvar fique na largura total do formulário */
   }
 }
- 

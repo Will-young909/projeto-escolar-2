@@ -21,6 +21,12 @@ const mpConfig = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKE
 const mpPreferenceClient = new Preference(mpConfig);
 const mpPaymentClient = new Payment(mpConfig);
 
+// Expõe os clients do Mercado Pago para que as rotas possam usar via `req.app.locals`
+app.locals = app.locals || {};
+app.locals.mpPreferenceClient = mpPreferenceClient;
+app.locals.mpPaymentClient = mpPaymentClient;
+app.locals.mpConfig = mpConfig;
+
 // session middleware
 const sessionMiddleware = session({
   secret: 'chave-super-secreta', // troque por algo seguro em produção
@@ -39,6 +45,19 @@ app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
 });
+
+// Middleware: infer a simple `currentPage` value from the URL path
+// so EJS templates can use `<%= currentPage %>` safely without throwing.
+app.use((req, res, next) => {
+  try {
+    // Example: '/' -> 'home', '/login' -> 'login', '/perfil_prof' -> 'perfil_prof'
+    const p = req.path === '/' ? 'home' : req.path.split('/').filter(Boolean)[0] || '';
+    res.locals.currentPage = p;
+  } catch (err) {
+    res.locals.currentPage = '';
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, "app/public")));
 
 // rotas
@@ -54,6 +73,7 @@ const io = new Server(server);
 const roomsMessages = {}; // { roomName: [ {user, text, time} ] }
 // preferenceMap: mapear preference_id -> room e meta para direcionar notificações
 const preferenceMap = {}; // { preferenceId: { room, descricao, createdBy } }
+const paymentsStore = require('./app/lib/paymentsStore');
 
 // Socket.IO
 io.on("connection", (socket) => {
@@ -94,17 +114,17 @@ io.on("connection", (socket) => {
   });
 
   // ---------- NOVO: criação de cobrança via Mercado Pago ----------
-  // data: { room, valor, descricao, payerEmail (opcional) }
+  // data: { room, valor, descricao, createdBy (nome do user) }
   socket.on('requestPayment', async (data) => {
     try {
-      // protege: não tenta criar preferência se token não configurado
+      // Proteção: não tenta criar preferência se token não configurado
       if (!process.env.MP_ACCESS_TOKEN || !mpConfig || !mpConfig.accessToken) {
         socket.emit('systemMessage', { text: 'Pagamento não configurado no servidor (MP_ACCESS_TOKEN ausente).', time: Date.now() });
         return;
       }
-      const { room, valor, descricao, payerEmail } = data;
+      const { room, valor, descricao, createdBy } = data; // 'createdBy' agora é o nome/id do usuário
 
-      // validação mínima
+      // Validação mínima
       const amount = Number(valor);
       if (!room || !amount || amount <= 0) {
         socket.emit('systemMessage', { text: 'Valor inválido para cobrança.', time: Date.now() });
@@ -112,6 +132,8 @@ io.on("connection", (socket) => {
       }
 
       const siteUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+      const isProduction = process.env.NODE_ENV === 'production';
+      const preferenceId = `${room}-${Date.now()}`;
 
       const preference = {
         items: [
@@ -119,29 +141,37 @@ io.on("connection", (socket) => {
             title: descricao || 'Pagamento Regimath',
             quantity: 1,
             currency_id: "BRL",
-            unit_price: Number(amount)
+            unit_price: amount
           }
         ],
-        payer: payerEmail ? { email: payerEmail } : undefined,
         back_urls: {
-          success: `${siteUrl}/pagamento/sucesso`,
-          failure: `${siteUrl}/pagamento/erro`,
-          pending: `${siteUrl}/pagamento/pendente`
+          success: `${siteUrl}/pagamento/sucesso?room=${room}`, // Retorno com a room para contexto
+          failure: `${siteUrl}/pagamento/erro?room=${room}`,
+          pending: `${siteUrl}/pagamento/pendente?room=${room}`
         },
         auto_return: "approved",
-        external_reference: `${room}-${Date.now()}`, // referencia para você
-        metadata: { room }
+        external_reference: preferenceId,
+        metadata: { room, createdBy } // Salva o nome do usuário/prof
       };
 
-  // cria preferência usando o cliente do SDK v2
-  const mpResponse = await mpPreferenceClient.create({ body: preference });
+      // Cria preferência usando o cliente do SDK v2
+      const mpResponse = await mpPreferenceClient.create({ body: preference });
 
-  // o formato de resposta pode variar; busca id e init_point defensivamente
-  const respBody = mpResponse && (mpResponse.body || mpResponse || mpResponse.response) || {};
-  const prefId = respBody.id || respBody.preference_id || null;
-  preferenceMap[prefId] = { room, descricao, createdBy: socket.id };
+      // Busca defensivamente a ID e a URL de checkout
+      const respBody = mpResponse.body || mpResponse || {};
+      const prefId = respBody.id || null;
 
-  const checkoutUrl = respBody.init_point || respBody.sandbox_init_point || null;
+      // Mapeia o ID da preferência com o room para o Webhook
+      if (prefId) {
+        preferenceMap[prefId] = { room, descricao, createdBy };
+      }
+
+      // Escolhe a URL correta de acordo com o ambiente
+      const checkoutUrl = isProduction ? respBody.init_point : respBody.sandbox_init_point;
+
+      if (!checkoutUrl) {
+        throw new Error('URL de checkout não encontrada na resposta do MP.');
+      }
 
       // Emite ao room um evento com o link (aluno verá o botão)
       io.to(room).emit('paymentRequest', {
@@ -149,12 +179,12 @@ io.on("connection", (socket) => {
         valor: amount,
         link: checkoutUrl,
         preferenceId: prefId,
-        createdBy: socket.id,
+        remetente: createdBy, // Nome do usuário que solicitou (professor)
         time: Date.now()
       });
 
-      // confirmação ao solicitante
-      socket.emit('systemMessage', { text: `Cobrança criada: R$ ${amount.toFixed(2)}`, time: Date.now() });
+      // Confirmação ao solicitante
+      socket.emit('systemMessage', { text: `Cobrança criada: R$ ${amount.toFixed(2)} - Enviada no chat.`, time: Date.now() });
 
     } catch (err) {
       console.error('Erro criando preferência MP:', err?.message || err);
@@ -184,40 +214,41 @@ io.on("connection", (socket) => {
 app.post('/webhook/mercadopago', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     // O Mercado Pago pode enviar body com topic e id
-    // Exemplo: { topic: 'payment', id: '12345' }
     const { topic, id } = req.body;
 
-    // Preferência: buscar o pagamento/transaction para checar status
     if (!id) {
-      // pode ser que MP envie diferente dependendo da integração
       res.status(200).send('no id');
       return;
     }
 
     // Se for tópico payment, buscar payment
     if (topic === 'payment' || topic === 'merchant_order' || topic === 'payment.created') {
-      // buscar pagamento pelo id
-      // tentativa segura: usar payment API
-      try {
-  // usa o cliente Payment do SDK v2
-  const paymentRes = await mpPaymentClient.get({ id });
-  const payment = (paymentRes && (paymentRes.body || paymentRes || paymentRes.response)) || null;
+      // Adicionado console.log para debugging em produção
+      console.log(`[MP Webhook] Recebido ID ${id} (Tópico: ${topic})`);
+      
+        try {
+        // usa o cliente Payment do SDK v2
+        const paymentRes = await mpPaymentClient.get({ id });
+        const payment = paymentRes.body || paymentRes || {};
 
-        // checar se approved
-        if (payment && (payment.status === 'approved' || payment.status === 'paid')) {
-          // tentar descobrir preference_id (pode vir em payment.order.preference_id ou payment.order.external_reference)
+        // Checar se approved
+        if (payment.status === 'approved' || payment.status === 'paid') {
+          
+          // 1. Tentar descobrir o ID da Preferência/Room pelo mapeamento interno (mais rápido)
           const prefId = payment.order?.preference_id || payment.preference_id || null;
-
-          // fallback: procurar no map por other fields (metadata)
           let room = null;
+          
           if (prefId && preferenceMap[prefId]) {
             room = preferenceMap[prefId].room;
-          } else if (payment.metadata && payment.metadata.room) {
+          } 
+          
+          // 2. Fallback: procurar no metadata (mais seguro, pois é salvo no MP)
+          if (!room && payment.metadata && payment.metadata.room) {
             room = payment.metadata.room;
           }
 
-          const amount = payment.transaction_amount || payment.total_paid_amount || payment.amount || 0;
-          const payerEmail = payment.payer?.email || null;
+          const amount = payment.transaction_amount || payment.total_paid_amount || 0;
+          const payerEmail = payment.payer?.email || 'Pagador Desconhecido';
 
           const payload = {
             id,
@@ -225,15 +256,39 @@ app.post('/webhook/mercadopago', express.urlencoded({ extended: true }), async (
             amount,
             payer: payerEmail,
             status: payment.status,
-            time: Date.now(),
-            raw: payment
+            time: Date.now()
           };
 
+          // Atualiza persistência local se possível
+          try {
+            if (prefId) {
+              await paymentsStore.updateByPreferenceId(prefId, {
+                paymentId: id,
+                status: payment.status,
+                amount,
+                payer: payerEmail,
+                updatedAt: new Date().toISOString()
+              });
+            } else {
+              await paymentsStore.updateByPaymentId(id, {
+                status: payment.status,
+                amount,
+                payer: payerEmail,
+                updatedAt: new Date().toISOString()
+              });
+            }
+          } catch (e) {
+            console.warn('Não foi possível atualizar persistência do pagamento:', e?.message || e);
+          }
+
           if (room) {
+            // Envia a confirmação SÓ para a sala correta
             io.to(room).emit('paymentConfirmed', payload);
+            console.log(`[MP Webhook] Pagamento confirmado em ${room}. R$ ${amount.toFixed(2)}`);
           } else {
-            // sem room mapeada: broadcast (menos ideal)
-            io.emit('paymentConfirmed', payload);
+            console.warn(`[MP Webhook] Pagamento confirmado, mas ROOM não encontrada. ${id}`);
+            // Opcional: emitir para todos se a room não for encontrada (menos ideal)
+            // io.emit('paymentConfirmed', payload); 
           }
         }
       } catch (err) {
@@ -247,12 +302,6 @@ app.post('/webhook/mercadopago', express.urlencoded({ extended: true }), async (
     console.error('Webhook MP error', err?.message || err);
     res.status(500).send('erro');
   }
-});
-
-// rota para pagina video (mantida)
-app.get("/video/:room", (req, res) => {
-  const room = req.params.room;
-  res.render("pages/video_call", { room });
 });
 
 // inicializa servidor

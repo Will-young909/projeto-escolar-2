@@ -1,0 +1,443 @@
+/* ============ VARIÁVEIS CSS (PALETA REGIMATH) ============ */
+:root {
+    /* Cores da Paleta (do seu home.css) */
+    --color-primary: #800020;      /* Vinho/Bordô Principal */
+    --color-secondary: #b22222;    /* Vermelho Escuro (Hover) */
+    --color-background: #f7f8fa;   /* Fundo Leve */
+    --color-card-bg: #fff;
+    --color-text-dark: #222;
+    --color-text-secondary: #4a4a4a;
+    --color-text-light: #fff;
+    --color-star: #f4b400;
+    --color-accent: #E8AE1E;
+
+    /* Cores de Status (Para o Admin) */
+    --color-success: #27ae60;
+    --color-error: #e74c3c;
+    --color-warning: #f39c12;
+    --color-border: #ddd;
+    
+    /* Espaçamento (do seu home.css) */
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    
+    /* Padrões */
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --border-radius: 12px;
+}
+
+/* ============ RESET E BASE (do seu home.css) ============ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", Arial, sans-serif;
+}
+
+body {
+    background: var(--color-background);
+    color: var(--color-text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ============ HEADER, NAV, OVERLAY (Copiado do home.css) ============ */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-text-light);
+    padding: 8px var(--spacing-md);
+    height: 60px;
+    border-bottom: 2px solid var(--color-primary);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.menu-btn {
+    font-size: 1.8rem;
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    height: 100vh;
+    background: var(--color-primary);
+    padding-top: 60px; /* Espaço para o header */
+    transition: 0.3s;
+    z-index: 1002;
+    display: flex;
+    flex-direction: column;
+}
+
+nav.active {
+    left: 0;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1; /* Ocupa espaço disponível */
+    padding-top: var(--spacing-sm);
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Link de navegação (Substitui o 'nav a' genérico) */
+.nav-links a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    padding: 12px var(--spacing-lg); /* Padding ajustado */
+    font-size: 1rem;
+    transition: background 0.2s;
+    display: flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    gap: 12px;
+}
+.nav-links a:hover {
+    background: var(--color-secondary);
+}
+.nav-links a.active {
+    background: var(--color-text-light);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+/* Ícone */
+.nav-links a i {
+    width: 20px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+/* Badge de Notificação */
+.badge {
+    margin-left: auto;
+    background: var(--color-accent);
+    color: var(--color-text-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+#close-menu {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-text-light);
+    cursor: pointer;
+}
+
+#toggle-menu {
+    position: absolute;
+    top: 15px;
+    right: -17px;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--color-primary);
+    border: 2px solid rgba(255,255,255,0.2);
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1003;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+#toggle-menu svg { transition: transform 0.3s ease; }
+
+#overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+    z-index: 1001;
+}
+#overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* ============ MAIN (Conteúdo do Admin) ============ */
+main {
+    flex-grow: 1;
+    padding: var(--spacing-lg);
+    transition: margin-left 0.3s ease; /* Transição do .collapsed */
+}
+
+/* Cabeçalho do conteúdo (Título da Página) */
+.admin-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.admin-header-content h1 {
+    font-size: 1.8rem;
+    color: var(--color-text-dark);
+}
+
+.admin-profile {
+    font-weight: 500;
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+}
+.admin-profile .fa-user-shield {
+    color: var(--color-primary);
+    margin-right: 5px;
+}
+
+/* Lógica de Troca de Página */
+.content-page {
+    display: none;
+    animation: fadeIn 0.4s ease-out;
+}
+.content-page.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ COMPONENTES DO ADMIN (KPIs, Cards, Tabelas) ============ */
+
+/* Título da Seção (dentro de um card) */
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    color: var(--color-primary);
+}
+
+/* Card Padrão (adaptado do home.css) */
+.card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-lg);
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* KPIs (Dashboard) */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Mobile-first: 1 coluna */
+    gap: var(--spacing-md);
+}
+
+.kpi-card {
+    padding: 20px;
+    border-radius: var(--border-radius);
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.kpi-card .kpi-label {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.0rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.kpi-card.success .kpi-value { color: var(--color-success); }
+.kpi-card.warning .kpi-value { color: var(--color-warning); }
+.kpi-card.error .kpi-value { color: var(--color-error); }
+
+
+/* Tabelas */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto; /* Permite scroll horizontal em tabelas */
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 600px; /* Força scroll em telas pequenas */
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.data-table th {
+    background: var(--color-background);
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.data-table tr:hover {
+    background: #fdfafb;
+}
+
+/* Botões */
+.btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-secondary); }
+
+.btn-success { background: var(--color-success); color: #fff; }
+.btn-error { background: var(--color-error); color: #fff; }
+.btn-warning { background: var(--color-warning); color: var(--color-text-dark); }
+.btn-secondary { background: #f0f0f0; color: var(--color-text-dark); border: 1px solid #ccc; }
+
+.actions-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* Formulários */
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+/* ============ MEDIA QUERIES (Layout do home.css) ============ */
+
+/* === Tablet (768px) === */
+@media (min-width: 768px) {
+    .menu-btn,
+    #overlay,
+    #close-menu {
+        display: none;
+    }
+
+    #toggle-menu { display: flex; }
+
+    nav {
+        left: 0;
+        width: 260px;
+        border-right: 2px solid var(--color-secondary);
+        padding-top: 0; /* Remove o padding do mobile */
+    }
+
+    main {
+        margin-left: 260px;
+    }
+
+    /* Lógica de Colapso (do home.css) */
+    nav.collapsed {
+        width: 70px;
+    }
+
+    nav.collapsed ~ main {
+        margin-left: 70px;
+    }
+
+    /* (NOVO) Esconde o texto e centraliza o ícone */
+    nav.collapsed .label,
+    nav.collapsed .badge {
+        display: none;
+    }
+
+    nav.collapsed a {
+        justify-content: center;
+        padding-left: var(--spacing-sm);
+        padding-right: var(--spacing-sm);
+    }
+    
+    nav.collapsed .nav-links li {
+        overflow: hidden;
+    }
+    
+    nav.collapsed #toggle-menu {
+        right: -28px; /* Ajusta posição do botão de colapso */
+    }
+
+    /* Grade de KPIs no Tablet */
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+    }
+
+    .admin-header-content h1 {
+        font-size: 1.9rem;
+    }
+}
+
+/* === Desktop (1024px+) === */
+@media (min-width: 1024px) {
+    /* Grade de KPIs no Desktop */
+    .kpi-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .admin-header-content h1 {
+        font-size: 2.0rem;
+    }
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feedbacks</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/infos.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+</head>
+
+<body>
+    <header>
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+    <button class="subheader__back" onclick="history.back()">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </button>
+    </header>
+
+  <main class="page page-feedbacks">
+  <h1>Feedbacks dos Alunos</h1>
+
+  <section class="fb-resumo">
+    <p class="fb-resumo__nota">4.8 / 5.0</p>
+    <p class="fb-resumo__info">32 avaliações no total</p>
+    <div class="fb-resumo__barras">
+      <div class="fb-barra">
+        <span>5 ★</span>
+        <div class="fb-barra__track">
+          <div class="fb-barra__fill fb-barra__fill--full" style="width: 70%;"></div>
+        </div>
+        <span class="fb-barra__qtd">22</span>
+      </div>
+      <div class="fb-barra">
+        <span>4 ★</span>
+        <div class="fb-barra__track">
+          <div class="fb-barra__fill" style="width: 20%;"></div>
+        </div>
+        <span class="fb-barra__qtd">6</span>
+      </div>
+      <div class="fb-barra">
+        <span>3 ★</span>
+        <div class="fb-barra__track">
+          <div class="fb-barra__fill" style="width: 7%;"></div>
+        </div>
+        <span class="fb-barra__qtd">2</span>
+      </div>
+      <div class="fb-barra">
+        <span>2 ★</span>
+        <div class="fb-barra__track">
+          <div class="fb-barra__fill" style="width: 3%;"></div>
+        </div>
+        <span class="fb-barra__qtd">1</span>
+      </div>
+      <div class="fb-barra">
+        <span>1 ★</span>
+        <div class="fb-barra__track">
+          <div class="fb-barra__fill" style="width: 0%;"></div>
+        </div>
+        <span class="fb-barra__qtd">0</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="fb-filtros">
+    <label class="fb-filtro">
+      <span>Ordenar por</span>
+      <select>
+        <option>Mais recentes</option>
+        <option>Melhores notas</option>
+        <option>Piores notas</option>
+      </select>
+    </label>
+
+    <label class="fb-filtro">
+      <span>Filtrar por nota</span>
+      <select>
+        <option>Todas</option>
+        <option>5 estrelas</option>
+        <option>4 estrelas</option>
+        <option>3 estrelas ou menos</option>
+      </select>
+    </label>
+  </section>
+
+  <section class="fb-lista">
+    <!-- item de feedback -->
+    <article class="fb-card">
+      <header class="fb-card__topo">
+        <div>
+          <strong>Maria Souza</strong>
+          <span class="fb-card__aula">Aula: Álgebra Linear</span>
+        </div>
+        <div class="fb-card__nota">
+          <span>5.0</span>
+          <span>★ ★ ★ ★ ★</span>
+        </div>
+      </header>
+      <p class="fb-card__texto">
+        Aula muito clara, professor paciente e explicou várias vezes quando precisei.
+      </p>
+      <footer class="fb-card__rodape">
+        <span>03/12/2025</span>
+        <button class="fb-card__responder">Responder</button>
+      </footer>
+    </article>
+
+    <article class="fb-card">
+      <header class="fb-card__topo">
+        <div>
+          <strong>João Silva</strong>
+          <span class="fb-card__aula">Aula: Cálculo I</span>
+        </div>
+        <div class="fb-card__nota">
+          <span>4.0</span>
+          <span>★ ★ ★ ★ ☆</span>
+        </div>
+      </header>
+      <p class="fb-card__texto">
+        Gostei bastante, mas a conexão caiu algumas vezes.
+      </p>
+      <footer class="fb-card__rodape">
+        <span>01/12/2025</span>
+        <button class="fb-card__responder">Responder</button>
+      </footer>
+    </article>
+
+    <!-- estado vazio -->
+    <!-- <p class="lista-vazia">Ainda não há feedbacks para exibir.</p> -->
+  </section>
+</main>
+
+</body>

@@ -1,0 +1,179 @@
+/* Estilos gerais */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f6fa;
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background: #fff;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 2px solid var(--color-primary);
+}
+
+.logo {
+    height: 40px;
+}
+
+/* Container principal */
+.container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+}
+
+/* Card do plano */
+.plan-card {
+    background: white;
+    border-radius: 10px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.plan-card h2 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+/* Preço */
+.price {
+    font-size: 3rem;
+    margin: 1.5rem 0;
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.currency {
+    font-size: 2rem;
+    vertical-align: super;
+}
+
+.period {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+/* Lista de benefícios */
+.benefits {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.benefits li {
+    margin: 1rem 0;
+    padding-left: 2rem;
+    position: relative;
+    color: #34495e;
+}
+
+.benefits li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+/* Botão de checkout */
+.checkout-btn {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    margin: 1rem 0;
+}
+
+.checkout-btn:hover {
+    background: #27ae60;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(46, 204, 113, 0.2);
+}
+
+.checkout-btn:active {
+    transform: translateY(0);
+}
+
+/* Informações de pagamento */
+.payment-info {
+    text-align: center;
+    margin-top: 2rem;
+    color: #7f8c8d;
+}
+
+.payment-info p {
+    margin: 0.5rem 0;
+}
+
+/* Container do Mercado Pago */
+#wallet_container {
+    margin: 1.5rem 0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.5rem;
+    }
+
+    .plan-card {
+        padding: 1.5rem;
+    }
+
+    .price {
+        font-size: 2.5rem;
+    }
+
+    .currency {
+        font-size: 1.5rem;
+    }
+
+    .checkout-btn {
+        width: 100%;
+        padding: 1rem;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.plan-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Estados de carregamento */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading .checkout-btn {
+    background: #95a5a6;
+}

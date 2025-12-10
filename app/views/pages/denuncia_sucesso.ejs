@@ -1,36 +1,95 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Denúncia Enviada</title>
-  <link rel="stylesheet" href="../css/cadastro.css" />
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Denúncia Enviada - Regimath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/cadastro.css" /> 
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+
+    <style>
+        /* Estilos básicos para garantir a centralização e o visual de sucesso */
+        .center-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh; /* Garante que fique centralizado na tela */
+            padding: 20px;
+        }
+
+        .container-message {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .success-icon {
+            color: #27ae60; /* Verde de sucesso */
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .container-message h1 {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+
+        .message-body {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        /* Estilo para o botão primário (assumindo que já existe em cadastro.css, mas adicionado fallback) */
+        .btn-primary {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #800020; /* Cor primária do Regimath (assumida) */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #a00030;
+        }
+
+    </style>
 </head>
 <body>
-  <header>
-    <a href="/" style="text-decoration: none; color: var(--bordo); font-weight: bold;">⬅ Voltar</a>
-    <a href="/"><img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo"></a>
-  </header>
-
-  <main>
-    <section style="text-align: center; padding: 30px 10px;">
-      <h1 style="color: var(--bordo); font-size: 1.8em;">✅ Denúncia enviada com sucesso!</h1>
-      <p style="margin-top: 16px; font-size: 1.1em;">
-        Agradecemos por contribuir com a segurança e o bom uso da plataforma.  
-        Sua denúncia será analisada em breve por nossa equipe.
-      </p>
-
-      <section style="margin-top: 30px;">
-        <a href="/" 
-           style="display: inline-block; background-color: var(--bordo); color: var(--branco);
-                  padding: 12px 24px; border-radius: var(--raio); font-weight: bold;
-                  text-decoration: none; transition: background 0.3s ease;">
-          Voltar à Página Inicial
+    <header>
+        <a href="/">
+            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
         </a>
-      </section>
-    </section>
-  </main>
+    </header>
 
+    <main class="center-content">
+        <section class="container-message success-box" role="alert" aria-live="assertive">
+            
+            <i class="fas fa-check-circle success-icon"></i>
+            <h1>Denúncia enviada com sucesso!</h1>
+            
+            <p class="message-body">
+                Agradecemos por contribuir com a segurança e o bom uso da plataforma. 
+                Sua denúncia será analisada em breve por nossa equipe.
+            </p>
+
+            <div class="message-cta">
+                <a href="/" class="btn-primary">
+                    <i class="fas fa-home"></i> Voltar à Página Inicial
+                </a>
+            </div>
+        </section>
+    </main>
 </body>
 </html>

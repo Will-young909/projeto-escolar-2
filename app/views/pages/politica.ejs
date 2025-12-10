@@ -1,95 +1,146 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Política de Privacidade - Regimath</title>
-  <link rel="stylesheet" href="../css/politica.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidade - RegiMath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/css/politica.css" />
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 <body>
   <header>
-    <section class="header-content">
-      <a href="/"><img src="/imagens/Regimath_curto.png" alt="Logo Regimath" class="logo"></a>
-      <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    </section>
+    <a href="/" class="logo-link">
+        <img src="/imagens/RM_bordo.png" alt="Logo RegiMath" class="logo">
+      </a>
+    <button class="menu-btn" id="menu-btn">&#9776;</button>
   </header>
 
-  <nav id="menu-lateral" class="menu-lateral">
-    <button class="fechar" onclick="toggleMenu()">×</button>
-    <ul>
-      <li><a href="/">Início</a></li>
-      <li><a href="/termos" class="">Termos de Uso</a></li>
+  <div id="overlay"></div>
+
+  <nav id="menu" class="overlay collapsed">
+    <button id="close-menu" aria-label="Fechar menu">&times;</button>
+
+    <button id="toggle-menu" aria-label="Recolher menu">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+      </svg>
+    </button>
+    <ul class="nav-links">
+      <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg>Início</a></li>
+      <li><a href="/politica"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>Política de Privacidade</a></li>
+      <li><a href="/termos"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-80q-50 0-85-35t-35-85v-120h120v-560h600v680q0 50-35 85t-85 35H240Zm480-80q17 0 28.5-11.5T760-200v-600H320v480h360v120q0 17 11.5 28.5T720-160ZM360-600v-80h360v80H360Zm0 120v-80h360v80H360ZM240-160h360v-80H200v40q0 17 11.5 28.5T240-160Zm0 0h-40 400-360Z"/></svg>Termos de Uso</a></li>
     </ul>
   </nav>
 
   <main>
-    <section class="conteudo">
+    <section class="content">
       <h1>Política de Privacidade</h1>
-      <p><strong>Política de Privacidade – RegiMath</strong></p>
-      <p><em>Última atualização: 02 de setembro de 2025</em></p>
+      <p>
+        A RegiMath valoriza sua privacidade e está comprometida em proteger suas informações pessoais.
+        Esta política explica como coletamos, usamos e protegemos seus dados.
+      </p>
 
-      <p>A sua privacidade é importante para nós. Esta Política de Privacidade explica como o RegiMath coleta, usa, armazena e protege as informações pessoais dos usuários (alunos e professores) que utilizam nossa plataforma.</p>
-
-      <h2>1. Coleta de Informações</h2>
-      <p>Ao se cadastrar ou utilizar o RegiMath, podemos coletar as seguintes informações:</p>
+      <h2><i class="fas fa-database"></i> 1. Coleta de Informações</h2>
       <ul>
-        <li><strong>Dados de cadastro:</strong> nome, e-mail, telefone, senha, entre outros.</li>
-        <li><strong>Informações de pagamento:</strong> dados necessários para processar transações (esses dados são tratados por parceiros de pagamento seguros).</li>
-        <li><strong>Informações de uso:</strong> histórico de aulas, interações com professores/alunos, avaliações, etc.</li>
+        <li><strong>Dados de cadastro:</strong> nome, e-mail, senha, etc.</li>
+        <li><strong>Informações de pagamento:</strong> tratadas por parceiros seguros, como o Mercado Pago.</li>
+        <li><strong>Informações de uso:</strong> histórico de aulas, interações, IP, tipo de dispositivo, entre outros.</li>
       </ul>
 
-      <h2>2. Uso das Informações</h2>
-      <p>As informações coletadas são utilizadas para:</p>
+      <h2><i class="fas fa-cogs"></i> 2. Uso das Informações</h2>
       <ul>
-        <li>Criar e gerenciar sua conta no RegiMath.</li>
-        <li>Facilitar a conexão entre alunos e professores.</li>
+        <li>Gerenciar sua conta e experiências na plataforma.</li>
+        <li>Facilitar a comunicação entre alunos e professores.</li>
         <li>Processar pagamentos com segurança.</li>
-        <li>Melhorar a experiência do usuário na plataforma.</li>
-        <li>Enviar comunicações relacionadas ao serviço (como lembretes de aula e atualizações da plataforma).</li>
+        <li>Melhorar nossos serviços e enviar notificações relevantes.</li>
       </ul>
 
-      <h2>3. Compartilhamento de Dados</h2>
-      <p>Não vendemos ou compartilhamos suas informações pessoais com terceiros, exceto quando necessário para:</p>
+      <h2><i class="fas fa-share-alt"></i> 3. Compartilhamento de Dados</h2>
+      <p>Compartilhamos informações apenas quando necessário para:</p>
       <ul>
-        <li>Processar pagamentos via parceiros confiáveis.</li>
+        <li>Processar pagamentos (Mercado Pago).</li>
         <li>Cumprir obrigações legais.</li>
-        <li>Melhorar a funcionalidade da plataforma com prestadores de serviço (como serviços de hospedagem ou análise de dados).</li>
+        <li>Melhorar funcionalidades (hospedagem, segurança, analytics).</li>
       </ul>
 
-      <h2>4. Segurança</h2>
-      <p>Adotamos medidas de segurança técnicas e organizacionais para proteger suas informações contra acesso não autorizado, perda ou uso indevido.</p>
+      <h2><i class="fas fa-lock"></i> 4. Segurança</h2>
+      <p>Adotamos medidas técnicas e organizacionais para proteger seus dados, como criptografia SSL e controle de acesso restrito.</p>
 
-      <h2>5. Seus Direitos</h2>
-      <p>Você pode a qualquer momento:</p>
+      <h2><i class="fas fa-user-shield"></i> 5. Seus Direitos (LGPD)</h2>
       <ul>
-        <li>Acessar ou atualizar seus dados pessoais.</li>
-        <li>Solicitar a exclusão da sua conta.</li>
-        <li>Entrar em contato para esclarecer dúvidas sobre o uso de suas informações.</li>
+        <li>Acessar, corrigir ou excluir dados pessoais.</li>
+        <li>Solicitar portabilidade de dados.</li>
+        <li>Revogar consentimentos a qualquer momento.</li>
       </ul>
 
-      <h2>6. Alterações nesta Política</h2>
-      <p>Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos os usuários caso mudanças relevantes sejam feitas.</p>
+      <h2><i class="fas fa-history"></i> 6. Alterações nesta Política</h2>
+      <p>Reservamo-nos o direito de atualizar esta Política. A data de atualização sempre estará visível nesta página.</p>
 
-      <h2>7. Contato</h2>
-      <p>Em caso de dúvidas, entre em contato conosco pelo e-mail: <a href="https://mail.google.com/mail/u/0/#search/regimath.equipe%40gmail.com">regimath.equipe@gmail.com</a></p>
+      <h2><i class="fas fa-headset"></i> 7. Contato</h2>
+      <p>Em caso de dúvidas, contate nosso DPO pelo e-mail:</p>
+      <p class="contact-email">
+        <a href="mailto:regimath.equipe@gmail.com">regimath.equipe@gmail.com</a>
+      </p>
     </section>
   </main>
 
   <footer>
-    <p>Contato:<a href="https://mail.google.com/mail/u/0/#search/regimath.equipe%40gmail.com"><svg
-          xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0078ff"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-mail">
-          <rect x="2" y="4" width="20" height="16" rx="2" ry="2" class="icon-mail"></rect>
-          <polyline points="22,6 12,13 2,6"></polyline>
-        </svg>
-      </a></p>
+    <p>Precisa de ajuda? <a href="mailto:regimath.equipe@gmail.com"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg> Contate-nos</a></p>
   </footer>
 
   <script>
-    const menu = document.getElementById('menu-lateral');
-    function toggleMenu() {
-      menu.classList.toggle('aberto');
+    const menuBtn = document.getElementById('menu-btn');
+    const menu = document.getElementById('menu');
+    const overlay = document.getElementById('overlay');
+    const closeBtn = document.getElementById('close-menu');
+    const toggleBtn = document.getElementById("toggle-menu");
+    const dropdown = document.querySelector('.dropdown-regimath');
+
+    function toggleMobileMenu() {
+      menu.classList.toggle('active');
+      overlay.classList.toggle('active');
+      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+    }
+
+    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+
+    if (toggleBtn) {
+      const toggleIcon = document.getElementById('toggle-icon');
+      const isCollapsed = menu.classList.contains('collapsed');
+      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
+      toggleBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        menu.classList.toggle("collapsed");
+        const isNowCollapsed = menu.classList.contains('collapsed');
+        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+      });
+    }
+
+    if (dropdown) {
+      const toggle = dropdown.querySelector('.dropdown-toggle');
+      const content = dropdown.querySelector('.dropdown-content');
+      content.hidden = !dropdown.classList.contains('active');
+
+      toggle.addEventListener('click', () => {
+        const isActive = dropdown.classList.toggle('active');
+        toggle.setAttribute('aria-expanded', isActive);
+        content.hidden = !isActive;
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+          toggle.setAttribute('aria-expanded', false);
+          content.hidden = true;
+        }
+      });
     }
   </script>
 </body>

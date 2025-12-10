@@ -2,113 +2,206 @@
 <html lang="pt-br">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <%= professor.nome %> - Perfil
-  </title>
-  <link rel="stylesheet" href="../css/exibir_prof.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Perfil: <%= professor.nome %> | Regimath
+    </title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/exibir_prof.css">
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 
 <body>
-  <header>
-    <a href="/"><img src="/imagens/Regimath_curto.png" alt="Logo Regimath" id="logo"></a>
-    <nav class="nav-links" id="navLinks">
-      <a href="/denuncia">Denunciar</a>
-    </nav>
-    <nav>
-      <a href="/">Voltar</a>
-      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">
-        <!-- Ícone SVG estilizado -->
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="5" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="12" cy="19" r="2" />
-        </svg>
-      </button>
-    </nav>
-  </header>
+        <header>
+                <a href="/">
+                        <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+                </a>
+                <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+        </header>
 
-  <main class="perfil-container">
-    <!-- Informações do professor -->
-    <section class="perfil-info">
-      <img src="/imagens/imagem_perfil.jpg" alt="Foto de <%= professor.nome %>" class="foto-perfil">
-      <h1>
-        <%= professor.nome %>
-      </h1>
-      <p class="descricao">
-        <%= professor.descricao %>
-      </p>
-      <a href="<%= professor.aulaPrevia %>" target="_blank" class="btn-aula">Assistir aula prévia</a><br>
-      <a href="/chat"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28"
-          fill="#800000c8">
-          <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
-        </svg>Chat
-      </a>
+        <div id="overlay"></div>
 
-      <!-- Status visível (não editável) -->
-      <p class="status <%= professor.status %>">
-        <strong>Status:</strong>
-        <%= professor.status==='disponivel' ? 'Disponível' : 'Indisponível' %>
-      </p>
-    </section>
+        <nav id="menu" class="overlay collapsed">
 
-    <!-- Calendário simplificado -->
-    <section class="calendario">
-      <h2>Próximas aulas</h2>
-      <ul class="lista-aulas">
-        <% professor.aulas.forEach(aula=> { %>
-          <li>
-            <p class="data">
-              <%= aula.data %>
+            <button id="close-menu" aria-label="Fechar menu">&times;</button>
+
+            <button id="toggle-menu" aria-label="Recolher menu">
+                <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                    <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                </svg>
+            </button>
+
+            <ul class="nav-links">
+                <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+
+                <li><a href="/denuncia"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M780.21-552q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5ZM744-672v-192h72v192h-72ZM384-480q-60 0-102-42t-42-102q0-60 42-102t102-42q60 0 102 42t42 102q0 60-42 102t-102 42ZM96-192v-92q0-25.78 12.5-47.39T143-366q55-32 116-49t125-17q64 0 125 17t116 49q22 13 34.5 34.61T672-284v92H96Zm72-72h432v-20q0-6.47-3.03-11.76-3.02-5.3-7.97-8.24-47-27-99-41.5T384-360q-54 0-106 14.5T179-304q-4.95 2.94-7.98 8.24Q168-290.47 168-284v20Zm216.21-288Q414-552 435-573.21t21-51Q456-654 434.79-675t-51-21Q354-696 333-674.79t-21 51Q312-594 333.21-573t51 21Zm-.21-73Zm0 361Z"/></svg>Denuncia</a></li>
+
+                <% if (session.user_aluno || session.user_prof) { %>
+                        <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+                <% } else { %>
+                        <li>
+                          <a href="/login"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>Login</a>
+                          <a href="/cadastro"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M720-400v-120H600v-80h120v-120h80v120h120v80H800v120h-80Zm-360-80q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm80-80h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0-80Zm0 400Z"/></svg>Cadastro</a>
+                        </li>
+                <% } %>
+            </ul>
+        </nav>
+
+    <main class="perfil-container">
+        <section class="perfil-info card">
+            <div class="profile-header">
+                <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" 
+                    alt="Foto de <%= professor.nome %>" 
+                    class="foto-perfil"
+                    aria-label="Foto de perfil">
+                
+                <div class="info-text">
+                    <h1><%= professor.nome %></h1>
+                    <p class="status-label status-<%= professor.status %>">
+                        <i class="fas <%= professor.status === 'disponivel' ? 'fa-circle-dot' : 'fa-circle' %>"></i>
+                        <%= professor.status === 'disponivel' ? 'Disponível' : 'Indisponível' %>
+                    </p>
+                </div>
+            </div>
+
+            <div class="perfil-destaques">
+                <div class="destaque avaliacao" role="img" aria-label="Avaliação média de <%= professor.avaliacao_media || '4.8' %> estrelas">
+                    <i class="fas fa-star"></i>
+                    <span>
+                        <%= professor.avaliacao_media || '4.8' %> 
+                        (<%= professor.num_avaliacoes || '95' %> avaliações)
+                    </span>
+                </div>
+                <div class="destaque preco">
+                    <i class="fas fa-tags"></i>
+                    <span>R$ <%= professor.valor_aula || '65,00' %> / Hora</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Sobre o Professor(a)</h2>
+            <p class="descricao">
+                <%= professor.descricao %>
             </p>
-            <p class="hora">
-              <%= aula.hora %>
-            </p>
-          </li>
-          <% }) %>
-      </ul>
-    </section>
-    <!-- Comentários -->
-    <section class="comentarios">
-      <h2>Comentários</h2>
-      <ul class="lista-comentarios">
-        <% professor.comentarios.forEach(comentario=> { %>
-          <li>
-            <strong>
-              <%= comentario.usuario %>:
-            </strong>
-            <p class="texto-comentario">
-              <%= comentario.texto %>
-            </p>
-            <small class="data">(<%= new Date(comentario.data || Date.now()).toLocaleString('pt-BR') %>)</small>
-          </li>
-          <% }) %>
-      </ul>
 
-      <% // Formulário de novo comentário (apenas para usuários logados) %>
-        <% if (session && (session.user_aluno || session.user_prof)) { %>
-          <form action="/exibir_prof/<%= professor.id %>/comentar" method="POST" class="form-comentario">
-            <input name="texto" placeholder="Escreva seu comentário..." required>
-            <button type="submit">Enviar comentário</button>
-          </form>
-          <% } else { %>
-            <p>Faça <a href="/login" class="login">login</a> para deixar um comentário.</p>
+            <h2 class="section-title">Matérias Lecionadas</h2>
+            <div class="tags-disciplinas">
+                <% const disciplinas = professor.disciplinas || ['Matemática Básica', 'Cálculo I', 'Geometria', 'Estatística']; %>
+                <% disciplinas.forEach(disciplina => { %>
+                    <span class="tag"><%= disciplina %></span>
+                <% }); %>
+            </div>
+            
+            <a href="<%= professor.link_previa %>" target="_blank" class="btn-secondary btn-previa">
+                <i class="fas fa-video"></i> Assistir Aula Prévia
+            </a>
+
+            <% if (professor.status === 'disponivel') { %>
+                <a href="/chat/<%= professor.id %>" class="btn-primary btn-chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg> Conversar e Agendar
+                </a>
+            <% } else { %>
+                <button class="btn-primary btn-chat disabled" disabled aria-disabled="true">
+                    <i class="fas fa-comments"></i> Indisponível para Chat
+                </button>
             <% } %>
-    </section>
-  </main>
+        </section>
 
-  <script>
-    const menuBtn = document.getElementById('menuBtn');
-    const navLinks = document.getElementById('navLinks');
+        <div class="secondary-column">
+            <section class="calendario card">
+                <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Próximas Aulas Públicas</h2>
+                <ul class="lista-aulas">
+                    <% if (professor.aulas && professor.aulas.length > 0) { %>
+                        <% professor.aulas.forEach(aula => { %>
+                            <li>
+                                <span class="data"><i class="fas fa-clock"></i> <%= aula.data %></span>
+                                <span class="hora"><%= aula.hora %></span>
+                            </li>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="empty-state">Nenhuma aula pública agendada.</p>
+                    <% } %>
+                </ul>
+            </section>
 
-    menuBtn.addEventListener('click', () => {
-      navLinks.classList.toggle('open');
-      menuBtn.classList.toggle('active');
-    });
+            <section class="comentarios card">
+                <h2 class="section-title"><i class="fas fa-comment-dots"></i> Comentários e Avaliações</h2>
+                
+                <ul class="lista-comentarios">
+                    <% if (professor.comentarios && professor.comentarios.length > 0) { %>
+                        <% professor.comentarios.forEach(comentario => { %>
+                            <li aria-label="Comentário de <%= comentario.usuario %>">
+                                <div class="comentario-header">
+                                    <strong><%= comentario.usuario %></strong>
+                                    <% if (comentario.nota) { %>
+                                        <span class="rating" aria-label="Nota: <%= comentario.nota %> estrelas">
+                                            <%= '⭐'.repeat(comentario.nota) %>
+                                        </span>
+                                    <% } %>
+                                </div>
+                                <span class="texto-comentario"><%= comentario.texto %></span>
+                                <small class="data"><%= new Date(comentario.data || Date.now()).toLocaleString('pt-BR') %></small>
+                            </li>
+                        <% }) %>
+                    <% } else { %>
+                        <p class="empty-state">Seja o primeiro a comentar e avaliar!</p>
+                    <% } %>
+                </ul>
 
-  </script>
-</body>
+                <% // Formulário de novo comentário (apenas para usuários logados) %>
+                <% if (session && (session.user_aluno || session.user_prof)) { %>
+                    <form action="/exibir_prof/<%= professor.id %>/comentar" method="POST" class="form-comentario">
+                        <label for="comment-text" class="visually-hidden">Escreva seu comentário</label>
+                        <textarea id="comment-text" name="texto" placeholder="Escreva seu comentário..." required rows="3"></textarea>
+                        <button type="submit" class="btn-primary btn-comment">
+                            <i class="fas fa-paper-plane"></i> Enviar Comentário
+                        </button>
+                    </form>
+                <% } else { %>
+                    <p class="login-prompt">
+                        Faça <a href="/login" class="link-primary">login</a> para deixar um comentário e avaliação.
+                    </p>
+                <% } %>
+            </section>
+        </div>
+    </main>
+
+        <script>
+            const menuBtn = document.getElementById('menu-btn');
+            const menu = document.getElementById('menu');
+            const overlay = document.getElementById('overlay');
+            const closeBtn = document.getElementById('close-menu');
+            const toggleBtn = document.getElementById("toggle-menu");
+            const dropdown = document.querySelector('.dropdown-regimath');
+
+            function toggleMobileMenu() {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+                document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+            }
+
+            if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+            if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+            if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+
+            if (toggleBtn) {
+                const toggleIcon = document.getElementById('toggle-icon');
+                const isCollapsed = menu.classList.contains('collapsed');
+                toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+                if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
+                toggleBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    menu.classList.toggle("collapsed");
+                    const isNowCollapsed = menu.classList.contains('collapsed');
+                    toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+                    toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+                });
+            }
+
+        </script>
+
+        </body>
 
 </html>

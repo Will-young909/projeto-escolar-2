@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecionando ao Pagamento Seguro...</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/checkout.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+  
+    <script src="https://sdk.mercadopago.com/js/v2"></script> 
+  
+</head>
+<body class="loading-page">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <h1>Redirecionando...</h1>
+    <p>Estamos te enviando para o ambiente seguro de pagamento. Por favor, aguarde.</p>
+    
+        <div id="payment-widget-container">
+      <button class="btn primary disabled" disabled>Carregando Formulário...</button>
+    </div>
+  </div>
+
+  <script>
+    /*       * Lógica de Integração JS Aqui (Exemplo hipotético com um 'preferenceId'):
+      * O preferenceId seria injetado pelo EJS a partir da resposta do backend.
+      */
+    const preferenceId = '<%= preferenceId %>'; // Valor injetado pelo backend (Node/Express)
+
+    if (preferenceId) {
+      // Exemplo de inicialização de um SDK (Mercado Pago)
+      const mp = new MercadoPago('PUBLIC_KEY_DA_SUA_CONTA', {
+        locale: 'pt-BR'
+      });
+
+      // Renderiza o botão/widget de pagamento
+      mp.checkout({
+        preference: {
+          id: preferenceId
+        },
+        render: {
+          container: '#payment-widget-container',
+          label: 'Finalizar Compra Segura',
+        }
+      });
+      
+      // Esconde o spinner após o widget carregar (ajustar timing dependendo do SDK)
+      document.querySelector('.spinner').style.display = 'none';
+    } else {
+      document.querySelector('.loading-card p').textContent = "Erro ao gerar preferência de pagamento. Volte e tente novamente.";
+      document.querySelector('.spinner').style.display = 'none';
+      document.getElementById('payment-widget-container').innerHTML = '<a href="/pagamento" class="btn danger"><i class="fas fa-undo"></i> Tentar Novamente</a>';
+    }
+  </script>
+</body>
+</html>

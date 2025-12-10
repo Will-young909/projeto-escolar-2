@@ -1,123 +1,257 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Denúncia - Regimath</title>
-  <link rel="stylesheet" href="/css/cadastro.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Denúncia - Regimath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/cadastro.css">
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+    <style>
+        /* Estilos de feedback aqui para manter a consistência, embora deva estar no CSS externo */
+        .invalid { border-color: #c0392b !important; box-shadow: 0 0 4px rgba(192, 57, 43, 0.5) !important; }
+        .valid { border-color: #27ae60 !important; box-shadow: 0 0 4px rgba(39, 174, 96, 0.5) !important; }
+        .error-feedback { color: #c0392b; font-size: 0.9rem; margin-top: 4px; }
+        .error-summary {
+            border: 1px solid #c0392b;
+            background: #fdecea;
+            color: #b71c1c;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .error-summary h4 { margin: 0 0 8px; }
+        .error-summary ul { padding-left: 20px; margin-top: 5px; list-style-type: disc; }
+        
+        /* Corrigido o estilo do textarea que estava injetado via JS (agora padrão) */
+        textarea#descricao {
+            width: 100%;
+            padding: 12px;
+            margin-top: 4px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            resize: vertical;
+        }
+        textarea#descricao:focus {
+            border-color: #800020;
+            outline: none;
+            box-shadow: 0 0 5px rgba(128,0,32,0.3);
+        }
+    </style>
 </head>
+
 <body>
-  <header>
-    <img src="/imagens/Regimath_curto.png" alt="Regimath" id="logo">
-  </header>
+    <header>
+        <a href="/">
+            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+        </a>
+    </header>
 
-  <main>
-    <h1>Denúncia</h1>
-    <p class="subtitle">Use este formulário para reportar comportamentos ou conteúdos inadequados.</p>
+    <main>
+        <h2>Denúncia <i class="fas fa-exclamation-triangle" style="color:#c0392b;"></i></h2>
+        <p class="subtitle" style="text-align:center; margin-bottom: 24px;">
+            Use este formulário para reportar comportamentos ou conteúdos inadequados.
+        </p>
 
-    <form id="denunciaForm" action="/denuncia" method="POST" novalidate>
-      <!-- campo tipo -->
-      <label for="tipo">Tipo de denúncia</label>
-      <select id="tipo" name="tipo" required>
-        <option value="" disabled <%= !dados?.tipo ? 'selected' : '' %>>Selecione</option>
-        <option value="conteudo" <%= dados?.tipo==='conteudo' ? 'selected' : '' %>>Conteúdo</option>
-        <option value="comportamento" <%= dados?.tipo==='comportamento' ? 'selected' : '' %>>Comportamento</option>
-        <option value="outro" <%= dados?.tipo==='outro' ? 'selected' : '' %>>Outro</option>
-      </select>
-      <% if (erros && erros.tipo) { %><p class="erro"><%= erros.tipo.msg %></p><% } %>
-  <p class="erro" id="err-tipo"></p>
+        <form id="denunciaForm" action="/denuncia" method="POST" novalidate>
+            <div id="client-errors" class="error-summary" role="alert" tabindex="-1" style="display:none;"></div>
 
-      <!-- título -->
-      <label for="titulo">Título</label>
-  <input id="titulo" name="titulo" type="text" maxlength="100" value="<%= dados?.titulo || '' %>" required>
-  <% if (erros && erros.titulo) { %><p class="erro"><%= erros.titulo.msg %></p><% } %>
-  <p class="erro" id="err-titulo"></p>
+            <div class="form-group">
+                <label for="tipo"><i class="fas fa-flag"></i> Tipo de denúncia *</label>
+                <select id="tipo" name="tipo" required 
+                    class="<%= erros?.tipo ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.tipo ? 'true' : 'false' %>"
+                    aria-describedby="err-tipo">
+                    <option value="" disabled <%= !dados?.tipo ? 'selected' : '' %>>Selecione</option>
+                    <option value="conteudo" <%= dados?.tipo === 'conteudo' ? 'selected' : '' %>>Conteúdo</option>
+                    <option value="comportamento" <%= dados?.tipo === 'comportamento' ? 'selected' : '' %>>Comportamento</option>
+                    <option value="outro" <%= dados?.tipo === 'outro' ? 'selected' : '' %>>Outro</option>
+                </select>
+                <p id="err-tipo" class="error-feedback" aria-live="polite"><%= erros?.tipo?.msg || '' %></p>
+            </div>
 
-      <!-- descrição -->
-      <label for="descricao">Descrição (conte o que ocorreu)</label>
-  <textarea id="descricao" name="descricao" rows="6" required><%= dados?.descricao || '' %></textarea>
-  <% if (erros && erros.descricao) { %><p class="erro"><%= erros.descricao.msg %></p><% } %>
-  <p class="erro" id="err-descricao"></p>
+            <div class="form-group">
+                <label for="titulo"><i class="fas fa-pen"></i> Título * </label>
+                <input id="titulo" name="titulo" type="text" maxlength="100" required 
+                    value="<%= dados?.titulo || '' %>"
+                    class="<%= erros?.titulo ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.titulo ? 'true' : 'false' %>"
+                    aria-describedby="err-titulo">
+                <p id="err-titulo" class="error-feedback" aria-live="polite"><%= erros?.titulo?.msg || '' %></p>
+            </div>
 
-      <!-- opcional: evidência url -->
-      <label for="evidencia">Link de evidência (opcional)</label>
-  <input id="evidencia" name="evidencia" type="url" placeholder="https://..." value="<%= dados?.evidencia || '' %>">
-  <% if (erros && erros.evidencia) { %><p class="erro"><%= erros.evidencia.msg %></p><% } %>
-  <p class="erro" id="err-evidencia"></p>
+            <div class="form-group">
+                <label for="descricao"><i class="fas fa-file-alt"></i> Descrição * (Conte o que ocorreu)</label>
+                <textarea id="descricao" name="descricao" rows="6" required 
+                    class="<%= erros?.descricao ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.descricao ? 'true' : 'false' %>"
+                    aria-describedby="err-descricao"><%= dados?.descricao || '' %></textarea>
+                <p id="err-descricao" class="error-feedback" aria-live="polite"><%= erros?.descricao?.msg || '' %></p>
+            </div>
 
-      <!-- contato opcional -->
-      <label for="email">Seu e-mail (opcional, para retorno)</label>
-  <input id="email" name="email" type="email" placeholder="seu@email.com" value="<%= dados?.email || '' %>">
-  <% if (erros && erros.email) { %><p class="erro"><%= erros.email.msg %></p><% } %>
-  <p class="erro" id="err-email"></p>
+            <div class="form-group">
+                <label for="evidencia"><i class="fas fa-link"></i> Link de evidência (opcional)</label>
+                <input id="evidencia" name="evidencia" type="url" placeholder="https://..." 
+                    value="<%= dados?.evidencia || '' %>"
+                    class="<%= erros?.evidencia ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.evidencia ? 'true' : 'false' %>"
+                    aria-describedby="err-evidencia">
+                <p id="err-evidencia" class="error-feedback" aria-live="polite"><%= erros?.evidencia?.msg || '' %></p>
+            </div>
 
-      <!-- anonimato -->
-      <label style="margin-top:12px;">
-        <input type="checkbox" id="anonimo" name="anonimo" value="1" <%= dados?.anonimo ? 'checked' : '' %> >
-        Enviar como anônimo
-      </label>
+            <div class="form-group">
+                <label for="email-contato"><i class="fas fa-envelope"></i> Seu e-mail (opcional, para retorno)</label>
+                <input id="email-contato" name="email" type="email" placeholder="seu@email.com" 
+                    value="<%= dados?.email || '' %>"
+                    class="<%= erros?.email ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
+                    aria-describedby="err-email">
+                <p id="err-email" class="error-feedback" aria-live="polite"><%= erros?.email?.msg || '' %></p>
+            </div>
 
-      <button type="submit">Enviar denúncia</button>
-    </form>
-  </main>
+            <label style="margin-top:12px; display:flex; align-items:center; font-weight:400;">
+                <input type="checkbox" id="anonimo" name="anonimo" value="1" 
+                    <%= dados?.anonimo ? 'checked' : '' %>
+                    style="width:auto; margin-right:8px;">
+                Enviar como anônimo
+            </label>
+
+            <button type="submit" class="btn-primary" id="btn-submit">
+                <i class="fas fa-paper-plane"></i> Enviar denúncia
+            </button>
+
+            <div class="links-footer">
+                <p><a href="/" class="link-secundario">Voltar para a página inicial</a></p>
+            </div>
+        </form>
+    </main>
 
 <script>
-/* ===== Front-end validation (mobile-first friendly) ===== */
-(function(){
-  const form = document.getElementById('denunciaForm');
+/* ====== Validação Front-End ====== */
+(function() {
+    const form = document.getElementById('denunciaForm');
+    const clientErrorSummary = document.getElementById('client-errors');
+    const submitButton = document.getElementById('btn-submit');
 
-  form.addEventListener('submit', function(e){
-    // simple client-side checks mirror server rules
-    const tipo = document.getElementById('tipo').value.trim();
-    const titulo = document.getElementById('titulo').value.trim();
-    const descricao = document.getElementById('descricao').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const evidencia = document.getElementById('evidencia').value.trim();
+    const campos = {
+        tipo: document.getElementById('tipo'),
+        titulo: document.getElementById('titulo'),
+        descricao: document.getElementById('descricao'),
+        email: document.getElementById('email-contato'),
+        evidencia: document.getElementById('evidencia')
+    };
 
-    // limpa mensagens anteriores
-    ['err-tipo','err-titulo','err-descricao','err-evidencia','err-email'].forEach(id=>{
-      const el = document.getElementById(id); if (el) el.textContent = '';
+    function validateField(input) {
+        let errorMsg = '';
+        let isValid = true;
+        
+        // Validação de required básica (para todos os obrigatórios)
+        if (input.hasAttribute('required') && !input.value.trim()) {
+            errorMsg = 'Este campo é obrigatório.';
+            isValid = false;
+        } else if (input.id === 'tipo' && !input.value.trim()) {
+            errorMsg = 'Selecione o tipo de denúncia.';
+            isValid = false;
+        } else if (input.id === 'titulo' && input.value.trim().length > 0 && input.value.trim().length < 5) {
+            errorMsg = 'O título deve ter ao menos 5 caracteres.';
+            isValid = false;
+        } else if (input.id === 'descricao' && input.value.trim().length > 0 && input.value.trim().length < 10) {
+            errorMsg = 'A descrição deve ter ao menos 10 caracteres.';
+            isValid = false;
+        } else if (input.id === 'email-contato' && input.value.trim()) {
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.value.trim())) {
+                errorMsg = 'E-mail de contato inválido.';
+                isValid = false;
+            }
+        } else if (input.id === 'evidencia' && input.value.trim()) {
+            try { new URL(input.value.trim()); }
+            catch(_) {
+                errorMsg = 'O link de evidência não é uma URL válida.';
+                isValid = false;
+            }
+        }
+        
+        return { isValid, errorMsg };
+    }
+
+    form.addEventListener('submit', function(e) {
+        
+        // Limpa mensagens e estilos anteriores
+        clientErrorSummary.style.display = 'none';
+        clientErrorSummary.innerHTML = '';
+        Object.values(campos).forEach(el => el.classList.remove('invalid', 'valid'));
+        // Usando array de chaves do objeto campos para limpar feedback
+        Object.keys(campos).forEach(key => {
+            const el = document.getElementById('err-' + key);
+            if (el) el.textContent = '';
+        });
+
+        let errors = [];
+        let errorMessages = [];
+        let hasErrors = false;
+
+        // ===== Validações =====
+        Object.keys(campos).forEach(key => {
+            const input = campos[key];
+            if (!input) return;
+
+            const { isValid, errorMsg } = validateField(input);
+
+            if (!isValid) {
+                hasErrors = true;
+                input.classList.add('invalid');
+                errors.push({ param: key, msg: errorMsg });
+                errorMessages.push('<li>' + errorMsg + '</li>');
+            } else if (input.value.trim() !== '') {
+                 input.classList.add('valid');
+            }
+        });
+
+
+        // ===== Exibir erros =====
+        if (hasErrors) {
+            e.preventDefault();
+            
+
+            
+            // Exibe o erro abaixo do campo
+            errors.forEach(err=>{
+                const el = document.getElementById('err-' + err.param);
+                if (el) el.textContent = err.msg;
+            });
+            
+            clientErrorSummary.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Bloqueia múltiplos envios
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
     });
 
-    const errors = [];
+    // ====== Feedback visual dinâmico ======
+    Object.values(campos).forEach(input => {
+        input.addEventListener('input', () => {
+            const { isValid, errorMsg } = validateField(input);
+            const feedback = document.getElementById('err-' + input.id);
+            input.classList.remove('invalid', 'valid');
 
-    if (!tipo) errors.push({ msg: 'Selecione o tipo de denúncia.' });
-    if (!titulo || titulo.length < 5) errors.push({ msg: 'O título deve ter ao menos 5 caracteres.' });
-    if (!descricao || descricao.length < 10) errors.push({ msg: 'A descrição deve ter ao menos 10 caracteres.' });
-
-    if (email) {
-      const re = /\\S+@\\S+\\.\\S+/;
-      if (!re.test(email)) errors.push({ msg: 'E-mail inválido.' });
-    }
-
-    if (evidencia) {
-      try {
-        new URL(evidencia);
-      } catch (_) {
-        errors.push({ msg: 'O link de evidência não é uma URL válida.' });
-      }
-    }
-
-    if (errors.length) {
-      e.preventDefault();
-      // preenche mensagens inline correspondentes
-      errors.forEach(err => {
-        // err.param opcional; usamos msg para identificar qual campo se refere caso exista
-        if (err.param) {
-          const el = document.getElementById('err-' + err.param);
-          if (el) el.textContent = err.msg;
-        } else {
-          // mapeia por texto (quando criado no client-side)
-          if (err.msg.includes('tipo')) document.getElementById('err-tipo').textContent = err.msg;
-          if (err.msg.includes('título')) document.getElementById('err-titulo').textContent = err.msg;
-          if (err.msg.includes('descrição')) document.getElementById('err-descricao').textContent = err.msg;
-          if (err.msg.includes('E-mail')) document.getElementById('err-email').textContent = err.msg;
-          if (err.msg.includes('evidência')) document.getElementById('err-evidencia').textContent = err.msg;
-        }
-      });
-    }
-  });
+            if (!isValid && input.value.trim() !== '') {
+                input.classList.add('invalid');
+                if (feedback) feedback.textContent = errorMsg;
+            } else if (isValid && input.value.trim() !== '') {
+                input.classList.add('valid');
+                if (feedback) feedback.textContent = '';
+            } else {
+                if (feedback) feedback.textContent = '';
+            }
+        });
+    });
 })();
 </script>
 </body>

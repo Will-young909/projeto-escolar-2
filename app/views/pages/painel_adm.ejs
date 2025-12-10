@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Administrativo | Regimath</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/css/painel_adm.css">
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <a href="/" class="logo-link" aria-label="Página inicial Regimath">
+      <img src="/imagens/RM_bordo.png" alt="Logo Regimath" class="logo">
+    </a>
+    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu">☰</button>
+  </header>
+
+  <!-- Overlay (para mobile) -->
+  <div id="overlay"></div>
+
+  <!-- Menu lateral -->
+  <nav id="menu" aria-label="Menu lateral administrativo">
+    <button id="close-menu" aria-label="Fechar menu">&times;</button>
+    <button id="toggle-menu" aria-label="Recolher menu">
+      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+    </button>
+
+    <ul class="nav-links">
+      <li><a href="#page-dashboard" class="admin-nav-link active"><i class="fa-solid fa-chart-pie"></i><span class="label">Dashboard</span></a></li>
+      <li><a href="#page-users" class="admin-nav-link"><i class="fa-solid fa-users"></i><span class="label">Usuários</span><span class="badge">3</span></a></li>
+      <li><a href="#page-finance" class="admin-nav-link"><i class="fa-solid fa-wallet"></i><span class="label">Financeiro</span></a></li>
+      <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><span class="label">Moderação</span><span class="badge">1</span></a></li>
+      <li><a href="#page-settings" class="admin-nav-link"><i class="fa-solid fa-gear"></i><span class="label">Configurações</span></a></li>
+      <li><a href="/" class="admin-nav-link"><i class="fas fa-home"></i><span class="label">Home</span></a></li>
+      <li><a href="/logout" class="admin-nav-link"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg><span class="label">Sair</span></a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo principal -->
+  <main>
+    <div class="admin-header-content">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="admin-profile">
+        <i class="fa-solid fa-user-shield"></i> Olá, <strong>Admin</strong>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="content-page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">Receita da Plataforma (Mês)</div>
+          <div class="kpi-value">R$ 1.450,80</div>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Repasse Pendente (Professores)</div>
+          <div class="kpi-value">R$ 5.803,20</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Novos Alunos (Mês)</div>
+          <div class="kpi-value">124</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Aulas Realizadas (Mês)</div>
+          <div class="kpi-value">412</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 30px;">
+        <h2 class="section-title">Atividade Recente</h2>
+        <ul style="list-style: none; padding-left: 10px;">
+          <li><i class="fa-solid fa-user-plus" style="color: var(--color-success)"></i> <strong>Novo Professor:</strong> Carlos Mendes aguarda aprovação.</li>
+          <li><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary)"></i> <strong>Nova Aula:</strong> Mariana Silva pagou R$ 60,00 para Prof. Ana Beatriz.</li>
+          <li><i class="fa-solid fa-flag" style="color: var(--color-error)"></i> <strong>Nova Denúncia:</strong> Aluno X denunciou Professor Y por "Não compareceu".</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- USUÁRIOS -->
+    <section class="content-page" id="page-users">
+      <div class="card">
+        <h2 class="section-title">Professores Aguardando Aprovação (3)</h2>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr><th>Nome</th><th>Email</th><th>Ações</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Carlos Mendes</td>
+                <td>carlos.m@email.com</td>
+                <td class="actions-buttons">
+                  <a href="#" class="btn btn-secondary"><i class="fa-solid fa-eye"></i></a>
+                  <a href="#" class="btn btn-success"><i class="fa-solid fa-check"></i></a>
+                  <a href="#" class="btn btn-error"><i class="fa-solid fa-times"></i></a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="section-title">Professores Ativos</h2>
+        <div class="table-wrapper"><table class="data-table"></table></div>
+      </div>
+    </section>
+
+    <!-- FINANCEIRO -->
+    <section class="content-page" id="page-finance">
+      <div class="card">
+        <h2 class="section-title">Repasses Pendentes</h2>
+        <div class="table-wrapper"><table class="data-table"></table></div>
+      </div>
+      <div class="card">
+        <h2 class="section-title">Extrato de Transações</h2>
+        <div class="table-wrapper"><table class="data-table"></table></div>
+      </div>
+    </section>
+
+    <!-- MODERAÇÃO -->
+    <section class="content-page" id="page-moderation">
+      <div class="card">
+        <h2 class="section-title">Denúncias Pendentes (1)</h2>
+        <div class="table-wrapper"><table class="data-table"></table></div>
+      </div>
+    </section>
+
+    <!-- CONFIGURAÇÕES -->
+    <section class="content-page" id="page-settings">
+      <div class="card">
+        <h2 class="section-title">Configurações da Plataforma</h2>
+        <form id="settings-form">
+          <div class="form-group">
+            <label for="platform-fee">Taxa da Plataforma (%)</label>
+            <input type="number" id="platform-fee" value="20" min="0" max="100" step="1">
+            <small>Percentual que a Regimath retém sobre cada aula.</small>
+          </div>
+          <div class="form-group">
+            <label for="admin-email">E-mail de Suporte</label>
+            <input type="email" id="admin-email" value="contato@regimath.com">
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salvar</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuBtn = document.getElementById('menu-btn');
+      const menu = document.getElementById('menu');
+      const overlay = document.getElementById('overlay');
+      const closeBtn = document.getElementById('close-menu');
+      const toggleBtn = document.getElementById('toggle-menu');
+      const toggleIcon = document.getElementById('toggle-icon');
+      const navLinks = document.querySelectorAll('.admin-nav-link');
+      const pages = document.querySelectorAll('.content-page');
+      const pageTitle = document.getElementById('page-title');
+
+      // === Menu Mobile ===
+      const toggleMobileMenu = () => {
+        menu.classList.toggle('active');
+        overlay.classList.toggle('active');
+        document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+      };
+      [menuBtn, overlay, closeBtn].forEach(el => el?.addEventListener('click', toggleMobileMenu));
+
+      // === Menu Colapsável (Desktop) ===
+      if (toggleBtn) {
+        const isCollapsed = localStorage.getItem('adminMenuCollapsed') === 'true';
+        if (isCollapsed) {
+          menu.classList.add('collapsed');
+          toggleIcon.style.transform = 'rotate(180deg)';
+        }
+        toggleBtn.addEventListener('click', () => {
+          menu.classList.toggle('collapsed');
+          const collapsed = menu.classList.contains('collapsed');
+          toggleIcon.style.transform = collapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+          localStorage.setItem('adminMenuCollapsed', collapsed);
+        });
+      }
+
+      // === Troca de páginas ===
+      const showPage = (targetId) => {
+        pages.forEach(p => p.classList.toggle('active', p.id === targetId.substring(1)));
+        navLinks.forEach(l => {
+          const active = l.getAttribute('href') === targetId;
+          l.classList.toggle('active', active);
+          if (active && pageTitle) pageTitle.textContent = l.querySelector('.label').textContent;
+        });
+        window.history.replaceState(null, '', targetId);
+      };
+
+      navLinks.forEach(link => {
+        link.addEventListener('click', e => {
+          const target = link.getAttribute('href');
+          if (target.startsWith('/')) return;
+          e.preventDefault();
+          showPage(target);
+          if (window.innerWidth < 768) toggleMobileMenu();
+        });
+      });
+
+      showPage(window.location.hash || '#page-dashboard');
+    });
+  </script>
+</body>
+</html>

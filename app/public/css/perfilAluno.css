@@ -1,131 +1,325 @@
-/* ============================
-   ESTILO BASE — MOBILE FIRST
-   ============================ */
- 
+/* ===== Paleta Regimath (Padronizada) ===== */
+:root {
+  --vinho: #800020;
+  --vinho-escuro: #5e0018;
+  --dourado: #e8ae1e; /* Dourado de destaque */
+  --cinza-texto: #555; /* Cinza mais escuro para melhor contraste */
+  --cinza-fundo: #f7f8fa;
+  --branco: #fff;
+  --sombra: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra mais suave */
+  --raio: 14px;
+  --transicao: 0.3s ease;
+  --fonte: "Poppins", sans-serif;
+  --borda-fina: 1px solid #ddd;
+}
+
+/* ===== Estilo base (Mobile First) ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", Arial, sans-serif;
+  font-family: var(--fonte);
 }
- 
+
 body {
-  background: #f7f8fa;
-  color: #333;
-  line-height: 1.5;
+  background: var(--cinza-fundo);
+  color: #222;
+  line-height: 1.6;
+  padding-bottom: 40px;
 }
- 
-/* ---------- HEADER ---------- */
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: var(--vinho);
+}
+
+/* ===== Header ===== */
 header {
+  background: var(--branco);
+  box-shadow: var(--sombra);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #ffffff;
-  padding: 10px 16px;
-  border-bottom: 2px solid #ddd;
+  padding: 10px 20px; /* Padding ajustado */
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 2px solid var(--vinho);
+  height: 60px;
 }
- 
-#logo {
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
   width: 120px;
-  height: auto;
+  height: 70px;
+  object-fit: contain;
 }
- 
-header nav a {
-  color: #333;
-  margin-left: 15px;
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+/* ============ MENU LATERAL ============ */
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
+  height: 100vh;
+  background: #800020;
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
+}
+
+nav.active {
+  left: 0px;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav a {
+  color: #fff;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
+  padding: 8px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
 }
- 
-header nav a:hover {
-  color: #800000;
+
+nav a:hover {
+  background: #b22222;
 }
- 
-/* ---------- CONTAINER PRINCIPAL ---------- */
+
+#close-menu {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Botão de recolher (desktop) */
+#toggle-menu {
+  position: absolute;
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #800020;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#toggle-menu:hover { transform: scale(1.05); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001;
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+/* ===== Container do Perfil ===== */
 .perfil-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
   padding: 20px;
+  gap: 25px; /* Espaçamento ajustado */
   animation: fadeIn 0.6s ease;
 }
- 
-/* ---------- SEÇÕES ---------- */
-.perfil-info,
-.dados-aluno,
-.historico {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-}
- 
-/* ---------- PERFIL ---------- */
-.perfil-info {
+
+/* ===== Cartão de Perfil (Aside) ===== */
+.perfil-card {
+  background: var(--branco);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 30px 20px; /* Padding vertical maior */
   text-align: center;
+  border-top: 5px solid var(--dourado); /* Destaque do cartão com linha dourada */
 }
- 
+
 .foto-perfil {
-  width: 120px;
-  height: 120px;
+  width: 140px; /* Foto ligeiramente maior */
+  height: 140px;
   border-radius: 50%;
-  border: 3px solid #800000;
+  border: 5px solid var(--vinho); /* Borda mais grossa */
   object-fit: cover;
-  margin-bottom: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
 }
- 
-.perfil-info h1 {
+
+.perfil-nome {
+  font-size: 1.8rem;
+  margin-top: 15px;
+  color: var(--vinho);
+}
+
+.perfil-descricao {
+  color: var(--cinza-texto);
+  font-size: 0.9rem;
+  margin-top: 5px;
+  padding: 0 10px; /* Evita quebra de linha em telas muito pequenas */
+}
+
+.btn-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  background: var(--vinho);
+  color: var(--branco);
+  padding: 12px 25px; /* Padding melhorado */
+  border-radius: 30px; /* Botão mais arredondado */
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background var(--transicao), box-shadow var(--transicao);
+}
+
+.btn-edit:hover {
+  background: var(--vinho-escuro);
+  box-shadow: 0 5px 15px rgba(128, 0, 32, 0.4); /* Sombra no hover */
+}
+
+/* ===== Seções (dados e histórico) - Article/Card ===== */
+.card {
+  background: var(--branco);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 25px;
+}
+
+.card h2 {
   font-size: 1.4rem;
-  margin-top: 8px;
-  color: #222;
+  color: var(--vinho);
+  border-left: 5px solid var(--dourado); /* Dourado no destaque lateral */
+  padding-left: 12px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
- 
-.descricao {
-  font-size: 0.95rem;
-  color: #666;
-  margin-top: 8px;
+
+.card h2 i {
+    color: var(--dourado); /* Ícones do título em dourado */
 }
- 
-/* ---------- DADOS DO ALUNO ---------- */
-.dados-aluno h2,
-.historico h2 {
-  color: #800000;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  border-left: 4px solid #800000;
-  padding-left: 10px;
+
+/* Lista de Dados (dl) */
+.data-list {
+    list-style: none; /* remove lista padrão */
+    padding: 0;
+    margin: 0;
 }
- 
-.dados-aluno ul,
-.historico ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: var(--cinza-fundo);
+    border: var(--borda-fina);
 }
- 
-.dados-aluno li,
-.historico li {
-  background: #fafafa;
-  margin-bottom: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  color: #333;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+.data-item dt {
+    font-weight: 600;
+    color: var(--vinho-escuro);
+    flex: 1;
 }
- 
-/* ---------- HISTÓRICO DE AULAS ---------- */
-.historico p {
+.data-item dd {
+    margin: 0;
+    font-weight: 400;
+    flex: 2;
+    text-align: right;
+}
+.highlight-data {
+    color: #000;
+    font-weight: 500 !important; /* Destaque visual */
+}
+
+/* Histórico de Atividades (ul) */
+.historico-list {
+    list-style: none;
+}
+.historico-item {
+    background: var(--cinza-fundo);
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: var(--borda-fina);
+    transition: background var(--transicao);
+    color: var(--cinza-texto);
+}
+
+.historico-item:hover {
+  background: #ebebeb;
+}
+
+.aula-data {
+    font-weight: 600;
+    color: var(--vinho-escuro);
+    margin-right: 5px;
+}
+
+.aula-conteudo {
+    font-style: italic;
+    color: #222;
+}
+
+.empty-state {
+  color: var(--cinza-texto);
   font-style: italic;
-  color: #777;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border: var(--borda-fina);
+  border-radius: var(--raio);
 }
- 
-/* ---------- ANIMAÇÕES ---------- */
+
+/* ===== Animação ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -136,86 +330,103 @@ header nav a:hover {
     transform: translateY(0);
   }
 }
- 
-/* ============================
-   TELAS MÉDIAS (TABLET)
-   ============================ */
+
+/* ===== Tablet (mín. 768px) ===== */
 @media (min-width: 768px) {
+  .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid #b22222;
+    padding-top: 0;
+  }
+
   .perfil-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 25px;
-    padding: 40px;
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
   }
- 
-  .perfil-info {
-    flex: 1;
-    max-width: 35%;
-    text-align: center;
+
+  nav.collapsed {
+    width: 70px;
   }
- 
-  .dados-aluno {
-    flex: 1;
-    max-width: 60%;
+
+  nav.collapsed ~ .perfil-container {
+    margin-left: 70px;
   }
- 
-  .historico {
-    flex-basis: 100%;
-  }
- 
-  .foto-perfil {
-    width: 150px;
-    height: 150px;
-  }
- 
-  header nav a {
-    font-size: 1rem;
-  }
-}
- 
-/* ============================
-   TELAS GRANDES (DESKTOP)
-   ============================ */
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
- 
+
   header {
+    position: sticky;
+    top: 0;
     width: 100%;
   }
- 
-  .perfil-container {
-    max-width: 1100px;
-    margin: 30px auto;
-    gap: 40px;
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
   }
- 
-  .perfil-info {
-    text-align: left;
-    padding: 30px;
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
   }
- 
-  .perfil-info h1 {
-    font-size: 1.8rem;
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
   }
- 
-  .descricao {
-    font-size: 1rem;
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+    }
+
+  .perfil-card {
+    flex: 0 0 300px; /* Cartão ligeiramente mais largo */
   }
- 
-  .dados-aluno h2,
-  .historico h2 {
-    font-size: 1.3rem;
+
+  .conteudo-principal {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
   }
- 
-  .dados-aluno li,
-  .historico li {
-    font-size: 1rem;
-    padding: 12px 16px;
+  
+  .logo {
+      width: 150px;
   }
 }
- 
+
+/* ===== Desktop (mín. 1024px) ===== */
+@media (min-width: 1024px) {
+  .perfil-container {
+    width: 50%;
+    position: sticky;
+    left: 25%;
+  }
+
+  .foto-perfil {
+    width: 160px;
+    height: 160px;
+  }
+
+  .perfil-nome {
+    font-size: 2.2rem;
+  }
+
+  .card {
+    padding: 30px;
+  }
+}

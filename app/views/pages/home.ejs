@@ -4,148 +4,192 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Regimath</title>
+  <title>Regimath - Aumente sua nota e aprendizado conosco!</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/home.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor branco2.png"/>
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 
 <body>
-  <!-- Header -->
   <header>
-    <img src="/imagens/Regimath_curto.png" alt="Logo Regimath" class="logo">
-    <button id="menu-btn" class="menu-btn">☰</button>
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <!-- Overlay (mobile) -->
-  <section id="overlay"></section>
+  <div id="overlay"></div>
 
-  <!-- Menu lateral -->
-  <nav id="menu">
+  <nav id="menu" class="overlay collapsed">
 
-    <!-- Botão fechar (mobile) -->
-    <button id="close-menu">&times;</button>
+    <button id="close-menu" aria-label="Fechar menu">&times;</button>
 
-    <!-- Botão recolher (desktop) -->
     <button id="toggle-menu" aria-label="Recolher menu">
       <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
         <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
       </svg>
     </button>
 
-    <% if (typeof session !=='undefined' && session.user_prof) { %>
-      <a href="/perfil_prof">Perfil</a>
-      <% } else if (typeof session !=='undefined' && session.user_aluno) { %>
-        <a href="/perfil_aluno">Perfil</a>
-        <% } else { %>
-          <a href="/login">Login</a>
+    <ul class="nav-links">
+      <% if (session.user_prof) { %>
+        <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil professor</a></li>
+      <% }else if (session.user_aluno) { %>
+           <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
+          <% } else { %>
+            <li>
+              <a href="/login"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg>Login</a>
+              <a href="/cadastro"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M720-400v-120H600v-80h120v-120h80v120h120v80H800v120h-80Zm-360-80q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm80-80h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0-80Zm0 400Z"/></svg>Cadastro</a>
+            </li>
           <% } %>
-            <section class="dropdown-regimath">
-              <button class="dropdown-toggle">
+
+        <li class="dropdown-regimath">
+            <button class="dropdown-toggle" aria-expanded="false" aria-controls="dropdown-content">
                 <span class="label">Ver mais</span>
                 <span class="arrow">▼</span>
-              </button>
+            </button>
 
-              <section class="dropdown-content">
-                <a href="/politica" class="pa">Política de Privacidade</a>
-                <a href="/termos" class="pa">Termos de Uso</a>
-              </section>
-            </section>
+            <ul class="dropdown-content" id="dropdown-content" hidden>
+                <li><a href="/politica" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>Política de Privacidade</a></li>
+                <li><a href="/termos" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-80q-50 0-85-35t-35-85v-120h120v-560h600v680q0 50-35 85t-85 35H240Zm480-80q17 0 28.5-11.5T760-200v-600H320v480h360v120q0 17 11.5 28.5T720-160ZM360-600v-80h360v80H360Zm0 120v-80h360v80H360ZM240-160h360v-80H200v40q0 17 11.5 28.5T240-160Zm0 0h-40 400-360Z"/></svg>Termos de Uso</a></li>
+            </ul>
+        </li>
 
+        <% if (session.user_aluno) { %>
+            <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
+            <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
+        <% } else if (session.user_prof) { %>
+            <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Professor</a></li>
+            <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Aulas</a></li>
+        <% } %>
+
+            <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
+
+        <% if (session.user_aluno || session.user_prof) { %>
+            <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+        <% } %>
+    </ul>
   </nav>
+
   <main>
-    <!-- Seção destaque -->
     <section class="hero">
-      <h2>Aumente sua nota e aprendizado conosco!</h2>
+      <h1>Aumente sua nota e aprendizado conosco!</h1>
       <ul>
-        <li>O melhor site de aulas particulares</li>
-        <li>+ de 20 mil professores</li>
-        <li>Encontre o professor perfeito para você</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#90EE90"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> O melhor site de aulas particulares</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#90EE90"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> + de 20 mil professores</li>
+        <li><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#90EE90"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> Encontre o professor perfeito para você</li>
       </ul>
 
-      <!-- Busca -->
-      <section class="search-bar">
-        <input type="search" placeholder="Pesquisar..." id="pesquisar" name="pesquisar" aria-label="Pesquisar">
-      </section>
-
+      <div class="search-bar">
+        <form action="/pesquisar_profs" method="GET" role="search">
+            <div class="input-wrapper">
+                <input type="search" placeholder="Pesquisar por disciplina, nome, ou matéria..." id="pesquisar" name="query" aria-label="Pesquisar professores">
+                <button type="submit" aria-label="Buscar" class="new"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+            </div>
+        </form>
+      </div>
     </section>
 
-    <!-- Lista de professores -->
     <section class="professores">
-      <h3>Nossos professores</h3>
+      <h3><i class="fa-solid fa-star" style="color: var(--color-star);"></i> Nossos professores em Destaque</h3>
 
-      <section class="container">
+      <div class="container">
           <% professores.forEach(professor => { %>
-            <article class="card">
-              <section class='background'>
+            <article class="card" aria-labelledby="prof-<%= professor.id %>-nome">
+              <div class='card-header'>
                 <img src="<%= professor.foto %>" alt="Foto do professor <%= professor.nome %>">
-              </section>
-              <section class='content'>
-                <h2><%= professor.nome %></h2>
+              </div>
+              <div class='card-content'>
+                <h2 id="prof-<%= professor.id %>-nome"><%= professor.nome %></h2>
                 <p class="limite">Máximo de 5 aulas por mês</p>
-                <p class="avaliacao">⭐ <%= Math.floor(Math.random() * 2) + 4 %> (<%= Math.floor(Math.random() * 80) + 20 %> avaliações)</p>
-                <p class="descricao"><%= professor.descricao %></p>
-                <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil</a>
-              </section>
+                <p class="avaliacao" role="img" aria-label="Avaliação de <%= (Math.random() * 0.9 + 4).toFixed(1) %> estrelas">
+                    <i class="fa-solid fa-star" style="color: var(--color-star);"></i> <%= (Math.random() * 0.9 + 4).toFixed(1) %> (<%= Math.floor(Math.random() * 80) + 20 %> avaliações)
+                </p>
+                <p class="descricao"><%= professor.descricao.substring(0, 100) + (professor.descricao.length > 100 ? '...' : '') %></p>
+                <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil Completo</a>
+              </div>
             </article>
           <% }); %>
-      </section>
+      </div>
 
+      <div class="call-to-action">
+        <a href="/pesquisar_profs" class="btn-primary">Ver Todos os Professores</a>
+      </div>
+
+    </section>
   </main>
+
   <footer>
-    <p>Contato:<a href="https://mail.google.com/mail/u/0/#search/regimath.equipe%40gmail.com"><svg
-          xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0078ff"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-mail">
-          <rect x="2" y="4" width="20" height="16" rx="2" ry="2" class="icon-mail"></rect>
-          <polyline points="22,6 12,13 2,6"></polyline>
-        </svg>
-      </a></p>
+    <p>
+      Contato: 
+      <a href="mailto:regimath.equipe@gmail.com" aria-label="Enviar e-mail para regimath.equipe@gmail.com">
+        <i class="fa-solid fa-envelope" style="color: #fff;"></i>
+      </a>
+    </p>
   </footer>
+
   <script>
     const menuBtn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');
     const overlay = document.getElementById('overlay');
     const closeBtn = document.getElementById('close-menu');
     const toggleBtn = document.getElementById("toggle-menu");
+    const dropdown = document.querySelector('.dropdown-regimath');
 
-    // Mobile toggle
-    function toggleMenu() {
+    // === 1. Menu Mobile (Abre e Fecha) ===
+    function toggleMobileMenu() {
       menu.classList.toggle('active');
       overlay.classList.toggle('active');
+      // Impede o scroll do body quando o menu está aberto em mobile
+      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
     }
-    if (menuBtn) menuBtn.addEventListener('click', toggleMenu);
-    if (overlay) overlay.addEventListener('click', toggleMenu);
-    if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
 
-    // Desktop recolher
+    
+
+    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+
+    // === 2. Menu Desktop (Recolher/Expandir) ===
     if (toggleBtn) {
-      // acessibilidade
-      toggleBtn.setAttribute('aria-expanded', menu.classList.contains('collapsed') ? 'false' : 'true');
+      const toggleIcon = document.getElementById('toggle-icon');
+
+      // Inicializa o estado ARIA e a rotação do ícone
+      const isCollapsed = menu.classList.contains('collapsed');
+      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
       toggleBtn.addEventListener("click", (e) => {
         e.preventDefault();
         menu.classList.toggle("collapsed");
-        const icon = document.getElementById('toggle-icon');
-        if (menu.classList.contains('collapsed')) {
-          icon.style.transform = 'rotate(180deg)';
-          toggleBtn.setAttribute('aria-expanded', 'false');
-        } else {
-          icon.style.transform = 'rotate(0deg)';
-          toggleBtn.setAttribute('aria-expanded', 'true');
-        }
+        const isNowCollapsed = menu.classList.contains('collapsed');
+
+        // Atualiza ARIA e a seta
+        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
       });
     }
 
-    // Dropdown (funciona em mobile e desktop)
-    const dropdown = document.querySelector('.dropdown-regimath');
+    // === 3. Dropdown (Funciona em mobile e desktop) ===
     if (dropdown) {
       const toggle = dropdown.querySelector('.dropdown-toggle');
+      const content = dropdown.querySelector('.dropdown-content');
+
+      // Inicializa o estado "hidden" no conteúdo do dropdown
+      content.hidden = !dropdown.classList.contains('active');
+
       toggle.addEventListener('click', () => {
-        dropdown.classList.toggle('active');
+        const isActive = dropdown.classList.toggle('active');
+        toggle.setAttribute('aria-expanded', isActive);
+        content.hidden = !isActive;
       });
 
       // Fecha ao clicar fora
       document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target)) {
           dropdown.classList.remove('active');
+          toggle.setAttribute('aria-expanded', false);
+          content.hidden = true;
         }
       });
     }
