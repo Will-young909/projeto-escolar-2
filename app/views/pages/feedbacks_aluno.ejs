@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Feedbacks | RegiMath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard_aluno.css"> 
+    <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+    <style>
+        .feedbacks-container {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feedback-item {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .feedback-header strong {
+            font-size: 1.2rem;
+        }
+
+        .rating {
+            font-size: 1.1rem;
+            color: #f7d106;
+        }
+
+        .feedback-body p {
+            margin-bottom: 1rem;
+        }
+
+        .feedback-footer small {
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+      <a href="/">
+        <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+      </a>
+      <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+    </header>
+  
+    <section id="overlay"></section>
+  
+    <nav id="menu" class="overlay collapsed">
+  
+      <button id="close-menu" aria-label="Fechar menu">&times;</button>
+  
+      <button id="toggle-menu" aria-label="Recolher menu">
+        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+          <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+        </svg>
+      </button>
+  
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <% if (session.user_aluno) { %>
+            <li><a href="/perfil_aluno">Perfil aluno</a></li>
+            <li><a href="/dashboard_aluno">Dashboard Aluno</a></li>
+            <li><a href="/agenda">Agenda</a></li>
+            <li><a href="/historico_chats">Histórico de Chats</a></li>
+            <li><a href="/logout">Sair</a></li>
+        <% } %>
+      </ul>
+    </nav>
+
+    <main class="feedbacks-container">
+        <h1><i class="fas fa-star"></i> Meus Feedbacks</h1>
+        <p>Aqui estão todos os feedbacks que você já deu.</p>
+
+        <% 
+            const meusComentarios = [];
+            Object.entries(session.prof_comentarios || {}).forEach(([profId, comentarios]) => {
+                comentarios.forEach(comentario => {
+                    if (comentario.usuario === user.nome) {
+                        meusComentarios.push({ ...comentario, profId });
+                    }
+                });
+            });
+        %>
+
+        <% if (meusComentarios.length > 0) { %>
+            <section class="feedbacks-list">
+                <% meusComentarios.forEach(comentario => { %>
+                    <section class="feedback-item">
+                        <section class="feedback-header">
+                            <a href="/exibir_prof/<%= comentario.profId %>" style="text-decoration: none; color: inherit;"><strong>Professor</strong></a>
+                            <% if (comentario.nota) { %>
+                                <section class="rating">
+                                    <% for(let i = 1; i <= 5; i++) { %>
+                                        <i class="fas fa-star" style="color: <%= i <= comentario.nota ? '#f7d106' : '#ddd' %>;"></i>
+                                    <% } %>
+                                </section>
+                            <% } %>
+                        </section>
+                        <section class="feedback-body">
+                            <p><%= comentario.texto %></p>
+                        </section>
+                        <section class="feedback-footer">
+                            <small><%= new Date(comentario.data).toLocaleString('pt-BR') %></small>
+                        </section>
+                    </section>
+                <% }); %>
+            </section>
+        <% } else { %>
+            <p class="empty-state">Você ainda não deu nenhum feedback.</p>
+        <% } %>
+    </main>
+
+    <script>
+      const menuBtn = document.getElementById('menu-btn');
+      const menu = document.getElementById('menu');
+      const overlay = document.getElementById('overlay');
+      const closeBtn = document.getElementById('close-menu');
+      const toggleBtn = document.getElementById("toggle-menu");
+  
+      function toggleMobileMenu() {
+        menu.classList.toggle('active');
+        overlay.classList.toggle('active');
+        document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+      }
+  
+      if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+      if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+      if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+  
+      if (toggleBtn) {
+        const toggleIcon = document.getElementById('toggle-icon');
+        const isCollapsed = menu.classList.contains('collapsed');
+        toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+  
+        toggleBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          menu.classList.toggle("collapsed");
+          const isNowCollapsed = menu.classList.contains('collapsed');
+          toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+          toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+      }
+    </script>
+</body>
+</html>

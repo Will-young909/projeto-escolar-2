@@ -58,9 +58,9 @@
         </p>
 
         <form id="denunciaForm" action="/denuncia" method="POST" novalidate>
-            <div id="client-errors" class="error-summary" role="alert" tabindex="-1" style="display:none;"></div>
+            <section id="client-errors" class="error-summary" role="alert" tabindex="-1" style="display:none;"></section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="tipo"><i class="fas fa-flag"></i> Tipo de denúncia *</label>
                 <select id="tipo" name="tipo" required 
                     class="<%= erros?.tipo ? 'invalid' : '' %>"
@@ -72,9 +72,9 @@
                     <option value="outro" <%= dados?.tipo === 'outro' ? 'selected' : '' %>>Outro</option>
                 </select>
                 <p id="err-tipo" class="error-feedback" aria-live="polite"><%= erros?.tipo?.msg || '' %></p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="titulo"><i class="fas fa-pen"></i> Título * </label>
                 <input id="titulo" name="titulo" type="text" maxlength="100" required 
                     value="<%= dados?.titulo || '' %>"
@@ -82,18 +82,18 @@
                     aria-invalid="<%= erros?.titulo ? 'true' : 'false' %>"
                     aria-describedby="err-titulo">
                 <p id="err-titulo" class="error-feedback" aria-live="polite"><%= erros?.titulo?.msg || '' %></p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="descricao"><i class="fas fa-file-alt"></i> Descrição * (Conte o que ocorreu)</label>
                 <textarea id="descricao" name="descricao" rows="6" required 
                     class="<%= erros?.descricao ? 'invalid' : '' %>"
                     aria-invalid="<%= erros?.descricao ? 'true' : 'false' %>"
                     aria-describedby="err-descricao"><%= dados?.descricao || '' %></textarea>
                 <p id="err-descricao" class="error-feedback" aria-live="polite"><%= erros?.descricao?.msg || '' %></p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="evidencia"><i class="fas fa-link"></i> Link de evidência (opcional)</label>
                 <input id="evidencia" name="evidencia" type="url" placeholder="https://..." 
                     value="<%= dados?.evidencia || '' %>"
@@ -101,9 +101,9 @@
                     aria-invalid="<%= erros?.evidencia ? 'true' : 'false' %>"
                     aria-describedby="err-evidencia">
                 <p id="err-evidencia" class="error-feedback" aria-live="polite"><%= erros?.evidencia?.msg || '' %></p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="email-contato"><i class="fas fa-envelope"></i> Seu e-mail (opcional, para retorno)</label>
                 <input id="email-contato" name="email" type="email" placeholder="seu@email.com" 
                     value="<%= dados?.email || '' %>"
@@ -111,7 +111,7 @@
                     aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
                     aria-describedby="err-email">
                 <p id="err-email" class="error-feedback" aria-live="polite"><%= erros?.email?.msg || '' %></p>
-            </div>
+            </section>
 
             <label style="margin-top:12px; display:flex; align-items:center; font-weight:400;">
                 <input type="checkbox" id="anonimo" name="anonimo" value="1" 
@@ -124,9 +124,9 @@
                 <i class="fas fa-paper-plane"></i> Enviar denúncia
             </button>
 
-            <div class="links-footer">
+            <section class="links-footer">
                 <p><a href="/" class="link-secundario">Voltar para a página inicial</a></p>
-            </div>
+            </section>
         </form>
     </main>
 

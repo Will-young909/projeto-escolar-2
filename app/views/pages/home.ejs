@@ -19,7 +19,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -45,8 +45,8 @@
 
         <li class="dropdown-regimath">
             <button class="dropdown-toggle" aria-expanded="false" aria-controls="dropdown-content">
-                <span class="label">Ver mais</span>
-                <span class="arrow">▼</span>
+                <p class="label">Ver mais</p>
+                <p class="arrow">▼</p>
             </button>
 
             <ul class="dropdown-content" id="dropdown-content" hidden>
@@ -80,41 +80,45 @@
         <li><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#90EE90"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> Encontre o professor perfeito para você</li>
       </ul>
 
-      <div class="search-bar">
+      <section class="search-bar">
         <form action="/pesquisar_profs" method="GET" role="search">
-            <div class="input-wrapper">
+            <section class="input-wrapper">
                 <input type="search" placeholder="Pesquisar por disciplina, nome, ou matéria..." id="pesquisar" name="query" aria-label="Pesquisar professores">
                 <button type="submit" aria-label="Buscar" class="new"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-            </div>
+            </section>
         </form>
-      </div>
+      </section>
     </section>
 
     <section class="professores">
       <h3><i class="fa-solid fa-star" style="color: var(--color-star);"></i> Nossos professores em Destaque</h3>
 
-      <div class="container">
+      <section class="container">
           <% professores.forEach(professor => { %>
             <article class="card" aria-labelledby="prof-<%= professor.id %>-nome">
-              <div class='card-header'>
+              <section class='card-header'>
+                <% if (professor.foto) { %>
                 <img src="<%= professor.foto %>" alt="Foto do professor <%= professor.nome %>">
-              </div>
-              <div class='card-content'>
+                <% } else { %>
+                  <img src="/imagens/imagem_perfil.jpg" alt="Foto do professor <%= professor.nome %>">
+                <% } %>
+              </section>
+              <section class='card-content'>
                 <h2 id="prof-<%= professor.id %>-nome"><%= professor.nome %></h2>
                 <p class="limite">Máximo de 5 aulas por mês</p>
                 <p class="avaliacao" role="img" aria-label="Avaliação de <%= (Math.random() * 0.9 + 4).toFixed(1) %> estrelas">
                     <i class="fa-solid fa-star" style="color: var(--color-star);"></i> <%= (Math.random() * 0.9 + 4).toFixed(1) %> (<%= Math.floor(Math.random() * 80) + 20 %> avaliações)
                 </p>
-                <p class="descricao"><%= professor.descricao.substring(0, 100) + (professor.descricao.length > 100 ? '...' : '') %></p>
+                <p class="descricao"><%= professor.descricao ? professor.descricao.substring(0, 100) + (professor.descricao.length > 100 ? '...' : '') : 'Nenhuma descrição disponível' %></p>
                 <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil Completo</a>
-              </div>
+              </section>
             </article>
           <% }); %>
-      </div>
+      </section>
 
-      <div class="call-to-action">
+      <section class="call-to-action">
         <a href="/pesquisar_profs" class="btn-primary">Ver Todos os Professores</a>
-      </div>
+      </section>
 
     </section>
   </main>

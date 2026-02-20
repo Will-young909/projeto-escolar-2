@@ -1,310 +1,221 @@
-// app.js (substitua o conteúdo atual pelo abaixo, mantendo sua estrutura de pastas/views)
+// app.js
 const express = require("express");
 const session = require("express-session");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-// mercadopago v2 exports a default MercadoPagoConfig and named clients
-const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago'); // ADICIONADO (SDK v2)
+const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+require('dotenv').config();
 
-require('dotenv').config(); // se você usa .env localmente
+const chatStore = require('./app/lib/chatStore');
+const paymentsStore = require('./app/lib/paymentsStore');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CONFIG MERCADO PAGO (SDK v2)
-if (!process.env.MP_ACCESS_TOKEN) {
-  console.warn('Aviso: MP_ACCESS_TOKEN não definido. Pagamentos não funcionarão até definir a variável de ambiente.');
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+
+if (!SESSION_SECRET) {
+  console.warn('ALERTA DE SEGURANÇA: A variável de ambiente SESSION_SECRET não está definida. Usando uma chave fraca e temporária.');
 }
-// cria instância de configuração e clientes necessários
-const mpConfig = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || '' });
+
+if (!MP_ACCESS_TOKEN) {
+  console.warn('Aviso: MP_ACCESS_TOKEN não definido. Pagamentos não funcionarão.');
+}
+
+const mpConfig = new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN || '' });
 const mpPreferenceClient = new Preference(mpConfig);
 const mpPaymentClient = new Payment(mpConfig);
 
-// Expõe os clients do Mercado Pago para que as rotas possam usar via `req.app.locals`
-app.locals = app.locals || {};
 app.locals.mpPreferenceClient = mpPreferenceClient;
 app.locals.mpPaymentClient = mpPaymentClient;
-app.locals.mpConfig = mpConfig;
 
-// session middleware
 const sessionMiddleware = session({
-  secret: 'chave-super-secreta', // troque por algo seguro em produção
+  secret: SESSION_SECRET || 'fallback-secret-key-for-dev',
   resave: false,
   saveUninitialized: false
 });
 
 app.use(sessionMiddleware);
-
-// view engine e static
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "app/views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
 });
 
-// Middleware: infer a simple `currentPage` value from the URL path
-// so EJS templates can use `<%= currentPage %>` safely without throwing.
-app.use((req, res, next) => {
-  try {
-    // Example: '/' -> 'home', '/login' -> 'login', '/perfil_prof' -> 'perfil_prof'
-    const p = req.path === '/' ? 'home' : req.path.split('/').filter(Boolean)[0] || '';
-    res.locals.currentPage = p;
-  } catch (err) {
-    res.locals.currentPage = '';
-  }
-  next();
-});
 app.use(express.static(path.join(__dirname, "app/public")));
 
-// rotas
 const rotaPrincipal = require("./app/routes/router");
 app.use("/", rotaPrincipal);
 
-// cria servidor HTTP e Socket.IO
 const server = http.createServer(app);
 const io = new Server(server);
 
-// armazenamento simples em memória (apenas demo)
-// roomsMessages: histórico de mensagens por sala
-const roomsMessages = {}; // { roomName: [ {user, text, time} ] }
-// preferenceMap: mapear preference_id -> room e meta para direcionar notificações
-const preferenceMap = {}; // { preferenceId: { room, descricao, createdBy } }
-const paymentsStore = require('./app/lib/paymentsStore');
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
 
-// Socket.IO
+// --- LÓGICA DE CHAT CORRIGIDA ---
 io.on("connection", (socket) => {
-  console.log("Usuário conectado:", socket.id);
+  const session = socket.request.session;
+  const currentUser = session.user_aluno || session.user_prof;
 
-  // Video call signaling
-  socket.on('join', room => {
+  if (!currentUser || !currentUser.id) {
+    return socket.disconnect(true);
+  }
+  
+  console.log(`Usuário autenticado conectado: ${currentUser.nome} (ID: ${currentUser.id})`);
+
+  socket.on("joinRoom", async ({ room }) => {
+    const roomUsers = room.replace('chat_','').split('-');
+    
+    // **CORREÇÃO**: Converte o ID do usuário para String para garantir a correspondência
+    if (!roomUsers.includes(String(currentUser.id))) {
+      console.warn(`Tentativa de acesso não autorizado à sala ${room} pelo usuário ${currentUser.id}`);
+      return;
+    }
+
     socket.join(room);
-    socket.to(room).emit('peer-joined', socket.id);
-  });
+    console.log(`${currentUser.nome} (ID: ${currentUser.id}) entrou na sala ${room}`);
 
-  socket.on('signal', ({ to, from, data }) => {
-    io.to(to).emit('signal', { from, data });
-  });
-
-  // Chat handlers (existing code)
-  socket.on("joinRoom", ({ room, user }) => {
-    socket.join(room);
-    console.log(`${user} entrou na sala ${room}`);
-
-    // enviar histórico da sala (se houver)
-    const history = roomsMessages[room] || [];
+    const history = await chatStore.getRoomHistory(room);
     socket.emit("roomHistory", history);
-
-    // avisar aos outros que entrou
-    socket.to(room).emit("systemMessage", { text: `${user} entrou no chat.`, time: Date.now() });
+    socket.to(room).emit("systemMessage", { text: `${currentUser.nome} entrou no chat.`, time: Date.now() });
   });
 
-  socket.on("chatMessage", ({ room, user, text }) => {
+  socket.on("chatMessage", async ({ room, text }) => {
+    const roomUsers = room.replace('chat_','').split('-');
+    
+    // **CORREÇÃO**: Aplica a mesma lógica de conversão aqui
+    if (!roomUsers.includes(String(currentUser.id))) {
+      return;
+    }
+
     const cleanText = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const msg = { user, text: cleanText, time: Date.now() };
+    const msg = { user: currentUser, text: cleanText, time: Date.now() };
 
-    roomsMessages[room] = roomsMessages[room] || [];
-    roomsMessages[room].push(msg);
-    if (roomsMessages[room].length > 200) roomsMessages[room].shift();
-
+    await chatStore.saveMessage(room, msg);
     io.to(room).emit("newMessage", msg);
   });
 
-  // ---------- NOVO: criação de cobrança via Mercado Pago ----------
-  // data: { room, valor, descricao, createdBy (nome do user) }
   socket.on('requestPayment', async (data) => {
     try {
-      // Proteção: não tenta criar preferência se token não configurado
-      if (!process.env.MP_ACCESS_TOKEN || !mpConfig || !mpConfig.accessToken) {
-        socket.emit('systemMessage', { text: 'Pagamento não configurado no servidor (MP_ACCESS_TOKEN ausente).', time: Date.now() });
+      if (!MP_ACCESS_TOKEN) {
+        socket.emit('systemMessage', { text: 'Pagamento não configurado no servidor.', time: Date.now() });
         return;
       }
-      const { room, valor, descricao, createdBy } = data; // 'createdBy' agora é o nome/id do usuário
-
-      // Validação mínima
+      const { room, valor, descricao } = data;
       const amount = Number(valor);
-      if (!room || !amount || amount <= 0) {
-        socket.emit('systemMessage', { text: 'Valor inválido para cobrança.', time: Date.now() });
-        return;
-      }
+      if (!room || !amount || amount <= 0) return;
 
       const siteUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
-      const isProduction = process.env.NODE_ENV === 'production';
-      const preferenceId = `${room}-${Date.now()}`;
-
+      
       const preference = {
-        items: [
-          {
-            title: descricao || 'Pagamento Regimath',
-            quantity: 1,
-            currency_id: "BRL",
-            unit_price: amount
-          }
-        ],
+        items: [{
+          title: descricao || 'Pagamento Regimath',
+          quantity: 1,
+          currency_id: "BRL",
+          unit_price: amount
+        }],
         back_urls: {
-          success: `${siteUrl}/pagamento/sucesso?room=${room}`, // Retorno com a room para contexto
+          success: `${siteUrl}/pagamento/sucesso?room=${room}`,
           failure: `${siteUrl}/pagamento/erro?room=${room}`,
           pending: `${siteUrl}/pagamento/pendente?room=${room}`
         },
         auto_return: "approved",
-        external_reference: preferenceId,
-        metadata: { room, createdBy } // Salva o nome do usuário/prof
+        notification_url: `${siteUrl}/webhook/mercadopago`,
+        metadata: { room, createdBy: currentUser.id }
       };
 
-      // Cria preferência usando o cliente do SDK v2
       const mpResponse = await mpPreferenceClient.create({ body: preference });
+      const prefId = mpResponse.id || null;
 
-      // Busca defensivamente a ID e a URL de checkout
-      const respBody = mpResponse.body || mpResponse || {};
-      const prefId = respBody.id || null;
-
-      // Mapeia o ID da preferência com o room para o Webhook
       if (prefId) {
-        preferenceMap[prefId] = { room, descricao, createdBy };
+        await paymentsStore.addPreference({
+          preferenceId: prefId,
+          room,
+          descricao,
+          valor: amount,
+          createdBy: currentUser.id,
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
       }
 
-      // Escolhe a URL correta de acordo com o ambiente
-      const checkoutUrl = isProduction ? respBody.init_point : respBody.sandbox_init_point;
+      const checkoutUrl = process.env.NODE_ENV === 'production' ? mpResponse.init_point : mpResponse.sandbox_init_point;
+      if (!checkoutUrl) throw new Error('URL de checkout não encontrada.');
 
-      if (!checkoutUrl) {
-        throw new Error('URL de checkout não encontrada na resposta do MP.');
-      }
-
-      // Emite ao room um evento com o link (aluno verá o botão)
       io.to(room).emit('paymentRequest', {
         descricao,
         valor: amount,
         link: checkoutUrl,
         preferenceId: prefId,
-        remetente: createdBy, // Nome do usuário que solicitou (professor)
+        remetente: currentUser.nome,
+        remetenteId: currentUser.id,
         time: Date.now()
       });
 
-      // Confirmação ao solicitante
-      socket.emit('systemMessage', { text: `Cobrança criada: R$ ${amount.toFixed(2)} - Enviada no chat.`, time: Date.now() });
-
     } catch (err) {
       console.error('Erro criando preferência MP:', err?.message || err);
-      socket.emit('systemMessage', { text: 'Erro ao gerar pagamento. Tente novamente mais tarde.', time: Date.now() });
+      socket.emit('systemMessage', { text: 'Erro ao gerar pagamento. Tente mais tarde.', time: Date.now() });
     }
   });
 
-  // ---------- Handler de disconnect ----------
   socket.on("disconnecting", () => {
-    const rooms = Array.from(socket.rooms).filter(r => r !== socket.id);
-    rooms.forEach(room => {
-      socket.to(room).emit('peer-left', socket.id);
-      socket.to(room).emit("systemMessage", { 
-        text: "Um usuário saiu da sala.", 
-        time: Date.now() 
-      });
+    socket.rooms.forEach(room => {
+      if (room !== socket.id) {
+        socket.to(room).emit("systemMessage", { text: `${currentUser.nome} saiu da sala.`, time: Date.now() });
+      }
     });
   });
-
-  socket.on("disconnect", () => {
-    console.log("Usuário saiu:", socket.id);
-  });
 });
+// --- FIM DA LÓGICA DE CHAT ---
 
-// Endpoint público para webhooks do Mercado Pago
-// OBS: configure esta URL no painel do Mercado Pago (ou use notificações por preferência)
-app.post('/webhook/mercadopago', express.urlencoded({ extended: true }), async (req, res) => {
+// Webhook para Mercado Pago
+app.post('/webhook/mercadopago', express.json(), async (req, res) => {
   try {
-    // O Mercado Pago pode enviar body com topic e id
-    const { topic, id } = req.body;
+    const { type, data } = req.body;
 
-    if (!id) {
-      res.status(200).send('no id');
-      return;
-    }
+    if (type === 'payment') {
+      const paymentId = data.id;
+      const paymentRes = await mpPaymentClient.get({ id: paymentId });
+      const payment = paymentRes || {};
 
-    // Se for tópico payment, buscar payment
-    if (topic === 'payment' || topic === 'merchant_order' || topic === 'payment.created') {
-      // Adicionado console.log para debugging em produção
-      console.log(`[MP Webhook] Recebido ID ${id} (Tópico: ${topic})`);
-      
-        try {
-        // usa o cliente Payment do SDK v2
-        const paymentRes = await mpPaymentClient.get({ id });
-        const payment = paymentRes.body || paymentRes || {};
+      if (payment.status === 'approved') {
+        const prefId = payment.external_reference || payment.preference_id;
+        let room = payment.metadata?.room;
+        
+        if (!room && prefId) {
+          const storedPref = await paymentsStore.getByPreferenceId(prefId);
+          if (storedPref) room = storedPref.room;
+        }
 
-        // Checar se approved
-        if (payment.status === 'approved' || payment.status === 'paid') {
-          
-          // 1. Tentar descobrir o ID da Preferência/Room pelo mapeamento interno (mais rápido)
-          const prefId = payment.order?.preference_id || payment.preference_id || null;
-          let room = null;
-          
-          if (prefId && preferenceMap[prefId]) {
-            room = preferenceMap[prefId].room;
-          } 
-          
-          // 2. Fallback: procurar no metadata (mais seguro, pois é salvo no MP)
-          if (!room && payment.metadata && payment.metadata.room) {
-            room = payment.metadata.room;
-          }
-
-          const amount = payment.transaction_amount || payment.total_paid_amount || 0;
-          const payerEmail = payment.payer?.email || 'Pagador Desconhecido';
-
-          const payload = {
-            id,
+        if (room) {
+          io.to(room).emit('paymentConfirmed', {
+            id: paymentId,
             prefId,
-            amount,
-            payer: payerEmail,
+            amount: payment.transaction_amount || 0,
+            payer: payment.payer?.email || 'Pagador Desconhecido',
             status: payment.status,
             time: Date.now()
-          };
-
-          // Atualiza persistência local se possível
-          try {
-            if (prefId) {
-              await paymentsStore.updateByPreferenceId(prefId, {
-                paymentId: id,
-                status: payment.status,
-                amount,
-                payer: payerEmail,
-                updatedAt: new Date().toISOString()
-              });
-            } else {
-              await paymentsStore.updateByPaymentId(id, {
-                status: payment.status,
-                amount,
-                payer: payerEmail,
-                updatedAt: new Date().toISOString()
-              });
-            }
-          } catch (e) {
-            console.warn('Não foi possível atualizar persistência do pagamento:', e?.message || e);
-          }
-
-          if (room) {
-            // Envia a confirmação SÓ para a sala correta
-            io.to(room).emit('paymentConfirmed', payload);
-            console.log(`[MP Webhook] Pagamento confirmado em ${room}. R$ ${amount.toFixed(2)}`);
-          } else {
-            console.warn(`[MP Webhook] Pagamento confirmado, mas ROOM não encontrada. ${id}`);
-            // Opcional: emitir para todos se a room não for encontrada (menos ideal)
-            // io.emit('paymentConfirmed', payload); 
-          }
+          });
+          
+          await paymentsStore.updateByPreferenceId(prefId, { status: payment.status });
         }
-      } catch (err) {
-        console.error('Erro ao buscar pagamento no MP (webhook):', err?.message || err);
       }
     }
-
-    // responder 200 rapidamente
-    res.status(200).send('ok');
+    res.sendStatus(200);
   } catch (err) {
     console.error('Webhook MP error', err?.message || err);
-    res.status(500).send('erro');
+    res.sendStatus(500);
   }
 });
 
-// inicializa servidor
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

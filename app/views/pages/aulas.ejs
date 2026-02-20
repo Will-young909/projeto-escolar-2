@@ -12,8 +12,18 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <!-- Estilos -->
-  <link rel="stylesheet" href="../css/aulas.css" />
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+  <link rel="stylesheet" href="/css/aulas.css" />
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+
+  <style>
+    .action-btn.disabled {
+      background-color: #ccc;
+      border-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  </style>
 </head>
 
 <body>
@@ -24,7 +34,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -50,82 +60,67 @@
   </nav>
 
   <main class="main-content-wrapper">
-    <%
-      const aulas = [
-        { id: 123, aluno: 'Adiel', hora: '19:00h', status: 'online', dia: 'Hoje - Ter, 21 Out', link_sala: '/video/sala1', assunto: 'Cálculo Avançado' },
-        { id: 456, aluno: 'William', hora: '20:00h', status: 'offline', dia: 'Qua, 22 Out', link_sala: '/video/sala2', assunto: 'Matemática Básica' },
-        { id: 789, aluno: 'Luana', hora: '10:00h', status: 'offline', dia: 'Qui, 23 Out', link_sala: '/video/sala3', assunto: 'Álgebra Linear' },
-        { id: 101, aluno: 'Felipe', hora: '14:30h', status: 'offline', dia: 'Qui, 23 Out', link_sala: '/video/sala4', assunto: 'Geometria Analítica' },
-      ];
+    <h1 class="header-title"><i class="fas fa-calendar-check"></i> Minhas Aulas Agendadas</h1>
 
-      const aulasAgrupadas = aulas.reduce((acc, aula) => {
-        (acc[aula.dia] ||= []).push(aula);
+    <% 
+      const aulasAgendadas = session.user_prof && session.user_prof.agenda ? session.user_prof.agenda : [];
+      const aulasAgrupadas = aulasAgendadas.reduce((acc, aula) => {
+        const dia = aula.data;
+        (acc[dia] ||= []).push(aula);
         return acc;
       }, {});
     %>
 
-    <% if (aulas.length > 0) { %>
+    <% if (aulasAgendadas.length > 0) { %>
       <% for (const dia in aulasAgrupadas) { %>
         <section class="day-group">
           <h2>
-            <i class="<%= dia.includes('Hoje') ? 'fas fa-clock' : 'fas fa-calendar-alt' %>"></i>
-            <%= dia %>
+            <i class="fas fa-calendar-alt"></i> <%= dia %>
           </h2>
 
           <% aulasAgrupadas[dia].forEach(aula => { %>
-            <article class="lesson-card <%= aula.status === 'offline' ? 'inactive' : '' %>" data-lesson-id="<%= aula.id %>">
+            <article class="lesson-card" 
+                data-aluno-id="<%= aula.aluno.id %>"
+                data-data="<%= aula.data %>"
+                data-hora="<%= aula.hora %>">
+
               <header class="card-header">
-                <strong>Aula com <%= aula.aluno %></strong>
-                <span class="lesson-time"><i class="far fa-clock"></i> <%= aula.hora %></span>
+                <strong>Aula com <%= aula.aluno.nome %></strong>
+                <p class="lesson-time"><i class="far fa-clock"></i> <%= aula.hora %></p>
               </header>
 
-              <p class="lesson-subject"><i class="fas fa-book"></i> <%= aula.assunto %></p>
+              <p class="lesson-subject"><i class="fas fa-book"></i> <%= aula.assunto || 'Matemática' %></p>
 
-              <p class="lesson-status">
-                <span class="status <%= aula.status %>">
-                  <i class="fas fa-circle"></i>
-                  <%= aula.status === 'online' ? 'Sala Aberta' : 'Aguardando' %>
-                </span>
-              </p>
-
-              <div class="actions">
-                <% if (aula.status === 'online') { %>
-                  <a href="<%= aula.link_sala %>" class="action-btn primary">
-                    <i class="fas fa-video"></i> Entrar
-                  </a>
-                <% } else { %>
-                  <button class="action-btn disabled-btn" disabled>
-                    <i class="fas fa-lock"></i> Sala Fechada
-                  </button>
-                <% } %>
-
-                <a href="/chat/<%= aula.aluno %>" class="action-btn secondary">
-                  <i class="fas fa-comment-dots"></i> Conversar
+              <section class="actions">
+                <a href="/video/<%= aula.salaId %>" class="action-btn primary enter-class-btn" data-data="<%= aula.data %>" data-hora="<%= aula.hora %>">
+                    <i class="fas fa-video"></i> Entrar na Sala
                 </a>
-
-                <button class="action-btn danger cancel-btn" data-lesson-id="<%= aula.id %>">
-                  <i class="fas fa-times-circle"></i> Cancelar
+                <a href="/chat/<%= aula.aluno.id %>" class="action-btn secondary">
+                    <i class="fas fa-comment-dots"></i> Conversar com Aluno
+                </a>
+                <button class="action-btn danger cancel-btn">
+                    <i class="fas fa-times-circle"></i> Cancelar Aula
                 </button>
-              </div>
+              </section>
 
-              <div class="cancellation-area">
-                <textarea class="cancellation-reason" placeholder="Motivo do cancelamento (opcional, mas recomendado)..." rows="2"></textarea>
-                <div class="confirm-actions">
+              <section class="cancellation-area">
+                <textarea class="cancellation-reason" placeholder="Motivo do cancelamento (o aluno será notificado)..." rows="2"></textarea>
+                <section class="confirm-actions">
                   <button class="action-btn confirm-cancel-btn danger">
                     <i class="fas fa-exclamation-triangle"></i> Confirmar Cancelamento
                   </button>
-                </div>
-              </div>
+                </section>
+              </section>
             </article>
           <% }) %>
         </section>
       <% } %>
     <% } else { %>
-      <div class="empty-state">
-        <i class="fas fa-info-circle"></i>
-        <p>Você não tem aulas agendadas para os próximos dias.</p>
-        <a href="/perfil_prof#calendario" class="btn-primary-alt">Ajustar Minha Agenda</a>
-      </div>
+      <section class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <p>Você não tem nenhuma aula agendada com alunos.</p>
+        <a href="/perfil_prof" class="btn-primary-alt">Ver meus horários</a>
+      </section>
     <% } %>
   </main>
 
@@ -135,7 +130,6 @@
     const overlay = document.getElementById('overlay');
     const closeBtn = document.getElementById('close-menu');
     const toggleBtn = document.getElementById("toggle-menu");
-    const dropdown = document.querySelector('.dropdown-regimath');
 
     function toggleMobileMenu() {
       menu.classList.toggle('active');
@@ -163,30 +157,82 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // Lógica para habilitar/desabilitar o botão "Entrar na Sala"
+      document.querySelectorAll('.enter-class-btn').forEach(btn => {
+        const [dia, mes, ano] = btn.dataset.data.split('-');
+        const [hora, minuto] = btn.dataset.hora.split(':');
+        const classTime = new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
+        const now = new Date();
+
+        const startTime = new Date(classTime.getTime() - 10 * 60 * 1000); // 10 minutos antes
+        const endTime = new Date(classTime.getTime() + 50 * 60 * 1000); // 50 minutos depois (duração da aula)
+
+        if (now >= startTime && now <= endTime) {
+          btn.classList.remove('disabled');
+          btn.href = btn.dataset.href; 
+          btn.title = 'Clique para entrar na sala de aula';
+        } else {
+          btn.classList.add('disabled');
+          btn.removeAttribute('href');
+          btn.title = 'A sala abre 10 minutos antes do início da aula.';
+        }
+      });
+
+      // Lógica para cancelar aula
       document.querySelectorAll('.cancel-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const card = btn.closest('.lesson-card');
           const cancelArea = card.querySelector('.cancellation-area');
-          const active = cancelArea.classList.toggle('is-active');
-
-          btn.innerHTML = active
-            ? '<i class="fas fa-undo"></i> Fechar'
-            : '<i class="fas fa-times-circle"></i> Cancelar';
-
-          btn.classList.toggle('secondary', active);
-          btn.classList.toggle('danger', !active);
+          const isActive = cancelArea.classList.toggle('is-active');
+          
+          btn.innerHTML = isActive ? '<i class="fas fa-undo"></i> Fechar' : '<i class="fas fa-times-circle"></i> Cancelar Aula';
+          btn.classList.toggle('secondary', isActive);
+          btn.classList.toggle('danger', !isActive);
         });
       });
 
       document.querySelectorAll('.confirm-cancel-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const card = btn.closest('.lesson-card');
-          const id = card.dataset.lessonId;
-          const reason = card.querySelector('.cancellation-reason').value.trim();
+          const alunoId = card.dataset.alunoId;
+          const data = card.dataset.data;
+          const hora = card.dataset.hora;
+          const motivo = card.querySelector('.cancellation-reason').value.trim();
 
-          if (confirm(`Tem certeza que deseja cancelar a aula #${id}?`)) {
-            alert(`Cancelamento enviado.\nMotivo: ${reason || 'Não informado.'}`);
-            card.classList.add('cancelled');
+          if (!confirm('Tem certeza que deseja cancelar esta aula? O aluno será notificado.')) {
+            return;
+          }
+
+          try {
+            const response = await fetch('/cancelar-aula-prof', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ alunoId, data, hora, motivo })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+              alert('Aula cancelada e aluno notificado com sucesso!');
+              card.remove();
+
+              if (document.querySelectorAll('.lesson-card').length === 0) {
+                  const main = document.querySelector('.main-content-wrapper');
+                  main.innerHTML = `
+                      <h1 class="header-title"><i class="fas fa-calendar-check"></i> Minhas Aulas Agendadas</h1>
+                      <section class="empty-state">
+                          <i class="fas fa-calendar-times"></i>
+                          <p>Você não tem mais nenhuma aula agendada.</p>
+                          <a href="/perfil_prof" class="btn-primary-alt">Ver meus horários</a>
+                      </section>
+                  `;
+              }
+            } else {
+              alert(result.message || 'Falha ao cancelar a aula. Tente novamente.');
+            }
+          } catch (error) {
+            console.error('Erro ao cancelar aula:', error);
+            alert('Ocorreu um erro de comunicação. Verifique sua conexão.');
           }
         });
       });

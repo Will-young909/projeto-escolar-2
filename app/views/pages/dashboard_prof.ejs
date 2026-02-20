@@ -6,8 +6,8 @@
   <title>Dashboard do Professor | RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="../css/dashboard_prof.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+  <link rel="stylesheet" href="/css/dashboard_prof.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 
 <body>
@@ -18,7 +18,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -45,94 +45,119 @@
 
   <main class="dashboard">
     <section class="welcome">
-      <div>
-        <h1>Olá, <span class="highlight"><%= user.nome || "JAVASCRIPT" %></span></h1>
+      <section>
+        <h1>Olá, <p class="highlight"><%= user.nome || "Professor" %></p></h1>
         <p>Bem-vindo ao seu painel! Aqui você encontra sua agenda, ganhos e desempenho.</p>
-      </div>
+      </section>
     </section>
 
     <section class="stats">
-      <div class="card">
+      <section class="card">
         <i class="fas fa-calendar-alt icon primary"></i>
         <h3>Próximas 24h</h3>
-        <p class="value">3 aulas agendadas</p>
+        <p class="value"><%= aulasProximas24h %> aula<%= aulasProximas24h !== 1 ? 's' : '' %> agendada<%= aulasProximas24h !== 1 ? 's' : '' %></p>
         <a href="/aulas" class="link">Ver todas <i class="fas fa-arrow-right"></i></a>
-      </div>
+      </section>
 
-      <div class="card">
+      <section class="card">
         <i class="fas fa-wallet icon success"></i>
         <h3>Ganhos no Mês</h3>
-        <p class="value">R$ 1.850,00</p>
+        <p class="value">R$ <%= ganhosMes.total.toFixed(2) %></p>
         <button class="hidden-btn" data-popup="popup-ganhos">Detalhes <i class="fas fa-arrow-right"></i></button>
-      </div>
+      </section>
 
-      <div class="card">
+      <section class="card">
         <i class="fas fa-star icon warning"></i>
         <h3>Avaliação Média</h3>
-        <p class="value">4.8 / 5.0</p>
+        <p class="value"><%= avaliacaoMedia.media %> / 5.0</p>
         <button class="hidden-btn" data-popup="popup-avaliacao">Feedback <i class="fas fa-arrow-right"></i></button>
-      </div>
+      </section>
+    </section>
+    
+    <section class="notifications card" style="margin-top: 20px;">
+        <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
+        <% const notificacoes = professor.notificacoes || []; %>
+        <% if (notificacoes.length > 0) { %>
+            <ul class="notification-list">
+                <% notificacoes.slice(0, 5).forEach(notif => { %>
+                    <li class="notification-item <%= notif.tipo %>">
+                        <section class="notification-header">
+                            <strong class="aluno-nome"><%= notif.aluno %></strong>
+                            <p>cancelou a aula de <%= notif.aula.data %> às <%= notif.aula.hora %>.</p>
+                        </section>
+                        <% if (notif.motivo) { %>
+                            <p class="motivo"><strong>Motivo:</strong> <%= notif.motivo %></p>
+                        <% } %>
+                        <small class="timestamp"><%= new Date(notif.data).toLocaleString('pt-BR') %></small>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p class="empty-state">Nenhuma notificação recente.</p>
+        <% } %>
     </section>
 
+
     <!-- POPUP GANHOS -->
-<div class="popup-overlay" id="popup-ganhos">
-  <div class="popup">
+<section class="popup-overlay" id="popup-ganhos">
+  <section class="popup">
     <button class="popup-close" data-close>&times;</button>
     <h2>Ganhos no Mês</h2>
     <p>Resumo dos seus ganhos neste mês.</p>
     <ul class="popup-list">
-      <li>Total recebido: <strong>R$ 1.850,00</strong></li>
-      <li>Aulas concluídas: <strong>18</strong></li>
-      <li>Aulas agendadas futuras: <strong>6</strong></li>
+      <li>Total recebido: <strong>R$ <%= ganhosMes.total.toFixed(2) %></strong></li>
+      <li>Aulas concluídas: <strong><%= ganhosMes.concluidas %></strong></li>
+      <li>Aulas agendadas futuras: <strong><%= ganhosMes.futuras %></strong></li>
     </ul>
     <a href="/ganhos_mes"><button class="popup-action">Ver relatório completo</button></a>
-  </div>
-</div>
+  </section>
+</section>
 
 <!-- POPUP AVALIAÇÃO -->
-<div class="popup-overlay" id="popup-avaliacao">
-  <div class="popup">
+<section class="popup-overlay" id="popup-avaliacao">
+  <section class="popup">
     <button class="popup-close" data-close>&times;</button>
     <h2>Avaliação Média</h2>
     <p>Veja como os alunos têm avaliado suas aulas.</p>
     <ul class="popup-list">
-      <li>Média geral: <strong>4.8 / 5.0</strong></li>
-      <li>Número de avaliações: <strong>32</strong></li>
-      <li>Último feedback: <strong>“Excelente explicação e paciência.”</strong></li>
+      <li>Média geral: <strong><%= avaliacaoMedia.media %> / 5.0</strong></li>
+      <li>Número de avaliações: <strong><%= avaliacaoMedia.totalAvaliacoes %></strong></li>
+      <li>Último feedback: <strong>“<%= avaliacaoMedia.ultimoFeedback %>”</strong></li>
     </ul>
     <a href="/feedbacks_prof"><button class="popup-action">Ver todos os feedbacks</button></a>
-  </div>
-</div>
+  </section>
+</section>
 
-    <section class="next-class">
-      <div class="class-info">
-        <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
-        <p><strong>14:00 - Matemática Básica</strong></p>
-        <p><i class="fas fa-user"></i> Aluno: João Silva</p>
-        <p><i class="fas fa-calendar-day"></i> Hoje, 28 de Outubro</p>
-      </div>
-      <div class="class-actions">
-        <a class="btn primary"><i class="fas fa-video"></i> Entrar na Sala</a>
-        <a href="/chat/joaosilva" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
-      </div>
-    </section>
+    <% if (proximaAula) { %>
+      <section class="next-class">
+        <section class="class-info">
+          <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
+          <p><strong><%= proximaAula.horaInicio %> - Matemática Básica</strong></p>
+          <p><i class="fas fa-user"></i> Aluno: <%= proximaAula.aluno.nome %></p>
+          <p><i class="fas fa-calendar-day"></i> <%= new Date(proximaAula.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+        </section>
+        <section class="class-actions">
+          <a href="/video/<%= proximaAula.salaId %>" class="btn primary"><i class="fas fa-video"></i> Entrar na Sala</a>
+          <a href="/chat/with/<%= proximaAula.aluno.id %>" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
+        </section>
+      </section>
+    <% } else { %>
+      <section class="next-class">
+        <section class="class-info">
+            <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
+            <p>Nenhuma aula agendada.</p>
+        </section>
+      </section>
+    <% } %>
 
     <section class="manage">
       <h2><i class="fas fa-cogs"></i> Gerenciar Conta</h2>
-      <div class="manage-grid">
+      <section class="manage-grid">
         <a href="/perfil_prof" class="manage-item">
           <i class="fas fa-calendar-plus"></i>
-          <span>Atualizar Disponibilidade</span>
+          <p>Atualizar Disponibilidade</p>
         </a>
-        <!--<a href="/aulas/solicitacoes" class="manage-item">
-          <i class="fas fa-inbox"></i>
-          <span>Solicitações Pendentes (2)</span>
-        </a>
-        <a href="/documentos" class="manage-item">
-          <i class="fas fa-file-invoice-dollar"></i>
-          <span>Emitir Relatório de Ganhos</span>
-        </a>-->
-      </div>
+      </section>
     </section>
   </main>
 

@@ -4,35 +4,33 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chat com <%= room %> | Regimath</title>
+    <title>Chat com <%= interlocutorName %> | Regimath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="../css/chat.css">
-    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+    <link rel="stylesheet" href="/css/chat.css">
+    <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 
 <body>
     <header class="chat-header">
-        <div class="chat-header-content">
-            <a onclick="history.back()" class="btn-back" aria-label="Voltar para a página inicial">
+        <section class="chat-header-content">
+            <a onclick="history.back()" class="btn-back" aria-label="Voltar">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            
-            <h3>Conversa em <%= room %></h3>
-        </div>
-        
+            <h3>Conversa com <%= interlocutorName %></h3>
+        </section>
         <a href="/video/<%= room %>" class="btn-video" aria-label="Acessar Sala de Vídeo">
             <i class="fas fa-video"></i>
         </a>
     </header>
 
     <% if (user && user.tipo === 'professor') { %>
-        <div class="payment-request-ui">
+        <section class="payment-request-ui">
             <label for="payDescricao" class="ui-label">Criar Cobrança:</label>
             <input id="payDescricao" placeholder="Descrição (ex: Aula 1h)" class="ui-input desc-input" maxlength="50" />
             <input id="payValor" placeholder="Valor (ex: 50,00)" class="ui-input value-input" type="text" inputmode="decimal" />
             <button id="sendPaymentReq" class="btn-billing btn-primary" disabled>Cobrar</button>
-        </div>
+        </section>
     <% } %>
 
     <main class="chat-main" id="chatBody"></main>
@@ -40,16 +38,15 @@
     <form id="chatForm" class="chat-form">
         <input id="chatMessage" type="text" placeholder="Digite sua mensagem..." autocomplete="off" required>
         <button type="submit" aria-label="Enviar mensagem">
-            <i class="fas fa-paper-plane"></i> </button>
+            <i class="fas fa-paper-plane"></i>
+        </button>
     </form>
 
     <script>
-        // Variáveis de ambiente seguras (JSON.stringify previne XSS ao injetar no JS)
         const CHAT_USER_DATA = JSON.parse('<%- JSON.stringify(user || {}) %>');
         const CHAT_USER = {
+            id: CHAT_USER_DATA.id,
             nome: CHAT_USER_DATA.nome || 'Visitante',
-            email: CHAT_USER_DATA.email || '',
-            tipo: CHAT_USER_DATA.tipo || 'visitante'
         };
         const CHAT_ROOM = "<%= room %>";
     </script>
@@ -62,23 +59,20 @@
             const chatForm = document.getElementById('chatForm');
             const chatInput = document.getElementById('chatMessage');
             
-            // Elementos de Pagamento
             const sendPaymentBtn = document.getElementById('sendPaymentReq');
             const payDescInput = document.getElementById('payDescricao');
             const payValorInput = document.getElementById('payValor');
 
-            // Função centralizada para scroll
             const scrollToBottom = () => {
                 chatBody.scrollTop = chatBody.scrollHeight;
             };
 
-            // Função para formatar números para R$ 0,00 (apenas para exibição do professor)
             const formatCurrencyInput = (input) => {
-                let value = input.value.replace(/\D/g, ''); // Remove tudo que não é dígito
+                let value = input.value.replace(/\D/g, '');
                 if (value.length > 2) {
-                    value = value.replace(/(\d{2})$/, ',$1'); // Adiciona vírgula antes dos 2 últimos dígitos
+                    value = value.replace(/(\d{2})$/, ',$1');
                     if (value.length > 6) {
-                        value = value.replace(/(\d+)(\d{3},\d{2})$/, '$1.$2'); // Adiciona ponto para milhar (ex: 1.000,00)
+                        value = value.replace(/(\d+)(\d{3},\d{2})$/, '$1.$2');
                     }
                 } else if (value.length === 1) {
                     value = '0,0' + value;
@@ -88,13 +82,10 @@
                 input.value = value;
             };
 
-            // Função para checar e habilitar o botão de cobrança
             const checkPaymentInputs = () => {
                 if (!sendPaymentBtn) return;
                 const desc = payDescInput.value.trim();
                 const valor = payValorInput.value.replace(',', '.').replace(/[^\d.]/g, '');
-                
-                // O botão só é habilitado se houver descrição E um valor numérico válido (> 0)
                 if (desc && parseFloat(valor) > 0) {
                     sendPaymentBtn.removeAttribute('disabled');
                 } else {
@@ -102,62 +93,56 @@
                 }
             };
 
-            // Event Listeners para o formulário de pagamento
             if (payDescInput && payValorInput) {
                 payDescInput.addEventListener('input', checkPaymentInputs);
-                // Formatação e checagem de input
                 payValorInput.addEventListener('input', () => {
                     formatCurrencyInput(payValorInput);
                     checkPaymentInputs();
                 });
             }
 
-
             function createMsg(msg) {
-                const isSent = msg.user === CHAT_USER.nome;
-                const div = document.createElement('div');
-                div.classList.add('message', isSent ? 'sent' : 'received');
+                const isSent = msg.user.id === CHAT_USER.id;
+                const section = document.createElement('section');
+                section.classList.add('message', isSent ? 'sent' : 'received');
 
-                // Remetente só aparece se não for o próprio usuário
                 if (!isSent) {
-                    const user = document.createElement('span');
+                    const user = document.createElement('p');
                     user.classList.add('msg-user');
-                    // Usando CHAT_USER.tipo para diferenciar professor/aluno visualmente se necessário
-                    user.textContent = msg.user; 
-                    div.appendChild(user);
+                    user.textContent = msg.user.nome;
+                    section.appendChild(user);
                 }
 
-                const text = document.createElement('span');
+                const text = document.createElement('p');
                 text.classList.add('msg-text');
                 text.textContent = msg.text;
 
-                const time = document.createElement('span');
+                const time = document.createElement('p');
                 time.classList.add('msg-time');
                 time.textContent = new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                div.appendChild(text);
-                div.appendChild(time);
-                return div;
+                section.appendChild(text);
+                section.appendChild(time);
+                return section;
             }
 
-            // Função para criar o card de pagamento
             function createPaymentCard(data) {
-                const wrap = document.createElement('div');
-                const isSent = data.remetente === CHAT_USER.nome;
+                const wrap = document.createElement('section');
+                const isSent = data.remetenteId === CHAT_USER.id;
                 const valorFormatado = Number(data.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                 wrap.className = `message payment-card ${isSent ? 'sent' : 'received'}`;
                 
                 wrap.innerHTML = `
-                    <div class="payment-header">
+                    <section class="payment-header">
                         <i class="fas fa-handshake payment-icon"></i>
                         <strong class="payment-title">Solicitação de Pagamento</strong>
-                        <span class="payment-user">${isSent ? 'Você enviou:' : data.remetente + ' enviou:'}</span>
-                    </div>
-                    <div class="payment-details">
-                        <div class="payment-desc">${data.descricao || 'Pagamento de Serviço'}</div>
-                        <div class="payment-value">${valorFormatado}</div>
-                    </div>
+                        <p class="payment-user">${isSent ? 'Você enviou:' : data.remetente + ' enviou:'}</p>
+                    </section>
+                    <section class="payment-details">
+                        <section class="payment-desc">${data.descricao || 'Pagamento de Serviço'}</section>
+                        <section class="payment-value">${valorFormatado}</section>
+                    </section>
                     ${!isSent ? `
                         <a href="${data.link || '#'}" target="_blank" rel="noopener noreferrer" class="btn-pagar btn-success">
                             <i class="fas fa-wallet"></i> Pagar Agora
@@ -168,11 +153,10 @@
                 return wrap;
             }
 
-            // Receber histórico (mantido o código original, mas usando createPaymentCard para mensagens de pagamento no histórico)
             socket.on("roomHistory", (history) => {
                 chatBody.innerHTML = "";
                 history.forEach(m => {
-                    if (m.type === 'payment') { // Assumindo que você usa 'type' para diferenciar no backend
+                    if (m.type === 'payment') {
                         chatBody.appendChild(createPaymentCard(m.data));
                     } else {
                         chatBody.appendChild(createMsg(m));
@@ -181,55 +165,47 @@
                 scrollToBottom();
             });
 
-            // Nova mensagem
             socket.on("newMessage", (msg) => {
                 chatBody.appendChild(createMsg(msg));
                 scrollToBottom();
             });
 
-            // Mensagens do sistema
             socket.on("systemMessage", (msg) => {
-                const sys = document.createElement("div");
+                const sys = document.createElement("section");
                 sys.classList.add("system-msg");
                 sys.textContent = msg.text;
                 chatBody.appendChild(sys);
                 scrollToBottom();
             });
 
-            // Entrar na sala
-            socket.emit("joinRoom", { room: CHAT_ROOM, user: CHAT_USER.nome });
+            socket.emit("joinRoom", { room: CHAT_ROOM });
 
-            // Enviar mensagem
             chatForm.addEventListener("submit", e => {
                 e.preventDefault();
                 const text = chatInput.value.trim();
                 if (!text) return;
-                socket.emit("chatMessage", { room: CHAT_ROOM, user: CHAT_USER.nome, text });
+                socket.emit("chatMessage", { room: CHAT_ROOM, text: text });
                 chatInput.value = "";
             });
 
-            // ---------- Receber solicitação de pagamento (renderiza no chat) ----------
             socket.on('paymentRequest', (data) => {
                 data.remetente = data.remetente || 'Professor'; 
                 chatBody.appendChild(createPaymentCard(data));
                 scrollToBottom();
             });
 
-            // ---------- Receber confirmação de pagamento ----------
             socket.on('paymentConfirmed', (info) => {
-                const div = document.createElement('div');
-                div.className = 'system-msg success-msg'; 
+                const section = document.createElement('section');
+                section.className = 'system-msg success-msg'; 
                 const amt = Number(info.amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                div.innerHTML = `✅ **Pagamento de ${amt} confirmado!** (${info.payer || 'Pagador desconhecido'})`;
-                chatBody.appendChild(div);
+                section.innerHTML = `✅ **Pagamento de ${amt} confirmado!** (${info.payer || 'Pagador desconhecido'})`;
+                chatBody.appendChild(section);
                 scrollToBottom();
             });
 
-            // ---------- Enviar requestPayment (apenas se for professor) ----------
             if (sendPaymentBtn) {
                 sendPaymentBtn.addEventListener('click', () => {
                     const desc = payDescInput.value.trim() || 'Aula';
-                    // Converte para float removendo a formatação brasileira (vírgula para ponto)
                     const valor = parseFloat(payValorInput.value.replace('.', '').replace(',', '.')) || 0;
                     
                     if (!valor || valor <= 0) {
@@ -240,20 +216,12 @@
                     
                     socket.emit('requestPayment', {
                         room: CHAT_ROOM,
-                        valor: valor.toFixed(2), // Envia 2 casas decimais
+                        valor: valor.toFixed(2),
                         descricao: desc,
-                        remetente: CHAT_USER.nome 
+                        createdBy: CHAT_USER.nome,
+                        remetenteId: CHAT_USER.id
                     });
-                    
-                    // Aviso local (usuário que enviou)
-                    const aviso = document.createElement('div');
-                    aviso.className = 'system-msg';
-                    const valorAviso = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    aviso.textContent = `Pedido de pagamento enviado: ${valorAviso} - aguardando confirmação.`;
-                    chatBody.appendChild(aviso);
-                    scrollToBottom();
-                    
-                    // Limpa os inputs e desabilita o botão
+
                     payDescInput.value = '';
                     payValorInput.value = '';
                     checkPaymentInputs(); 
@@ -262,5 +230,4 @@
         })();
     </script>
 </body>
-
 </html>

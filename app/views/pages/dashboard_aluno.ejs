@@ -6,8 +6,8 @@
   <title>Dashboard do Aluno | RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="../css/dashboard_aluno.css">
-  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+  <link rel="stylesheet" href="/css/dashboard_aluno.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 
 <body>
@@ -18,7 +18,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -45,44 +45,106 @@
 
   <main class="dashboard">
     <section class="welcome">
-      <div>
-        <h1>Olá, <span class="highlight"><%= user.nome || "JAVASCRIPT" %></span></h1>
+      <section>
+        <h1>Olá, <p class="highlight"><%= user.nome || "Aluno" %></p></h1>
         <p>Bem-vindo ao seu painel! Aqui você pode acompanhar suas aulas, professores e progresso.</p>
-      </div>
+      </section>
     </section>
+
+    <% 
+        const now = new Date();
+        const next24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        const aulasProximas24h = (user.agenda || []).filter(aula => {
+            const aulaDate = new Date(aula.data + 'T' + aula.hora);
+            return aulaDate >= now && aulaDate <= next24Hours;
+        });
+        const count = aulasProximas24h.length;
+
+        const comentarios = session.prof_comentarios || {};
+        let totalAvaliacoes = 0;
+        let numeroDeAvaliacoes = 0;
+        Object.values(comentarios).forEach(profComentarios => {
+            profComentarios.forEach(comentario => {
+                if (comentario.usuario === user.nome && comentario.nota) {
+                    totalAvaliacoes += comentario.nota;
+                    numeroDeAvaliacoes++;
+                }
+            });
+        });
+        const mediaAvaliacoes = numeroDeAvaliacoes > 0 ? (totalAvaliacoes / numeroDeAvaliacoes).toFixed(1) : "N/A";
+    %>
 
     <section class="stats">
-      <div class="card">
-        <i class="fas fa-calendar-check icon primary"></i>
-        <h3>Próximas 24h</h3>
-        <p class="value">2 aulas agendadas</p>
-        <a href="/agenda" class="link">Ver agenda <i class="fas fa-arrow-right"></i></a>
-      </div>
+        <section class="card">
+            <i class="fas fa-calendar-check icon primary"></i>
+            <h3>Próximas 24h</h3>
+            <p class="value"><%= count %> aula<%= count !== 1 ? 's' : '' %> agendada<%= count !== 1 ? 's' : '' %></p>
+            <a href="/agenda" class="link">Ver agenda <i class="fas fa-arrow-right"></i></a>
+        </section>
 
-      <div class="card">
-        <i class="fa-solid fa-star icon warning"></i>
-        <h3>Avaliações Recebidas</h3>
-        <p class="value">4.6 / 5.0</p>
-        <a href="/feedbacks" class="link">Ver feedbacks <i class="fas fa-arrow-right"></i></a>
-      </div>
+        <section class="card">
+            <i class="fa-solid fa-star icon warning"></i>
+            <h3>Minhas Avaliações</h3>
+            <p class="value"><%= mediaAvaliacoes %> / 5.0</p>
+            <a href="/feedbacks_aluno" class="link">Ver feedbacks <i class="fas fa-arrow-right"></i></a>
+        </section>
+    </section>
+    
+    <section class="notifications card">
+      <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
+      <% const notificacoes = user.notificacoes || []; %>
+      <% if (notificacoes.length > 0) { %>
+          <ul class="notification-list">
+              <% notificacoes.slice(0, 5).forEach(notif => { %>
+                  <li class="notification-item <%= notif.tipo %>">
+                      <section class="notification-header">
+                          <strong class="prof-nome"><%= notif.professor %></strong>
+                          <p>cancelou a aula de <%= notif.aula.data %> às <%= notif.aula.hora %>.</p>
+                      </section>
+                      <% if (notif.motivo) { %>
+                          <p class="motivo"><strong>Motivo:</strong> <%= notif.motivo %></p>
+                      <% } %>
+                      <small class="timestamp"><%= new Date(notif.data).toLocaleString('pt-BR') %></small>
+                  </li>
+              <% }); %>
+          </ul>
+      <% } else { %>
+          <p class="empty-state">Nenhuma notificação recente.</p>
+      <% } %>
     </section>
 
+    <% 
+        const sortedAgenda = (user.agenda || []).map(aula => ({...aula, fullDate: new Date(aula.data + 'T' + aula.hora)})).sort((a, b) => a.fullDate - b.fullDate);
+        const proximaAula = sortedAgenda.find(aula => aula.fullDate >= now);
+    %>
+
+    <% if (proximaAula) { %>
     <section class="next-class">
-      <div class="class-info">
-        <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
-        <p><strong>15:30 - Álgebra Linear</strong></p>
-        <p><i class="fas fa-user"></i> Professor: Maria Souza</p>
-        <p><i class="fas fa-calendar-day"></i> Hoje, 04 de Novembro</p>
-      </div>
-      <div class="class-actions">
-        <a class="btn primary"><i class="fas fa-video"></i> Entrar na Aula</a>
-        <a href="/chat/mariasouza" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
-      </div>
+        <section class="class-info">
+            <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
+            <p><strong><%= proximaAula.hora %> - <%= proximaAula.materia || 'Matéria não definida' %></strong></p>
+            <p><i class="fas fa-user"></i> Professor: <%= proximaAula.professor.nome %></p>
+            <p><i class="fas fa-calendar-day"></i> <%= new Date(proximaAula.data + 'T00:00:00').toLocaleDateString('pt-BR') %></p>
+        </section>
+        <section class="class-actions">
+            <a href="/video/<%= proximaAula.salaId %>" class="btn primary"><i class="fas fa-video"></i> Entrar na Aula</a>
+            <a href="/chat/with/<%= proximaAula.professor.id %>" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
+        </section>
     </section>
+    <% } else { %>
+        <section class="next-class">
+            <section class="class-info">
+                 <h2><i class="fas fa-clock"></i> Próxima Aula</h2>
+                <p>Nenhuma aula agendada.</p>
+            </section>
+        </section>
+    <% } %>
+
 
     <section class="manage">
       <h2><i class="fas fa-cogs"></i> Acesso Rápido</h2>
-      <div class="manage-grid">
+      <section class="manage-grid">
         <a href="/pesquisar_profs" class="manage-item">
           <i class="fas fa-search"></i>
           <p>Encontrar Professores</p>
@@ -91,7 +153,7 @@
           <i class="fas fa-history"></i>
           <p>Histórico de Aulas</p>
         </a>
-      </div>
+      </section>
     </section>
   </main>
 
@@ -101,7 +163,6 @@
     const overlay = document.getElementById('overlay');
     const closeBtn = document.getElementById('close-menu');
     const toggleBtn = document.getElementById("toggle-menu");
-    const dropdown = document.querySelector('.dropdown-regimath');
 
     function toggleMobileMenu() {
       menu.classList.toggle('active');

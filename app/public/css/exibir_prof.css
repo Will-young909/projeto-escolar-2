@@ -576,7 +576,7 @@ small.data {
     
     /* NOVO: Coluna Secundária para Calendário e Comentários */
     .secondary-column {
-        
+        max-width: 400px;
         display: flex;
         flex-direction: column;
         gap: 30px;

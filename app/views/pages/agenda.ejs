@@ -10,195 +10,234 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <link rel="stylesheet" href="../css/aulas.css" />
-    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+    <link rel="stylesheet" href="/css/aulas.css" />
+    <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+
+    <style>
+      .action-btn.disabled {
+        background-color: #ccc;
+        border-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+    </style>
 </head>
-
-<!--<h1 class="header-title"><i class="fas fa-calendar-alt"></i> Minha Agenda de Aulas</h1>
-
-            <a href="/perfil_aluno" class="nav-back-btn" aria-label="Voltar ao Perfil">
-                <i class="fas fa-user-circle"></i> Perfil
-            </a>-->
 
 <body>
     <header class="main-header">
-    <a href="/">
-      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
-    </a>
-    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
-  </header>
+        <a href="/">
+            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+        </a>
+        <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+    </header>
 
-  <div id="overlay"></div>
+    <section id="overlay"></section>
 
-  <nav id="menu" class="overlay collapsed">
+    <nav id="menu" class="overlay collapsed">
+        <button id="close-menu" aria-label="Fechar menu">&times;</button>
+        <button id="toggle-menu" aria-label="Recolher menu">
+            <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+                <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+        </button>
 
-    <button id="close-menu" aria-label="Fechar menu">&times;</button>
+        <ul class="nav-links">
+            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
 
-    <button id="toggle-menu" aria-label="Recolher menu">
-      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-      </svg>
-    </button>
-
-    <ul class="nav-links">
-        <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
-
-      <% if (session.user_aluno) { %>
-          <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
-          <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
-          <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
-          <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
-          <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
-      <% } %>
-    </ul>
-  </nav>
+            <% if (session.user_aluno) { %>
+                <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
+                <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
+                <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
+                <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
+                <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+            <% } %>
+        </ul>
+    </nav>
 
     <main class="main-content-wrapper">
-        <h1 class="header-title"><i class="fas fa-calendar-alt"></i> Minha Agenda<br> de Aulas</h1>
-        <%
-            // EXEMPLO DE DADOS (Substituir pela variável real vinda do backend)
-            // Note que 'professor' substitui 'aluno'
-            const aulas_aluno = [
-                { id: 123, professor: 'Dra. Eliana', hora: '19:00h', status: 'online', dia: 'Hoje - Ter, 21 Out', link_sala: '/video/sala1', assunto: 'Cálculo Avançado', prof_id: 1 },
-                { id: 456, professor: 'Dr. Ricardo', hora: '20:00h', status: 'offline', dia: 'Qua, 22 Out', link_sala: '/video/sala2', assunto: 'Matemática Básica', prof_id: 2 },
-                { id: 789, professor: 'Prof. Luana', hora: '10:00h', status: 'offline', dia: 'Qui, 23 Out', link_sala: '/video/sala3', assunto: 'Álgebra Linear', prof_id: 3 },
-                { id: 101, professor: 'Prof. Felipe', hora: '14:30h', status: 'offline', dia: 'Qui, 23 Out', link_sala: '/video/sala4', assunto: 'Geometria Analítica', prof_id: 4 },
-            ];
+        <h1 class="header-title"><i class="fas fa-calendar-alt"></i> Minha Agenda de Aulas</h1>
 
-            const aulasAgrupadas = aulas_aluno.reduce((acc, aula) => {
-                (acc[aula.dia] ||= []).push(aula);
+        <% const agenda = user.agenda || []; %>
+        <% 
+            const aulasAgrupadas = agenda.reduce((acc, aula) => {
+                const dia = aula.data;
+                (acc[dia] ||= []).push(aula);
                 return acc;
             }, {});
         %>
 
-        <% if (aulas_aluno.length > 0) { %>
+        <% if (agenda.length > 0) { %>
             <% for (const dia in aulasAgrupadas) { %>
                 <section class="day-group">
                     <h2>
-                        <i class="<%= dia.includes('Hoje') ? 'fas fa-clock' : 'fas fa-calendar-alt' %>"></i>
+                        <i class="fas fa-calendar-alt"></i>
                         <%= dia %>
                     </h2>
 
                     <% aulasAgrupadas[dia].forEach(aula => { %>
-                        <article class="lesson-card <%= aula.status === 'offline' ? 'inactive' : '' %>" data-lesson-id="<%= aula.id %>">
+                        <article class="lesson-card" 
+                            data-prof-id="<%= aula.professor.id %>"
+                            data-data="<%= aula.data %>"
+                            data-hora="<%= aula.hora %>">
+
                             <header class="card-header">
-                                <strong>Aula com <%= aula.professor %></strong>
-                                <span class="lesson-time"><i class="far fa-clock"></i> <%= aula.hora %></span>
+                                <strong>Aula com <%= aula.professor.nome %></strong>
+                                <p class="lesson-time"><i class="far fa-clock"></i> <%= aula.hora %></p>
                             </header>
 
-                            <p class="lesson-subject"><i class="fas fa-book"></i> <%= aula.assunto %></p>
+                            <p class="lesson-subject"><i class="fas fa-book"></i> Matemática</p>
 
-                            <p class="lesson-status">
-                                <span class="status <%= aula.status %>">
-                                    <i class="fas fa-circle"></i>
-                                    <%= aula.status === 'online' ? 'Sala Aberta - Pronto para entrar' : 'Aguardando Professor Abrir' %>
-                                </span>
-                            </p>
-
-                            <div class="actions">
-                                <% if (aula.status === 'online') { %>
-                                    <a href="<%= aula.link_sala %>" class="action-btn primary">
-                                        <i class="fas fa-video"></i> Entrar na Sala
-                                    </a>
-                                <% } else { %>
-                                    <button class="action-btn disabled-btn" disabled>
-                                        <i class="fas fa-lock"></i> Aguardando Professor
-                                    </button>
-                                <% } %>
-
-                                <a href="/chat/prof/<%= aula.prof_id %>" class="action-btn secondary">
-                                    <i class="fas fa-comment-dots"></i> Falar com <%= aula.professor.split(' ')[1] %>
+                            <section class="actions">
+                                <a href="/video/<%= aula.salaId %>" class="action-btn primary enter-class-btn" data-data="<%= aula.data %>" data-hora="<%= aula.hora %>">
+                                    <i class="fas fa-video"></i> Entrar na Sala
                                 </a>
-
-                                <button class="action-btn danger cancel-btn" data-lesson-id="<%= aula.id %>">
+                                <a href="/chat/<%= aula.professor.id %>" class="action-btn secondary">
+                                    <i class="fas fa-comment-dots"></i> Conversar com Professor
+                                </a>
+                                <button class="action-btn danger cancel-btn">
                                     <i class="fas fa-times-circle"></i> Cancelar Aula
                                 </button>
-                            </div>
+                            </section>
 
-                            <div class="cancellation-area">
-                                <textarea class="cancellation-reason" placeholder="Motivo do cancelamento (opcional, mas recomendado)..." rows="2"></textarea>
-                                <div class="confirm-actions">
+                            <section class="cancellation-area">
+                                <textarea class="cancellation-reason" placeholder="Motivo do cancelamento (opcional)..." rows="2"></textarea>
+                                <section class="confirm-actions">
                                     <button class="action-btn confirm-cancel-btn danger">
                                         <i class="fas fa-exclamation-triangle"></i> Confirmar Cancelamento
                                     </button>
-                                </div>
-                            </div>
+                                </section>
+                            </section>
                         </article>
                     <% }) %>
                 </section>
             <% } %>
         <% } else { %>
-            <div class="empty-state">
+            <section class="empty-state">
                 <i class="fas fa-calendar-plus"></i>
-                <p>Você não tem aulas agendadas! Que tal encontrar seu professor ideal e começar a estudar?</p>
-                <a href="/professores" class="btn-primary-alt">Buscar Professor</a>
-            </div>
+                <p>Você ainda não agendou nenhuma aula. Explore nossos professores!</p>
+                <a href="/pesquisar_profs" class="btn-primary-alt">Encontrar Professores</a>
+            </section>
         <% } %>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para habilitar/desabilitar o botão "Entrar na Sala"
+            document.querySelectorAll('.enter-class-btn').forEach(btn => {
+                const [dia, mes, ano] = btn.dataset.data.split('-');
+                const [hora, minuto] = btn.dataset.hora.split(':');
+                const classTime = new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
+                const now = new Date();
+
+                const startTime = new Date(classTime.getTime() - 10 * 60 * 1000); // 10 minutos antes
+                const endTime = new Date(classTime.getTime() + 50 * 60 * 1000); // 50 minutos depois (duração da aula)
+
+                if (now >= startTime && now <= endTime) {
+                  btn.classList.remove('disabled');
+                  btn.href = btn.dataset.href;
+                  btn.title = 'Clique para entrar na sala de aula';
+                } else {
+                  btn.classList.add('disabled');
+                  btn.removeAttribute('href');
+                  btn.title = 'A sala abre 10 minutos antes do início da aula.';
+                }
+            });
+
+            // Lógica para abrir/fechar a área de cancelamento
             document.querySelectorAll('.cancel-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const card = btn.closest('.lesson-card');
                     const cancelArea = card.querySelector('.cancellation-area');
-                    const active = cancelArea.classList.toggle('is-active');
-
-                    btn.innerHTML = active
-                        ? '<i class="fas fa-undo"></i> Fechar'
-                        : '<i class="fas fa-times-circle"></i> Cancelar Aula';
-
-                    btn.classList.toggle('secondary', active);
-                    btn.classList.toggle('danger', !active);
+                    const isActive = cancelArea.classList.toggle('is-active');
+                    
+                    btn.innerHTML = isActive ? '<i class="fas fa-undo"></i> Fechar' : '<i class="fas fa-times-circle"></i> Cancelar Aula';
+                    btn.classList.toggle('secondary', isActive);
+                    btn.classList.toggle('danger', !isActive);
                 });
             });
 
+            // Lógica para confirmar o cancelamento
             document.querySelectorAll('.confirm-cancel-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', async () => {
                     const card = btn.closest('.lesson-card');
-                    const id = card.dataset.lessonId;
+                    const profId = card.dataset.profId;
+                    const data = card.dataset.data;
+                    const hora = card.dataset.hora;
                     const reason = card.querySelector('.cancellation-reason').value.trim();
 
-                    // Simulação de confirmação
-                    if (confirm(`Tem certeza que deseja cancelar a aula #${id}? Um aviso será enviado ao professor.`)) {
-                        alert(`Cancelamento da aula #${id} solicitado.\nMotivo: ${reason || 'Não informado.'}`);
-                        card.classList.add('cancelled');
-                        // Aqui seria o código AJAX para enviar o cancelamento ao servidor
+                    if (!confirm('Tem certeza que deseja cancelar esta aula?')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/cancelar-aula', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ profId, data, hora, reason })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok && result.success) {
+                            alert('Aula cancelada com sucesso!');
+                            card.remove(); // Remove o card da aula da interface
+
+                            // Opcional: Verificar se não há mais aulas e mostrar o estado de vazio
+                            if (document.querySelectorAll('.lesson-card').length === 0) {
+                                const main = document.querySelector('.main-content-wrapper');
+                                main.innerHTML = `
+                                    <section class="empty-state">
+                                        <i class="fas fa-calendar-plus"></i>
+                                        <p>Você não tem mais aulas agendadas.</p>
+                                        <a href="/pesquisar_profs" class="btn-primary-alt">Encontrar Professores</a>
+                                    </section>
+                                `;
+                            }
+                        } else {
+                            alert(result.message || 'Falha ao cancelar a aula. Tente novamente.');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao cancelar aula:', error);
+                        alert('Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente.');
                     }
                 });
             });
         });
-    const menuBtn = document.getElementById('menu-btn');
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('overlay');
-    const closeBtn = document.getElementById('close-menu');
-    const toggleBtn = document.getElementById("toggle-menu");
-    const dropdown = document.querySelector('.dropdown-regimath');
 
-    function toggleMobileMenu() {
-      menu.classList.toggle('active');
-      overlay.classList.toggle('active');
-      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
-    }
+        // Script do menu (sem alterações)
+        const menuBtn = document.getElementById('menu-btn');
+        const menu = document.getElementById('menu');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-menu');
+        const toggleBtn = document.getElementById("toggle-menu");
 
-    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
-    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
-    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+        function toggleMobileMenu() {
+            menu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+        }
 
-    if (toggleBtn) {
-      const toggleIcon = document.getElementById('toggle-icon');
-      const isCollapsed = menu.classList.contains('collapsed');
-      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+        if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+        if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+        if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
 
-      toggleBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        menu.classList.toggle("collapsed");
-        const isNowCollapsed = menu.classList.contains('collapsed');
-        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
-        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
-      });
-    }
+        if (toggleBtn) {
+            const toggleIcon = document.getElementById('toggle-icon');
+            const isCollapsed = menu.classList.contains('collapsed');
+            toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+            if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+
+            toggleBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                menu.classList.toggle("collapsed");
+                const isNowCollapsed = menu.classList.contains('collapsed');
+                toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+                toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+            });
+        }
     </script>
 </body>
 </html>

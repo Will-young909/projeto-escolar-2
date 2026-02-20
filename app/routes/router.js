@@ -3,77 +3,117 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const router = express.Router();
 const paymentsStore = require('../lib/paymentsStore');
+const chatStore = require('../lib/chatStore'); // Importa o chatStore
+const multer = require('multer');
+const path = require('path');
 
-// Função mock para buscar o nome de um professor/aluno (apenas para demo)
-function getUserNameById(id) {
-    if (id === 'prof123') return 'Professor João';
-    if (id === 'aluno456') return 'Aluno Maria';
-    return id; // Retorna o ID se não for encontrado
-}
-
-// Array simulando banco de dados de professores (mantive seu conteúdo)
-const professores = [
+// Armazenamento em memória para alunos e professores (simulando um banco de dados)
+let alunos = [
     {
-        id: 1,
-        nome: "Mateus",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 7 doutorados na USP, dei aula pra Einstein...",
-        aulaPrevia: "#",
-        status: "disponivel",
-        aulas: [
-            { data: "27-10-2025", hora: "10:00" },
-            { data: "29-10-2025", hora: "14:00" }
-        ]
-    },
-    {
-        id: 2,
-        nome: "Jonas",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 5 doutorados na usp, dei aula pra Newton...",
-        aulaPrevia: "#",
-        status: "disponivel",
-        aulas: [
-            { data: "26-10-2025", hora: "15:00" },
-            { data: "28-10-2025", hora: "14:00" }
-        ]
-    },
-    {
-        id: 3,
-        nome: "Julia Barros",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Graduada em Matemática pela Universidade Federal de Minas Gerais (UFMG)...",
-        aulaPrevia: "#",
-        status: "disponivel",
-        aulas: [
-            { data: "25-10-2025", hora: "09:00" },
-            { data: "27-10-2025", hora: "16:00" }
-        ]
-    },
-    {
-        id: 4,
-        nome: "Juléia Lopes",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professora que ensinou Tesla a inventar a luz",
-        aulaPrevia: "#",
-        status: "indisponivel",
-        aulas: [
-            { data: "30-10-2025", hora: "10:00" },
-            { data: "31-10-2025", hora: "14:00" }
-        ]
-    },
-    {
-        id: 5,
-        nome: "Joaquim Bandeira",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor formado pelo EAD",
-        aulaPrevia: "#",
-        status: "disponivel",
-        aulas: [
-            { data: "28-10-2025", hora: "11:00" },
-            { data: "29-10-2025", hora: "15:00" }
-        ]
+        id: '1',
+        nome: "Maria",
+        email: "maria@exemplo.com",
+        agenda: [],
+        notificacoes: []
     }
 ];
+
+const professores = [
+    {
+        id: '2',
+        nome: "Mateus",
+        email: "mateus@exemplo.com",
+        foto: "/imagens/imagem_perfil.jpg",
+        descricao: "Professor com 7 doutorados na USP, dei aula pra Einstein...",
+        link_previa: "#",
+        status: "disponivel",
+        horariosDisponiveis: [],
+        disciplinas: ["Cálculo I", "Álgebra Linear"]
+    },
+    {
+        id: '3',
+        nome: "Jonas",
+        email: "jonas@exemplo.com",
+        foto: "/imagens/imagem_perfil.jpg",
+        descricao: "Professor com 5 doutorados na usp, dei aula pra Newton...",
+        link_previa: "#",
+        status: "disponivel",
+        horariosDisponiveis: [],
+        disciplinas: ["Física I"]
+    }
+];
+
+// --- Configuração do Multer para Upload de Imagem ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'app/public/imagens/uploads/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const fileFilter = (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const mimetype = allowedTypes.test(file.mimetype);
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    }
+    cb(new Error('Apenas imagens (JPEG, PNG) são permitidas.'));
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 } // Limite de 5MB
+}).single('foto');
+
+
+// --- NOVAS FUNÇÕES AUXILIARES ---
+// Rota para iniciar um chat ou redirecionar para uma sala existente
+router.get('/chat/with/:userId', (req, res) => {
+    const currentUser = req.session.user_aluno || req.session.user_prof;
+    if (!currentUser) {
+        return res.redirect('/login');
+    }
+
+    const partnerId = req.params.userId;
+    if (currentUser.id === partnerId) {
+        return res.redirect('/historico_chats');
+    }
+
+    // Garante uma ordem consistente para o ID da sala
+    const roomIds = [currentUser.id, partnerId].sort();
+    const roomId = `chat_${roomIds[0]}-${roomIds[1]}`;
+
+    res.redirect(`/chat/${roomId}`);
+});
+// Função para obter o nome de um usuário pelo ID (simulação)
+function getUserById(id) {
+    const professor = professores.find(p => p.id === id);
+    if (professor) return { ...professor, tipo: 'professor' };
+
+    const aluno = alunos.find(a => a.id === id);
+    if (aluno) return { ...aluno, tipo: 'aluno' };
+
+    return { id, nome: `Usuário ${id}`, tipo: 'desconhecido' };
+}
+
+// Função para obter usuário por e-mail
+function getUserByEmail(email, tipo) {
+    const searchEmail = email.toLowerCase();
+    if (tipo === 'aluno') {
+        return alunos.find(a => a.email && a.email.toLowerCase() === searchEmail);
+    }
+    if (tipo === 'professor') {
+        return professores.find(p => p.email && p.email.toLowerCase() === searchEmail);
+    }
+    return null;
+}
+
 
 // Salt simples para demo. Em produção, use gerenciamento seguro de segredos.
 const PASSWORD_SALT = process.env.PASSWORD_SALT || 'regimath_demo_salt';
@@ -81,11 +121,112 @@ const PASSWORD_SALT = process.env.PASSWORD_SALT || 'regimath_demo_salt';
 function hashPassword(password) {
     return crypto.createHmac('sha256', PASSWORD_SALT).update(password).digest('hex');
 }
+// --- FIM DAS FUNÇÕES AUXILIARES ---
 
 router.get('/', (req, res) => {
     res.render('pages/home', { professores });
 });
 
+// Rota para salvar/atualizar horários do professor
+router.post('/professor/horarios', (req, res) => {
+    if (!req.session.user_prof) {
+        return res.status(401).json({ success: false, message: 'Não autenticado' });
+    }
+
+    const { date, slots } = req.body;
+    if (!date || !slots || !Array.isArray(slots)) {
+        return res.status(400).json({ success: false, message: 'Dados incompletos ou em formato inválido.' });
+    }
+
+    const user = req.session.user_prof;
+
+    if (!user.horariosDisponiveis) {
+        user.horariosDisponiveis = [];
+    }
+
+    user.horariosDisponiveis = user.horariosDisponiveis.filter(h => h.data !== date);
+
+    slots.forEach(slot => {
+        if (slot.start && slot.end) {
+            user.horariosDisponiveis.push({
+                data: date,
+                horaInicio: slot.start,
+                horaFim: slot.end,
+                status: 'disponivel',
+                alunoId: null,
+                horarioId: crypto.randomBytes(8).toString('hex')
+            });
+        }
+    });
+
+    req.session.save(err => {
+        if (err) {
+            console.error('Erro ao salvar sessão:', err);
+            return res.status(500).json({ success: false, message: 'Erro interno ao salvar os horários.' });
+        }
+        
+        console.log(`Horários atualizados para ${user.nome}:`, user.horariosDisponiveis);
+        res.json({ success: true, message: 'Horários salvos com sucesso!' });
+    });
+});
+
+
+// Rota para iniciar o agendamento de horário (cria preferência de pagamento)
+router.post('/agendar-horario', async (req, res) => {
+    if (!req.session.user_aluno) {
+        return res.redirect('/login');
+    }
+
+    const { profId, horarioId } = req.body;
+    const professor = professores.find(p => p.id == profId);
+
+    if (!professor || !professor.horariosDisponiveis) {
+        return res.status(404).send('Professor ou horário não encontrado.');
+    }
+
+    const horario = professor.horariosDisponiveis.find(h => h.horarioId === horarioId && h.status === 'disponivel');
+
+    if (!horario) {
+        return res.status(404).send('Horário não disponível.');
+    }
+
+    try {
+        const mpPreferenceClient = req.app.locals.mpPreferenceClient;
+        if (!mpPreferenceClient) {
+            return res.status(500).send('Serviço de pagamento não está configurado.');
+        }
+
+        const preference = {
+            items: [{
+                title: `Aula com ${professor.nome}`,
+                description: `Agendamento para ${horario.data} às ${horario.horaInicio}`,
+                quantity: 1,
+                currency_id: 'BRL',
+                unit_price: 50 // Preço fixo para a aula (ex: R$ 50,00)
+            }],
+            back_urls: {
+                success: "http://localhost:3000/pagamento/sucesso",
+                failure: "http://localhost:3000/pagamento/erro",
+                pending: "http://localhost:3000/pagamento/pendente"
+            },
+            auto_return: "approved",
+            // Passa os IDs como referência externa para reconciliação
+            external_reference: JSON.stringify({ profId, horarioId, alunoId: req.session.user_aluno.id }),
+        };
+
+        const response = await mpPreferenceClient.create({ body: preference });
+        const body = response.body || response;
+        
+        // Redireciona o usuário para o checkout do Mercado Pago
+        res.redirect(body.init_point || body.sandbox_init_point);
+
+    } catch (error) {
+        console.error('Erro ao criar preferência de pagamento:', error);
+        res.status(500).send('Falha ao iniciar o processo de pagamento.');
+    }
+});
+
+// --- ROTAS DE AUTENTICAÇÃO ATUALIZADAS ---
 router.get('/cadastro', (req, res) => {
     res.render('pages/cadastro', { erros: {}, dados: {} });
 });
@@ -102,32 +243,41 @@ router.post('/cadastro', [
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
 ], (req, res) => {
     const erros = validationResult(req);
-    
     if (!erros.isEmpty()) {
         return res.render('pages/cadastro', { erros: erros.mapped(), dados: req.body });
     }
 
-    // Cria sessões separadas para aluno e professor
-    if (req.body.tipo === "aluno") {
-        // Guardar a senha inicial em sessão para demo (não recomendado em produção)
-        req.session.user_aluno = {
-            nome: req.body.nome,
-            email: req.body.email,
-            tipo: req.body.tipo,
-            initial_password: req.body.senha
-        };
-        return res.redirect('/');
-    } else {
-        // Guardar a senha inicial em sessão para demo (não recomendado em produção)
-        req.session.user_prof = {
-            nome: req.body.nome,
-            email: req.body.email,
-            tipo: req.body.tipo,
-            // armazenar a senha original para preencher o modal caso nunca tenha sido alterada
-            initial_password: req.body.senha
-        };
-        return res.redirect('/');
+    const existingUser = getUserByEmail(req.body.email, req.body.tipo);
+    if (existingUser) {
+        return res.render('pages/cadastro', { 
+            erros: { email: { msg: 'Este e-mail já está em uso.' } }, 
+            dados: req.body 
+        });
     }
+
+    const newUser = {
+        id: crypto.randomBytes(4).toString('hex'),
+        nome: req.body.nome,
+        email: req.body.email,
+        tipo: req.body.tipo,
+        password: hashPassword(req.body.senha),
+        initial_password: req.body.senha, // Manter para demo
+        agenda: [],
+        notificacoes: [],
+    };
+
+    if (req.body.tipo === "aluno") {
+        alunos.push(newUser);
+        req.session.user_aluno = newUser;
+    } else {
+        newUser.horariosDisponiveis = []; // Adicionar para professores
+        newUser.link_previa = '';
+        newUser.disciplinas = [];
+        professores.push(newUser);
+        req.session.user_prof = newUser;
+    }
+
+    req.session.save(() => res.redirect('/'));
 });
 
 router.get('/login', (req, res) => {
@@ -138,31 +288,37 @@ router.post('/login', [
     body('email')
         .isEmail().withMessage('Por favor, insira um email válido.')
         .normalizeEmail(),
-    body('senha')
-        .isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
+    body('senha').notEmpty().withMessage('A senha é obrigatória.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
 ], (req, res) => {
     const erros = validationResult(req);
-    
     if (!erros.isEmpty()) {
         return res.render('pages/login', { erros: erros.mapped(), dados: req.body });
     }
 
-    // Cria sessões separadas para aluno e professor
-    if (req.body.tipo === "aluno") {
-        req.session.user_aluno = {
-            email: req.body.email,
-            tipo: req.body.tipo
-        };
-        return res.redirect('/');
-    } else {
-        req.session.user_prof = {
-            email: req.body.email,
-            tipo: req.body.tipo
-        };
-        return res.redirect('/');
+    const { email, senha, tipo } = req.body;
+    const user = getUserByEmail(email, tipo);
+
+    const passwordHash = user ? user.password : '';
+    const isValidPassword = (user && passwordHash === hashPassword(senha)) || (user && user.initial_password === senha);
+
+    if (!user || !isValidPassword) {
+        return res.render('pages/login', { 
+            erros: { general: { msg: 'E-mail ou senha incorretos.' } }, 
+            dados: req.body 
+        });
     }
+
+    if (tipo === "aluno") {
+        req.session.user_aluno = user;
+    } else {
+        req.session.user_prof = user;
+    }
+    
+    req.session.save(() => res.redirect('/'));
 });
+
+// --- FIM DAS ROTAS DE AUTENTICAÇÃO ---
 
 router.get('/forgot', (req, res) => {
     res.render('pages/forgot_password', { erros: {}, dados: {} });
@@ -184,51 +340,134 @@ router.post('/forgot', [
         return res.render('pages/forgot_password', { erros: erros.mapped(), dados: req.body });
     }
 
-    // Cria sessões separadas para aluno e professor
-    if (req.body.tipo === "aluno") {
-        req.session.user_aluno = {
-            email: req.body.email,
-            tipo: req.body.tipo
-        };
-        return res.redirect('/');
-    } else {
-        req.session.user_prof = {
-            email: req.body.email,
-            tipo: req.body.tipo
-        };
-        return res.redirect('/');
-    }
+    // Implementação de recuperação de senha deve ser adicionada aqui
+    res.redirect('/login');
 });
 
 router.get('/perfil_aluno', (req, res) => {
     if (!req.session.user_aluno) {
         return res.redirect('/login');
     }
-    res.render('pages/perfil_aluno', { user: req.session.user_aluno });
+    res.render('pages/perfil_aluno', { user: req.session.user_aluno, session: req.session });
 });
 
 router.get('/perfil_prof', (req, res) => {
     if (!req.session.user_prof) {
         return res.redirect('/login');
     }
-    res.render('pages/perfil_prof', { user: req.session.user_prof });
+
+    const professorCompleto = professores.find(p => p.id === req.session.user_prof.id);
+    if (!professorCompleto) {
+        return res.redirect('/login');
+    }
+
+    let historicoAlunos = [];
+    if (professorCompleto.horariosDisponiveis) {
+        const aulasAgendadas = professorCompleto.horariosDisponiveis.filter(
+            h => h.status === 'agendado' && h.alunoId
+        );
+
+        const alunoIds = [...new Set(aulasAgendadas.map(h => h.alunoId))];
+
+        historicoAlunos = alunoIds.map(id => getUserById(id)).filter(aluno => aluno.tipo === 'aluno');
+    }
+
+    const userParaRender = {
+        ...req.session.user_prof,
+        historicoAlunos: historicoAlunos
+    };
+
+    res.render('pages/perfil_prof', { user: userParaRender, session: req.session });
 });
 
-router.get('/exibir_prof/:id', (req, res) => {
-    const professorId = parseInt(req.params.id);
 
-    // Busca o professor pelo ID no array
+router.get('/exibir_prof/:id', (req, res) => {
+    const professorId = req.params.id;
     const professor = professores.find(p => p.id === professorId);
 
-    // Comentários: armazenados por sessão em req.session.prof_comentarios
+    if (!professor) return res.redirect('/');
+
     if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
-    const comentariosDoProfessor = req.session.prof_comentarios[professorId] || [
-        { usuario: 'Adiel', texto: 'Ótimo professor!' }
-    ];
+    professor.comentarios = req.session.prof_comentarios[professorId] || [];
 
-    professor.comentarios = comentariosDoProfessor;
+    const user = req.session.user_aluno || req.session.user_prof;
 
-    res.render('pages/exibir_prof', { professor });
+    res.render('pages/exibir_prof', { professor, session: req.session, user });
+});
+
+// Rota para o PROFESSOR cancelar uma aula
+router.post('/cancelar-aula-prof', (req, res) => {
+    if (!req.session.user_prof) {
+        return res.status(401).json({ success: false, message: 'Professor não autenticado.' });
+    }
+
+    const { alunoId, data, hora, motivo } = req.body;
+    const aluno = alunos.find(a => a.id == alunoId);
+
+    if (aluno && aluno.agenda) {
+        const aulaIndex = aluno.agenda.findIndex(aula => aula.data === data && aula.hora === hora);
+        if (aulaIndex > -1) {
+            aluno.agenda.splice(aulaIndex, 1);
+
+            if (!aluno.notificacoes) aluno.notificacoes = [];
+            aluno.notificacoes.push({
+                tipo: 'cancelamento_prof',
+                professor: req.session.user_prof.nome,
+                aula: { data, hora },
+                motivo: motivo || 'Não especificado',
+                data: new Date().toISOString()
+            });
+        }
+    }
+
+    const professor = professores.find(p => p.id === req.session.user_prof.id);
+    if (professor) {
+        if (!professor.aulas) professor.aulas = [];
+        professor.aulas.push({ data, hora });
+    }
+
+    req.session.save(err => {
+        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar sessão.' });
+        res.json({ success: true, message: 'Aula cancelada e aluno notificado.' });
+    });
+});
+
+
+// Rota para o ALUNO cancelar uma aula
+router.post('/cancelar-aula', (req, res) => {
+    if (!req.session.user_aluno || !req.session.user_aluno.agenda) {
+        return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+    }
+
+    const { profId, data, hora, reason } = req.body;
+    const agenda = req.session.user_aluno.agenda;
+    const aulaIndex = agenda.findIndex(a => a.professor.id == profId && a.data === data && a.hora === hora);
+
+    if (aulaIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Aula não encontrada.' });
+    }
+
+    const aulaCancelada = agenda.splice(aulaIndex, 1)[0];
+    const professor = professores.find(p => p.id == profId);
+
+    if (professor) {
+        if (!professor.notificacoes) professor.notificacoes = [];
+        professor.notificacoes.push({
+            tipo: 'cancelamento',
+            aluno: req.session.user_aluno.nome,
+            aula: aulaCancelada,
+            motivo: reason || 'Não especificado',
+            data: new Date().toISOString()
+        });
+
+        if (!professor.aulas) professor.aulas = [];
+        professor.aulas.push({ data: aulaCancelada.data, hora: aulaCancelada.hora });
+    }
+
+    req.session.save(err => {
+        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar a sessão.' });
+        res.json({ success: true, message: 'Aula cancelada com sucesso.' });
+    });
 });
 
 // POST: alterar senha (suporta professor e aluno)
@@ -236,65 +475,45 @@ router.post('/alterar-senha', [
     body('current_password').notEmpty().withMessage('Informe sua senha atual.'),
     body('new_password').isLength({ min: 6 }).withMessage('A nova senha precisa ter ao menos 6 caracteres.'),
 ], (req, res) => {
-    // Suporta professor OU aluno
     const isProf = !!req.session.user_prof;
     const isAluno = !!req.session.user_aluno;
     if (!isProf && !isAluno) return res.redirect('/login');
 
+    const user = isProf ? req.session.user_prof : req.session.user_aluno;
+    const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
+
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
-        const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
-        const user = isProf ? req.session.user_prof : req.session.user_aluno;
+        return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body });
+    }
+
+    const { current_password, new_password } = req.body;
+    const sessionUser = user;
+
+    const hashedCurrent = hashPassword(current_password);
+    if (sessionUser.password !== hashedCurrent && sessionUser.initial_password !== current_password) {
         return res.render(renderPage, {
-            user,
-            erros: erros.mapped(),
+            user: sessionUser,
+            erros: { current_password: { msg: 'Senha atual incorreta.' } },
             dados: req.body
         });
     }
 
-    const { current_password, new_password } = req.body;
-    const sessionUser = isProf ? req.session.user_prof : req.session.user_aluno;
-
-    // Se houver senha armazenada na sessão, verifique
-    if (sessionUser.password) {
-        const hashedCurrent = hashPassword(current_password);
-        if (hashedCurrent !== sessionUser.password) {
-            const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
-            return res.render(renderPage, {
-                user: sessionUser,
-                erros: { current_password: { msg: 'Senha atual incorreta.' } },
-                dados: req.body
-            });
-        }
-    }
-
-    // Atualiza a senha na sessão (demo). Em produção, salve no DB com hashing + salt por usuário.
-    const updatedUser = {
-        ...sessionUser,
-        password: hashPassword(new_password),
-        initial_password: undefined
-    };
-
-    if (isProf) {
-        req.session.user_prof = updatedUser;
-    } else {
-        req.session.user_aluno = updatedUser;
-    }
+    sessionUser.password = hashPassword(new_password);
+    sessionUser.initial_password = undefined;
 
     req.session.save(err => {
         if (err) {
-            console.error('Erro ao salvar sessão (alterar-senha):', err);
-            const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
             return res.render(renderPage, {
-                user: isProf ? req.session.user_prof : req.session.user_aluno,
+                user: sessionUser,
                 erros: { general: { msg: 'Erro ao alterar senha. Tente novamente.' } },
                 dados: req.body
             });
         }
-        // Redireciona para perfil correspondente
         res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
     });
 });
+
 
 // API: verifica senha atual via AJAX (retorna JSON)
 router.post('/api/verify-current-password', [
@@ -305,92 +524,84 @@ router.post('/api/verify-current-password', [
         return res.status(400).json({ valid: false, msg: erros.array()[0].msg });
     }
 
-    // Aceita professor ou aluno
     const user = req.session.user_prof || req.session.user_aluno;
     if (!user) return res.status(401).json({ valid: false, msg: 'Usuário não autenticado.' });
 
     const { current_password } = req.body;
-    // Se houver senha já hash armazenada
-    if (user.password) {
-        const hashed = hashPassword(current_password);
-        if (hashed === user.password) return res.json({ valid: true });
-        return res.status(400).json({ valid: false, msg: 'Senha atual incorreta.' });
+    if ((user.password && hashPassword(current_password) === user.password) || (user.initial_password && current_password === user.initial_password)) {
+        return res.json({ valid: true });
     }
 
-    // Caso demo: se existir initial_password em texto claro
-    if (user.initial_password) {
-        if (current_password === user.initial_password) return res.json({ valid: true });
-        return res.status(400).json({ valid: false, msg: 'Senha atual incorreta.' });
-    }
-
-    // Não há forma de verificar
-    return res.status(400).json({ valid: false, msg: 'Não foi possível verificar a senha.' });
+    return res.status(400).json({ valid: false, msg: 'Senha atual incorreta.' });
 });
 
 // Rota para adicionar comentário a um professor
 router.post('/exibir_prof/:id/comentar', (req, res) => {
     const professorId = req.params.id;
     const texto = (req.body.texto || '').trim();
+    const nota = req.body.nota; 
 
-    // Exige que o usuário esteja logado (aluno ou professor)
-    const usuario = (req.session.user_aluno && (req.session.user_aluno.nome || req.session.user_aluno.email))
-                             || (req.session.user_prof && (req.session.user_prof.nome || req.session.user_prof.email));
-
-    if (!usuario) {
-        // Opcional: redirecionar para login ou aceitar como anônimo
-        return res.redirect('/login');
-    }
-
-    if (!texto) {
-        return res.redirect(`/exibir_prof/${professorId}`);
-    }
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) return res.redirect('/login');
+    if (!texto) return res.redirect(`/exibir_prof/${professorId}`);
 
     if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
     if (!req.session.prof_comentarios[professorId]) req.session.prof_comentarios[professorId] = [];
 
-    req.session.prof_comentarios[professorId].push({
-        usuario,
+    const newComment = {
+        usuario: user.nome,
         texto,
-        data: new Date().toISOString()
-    });
+        data: new Date().toISOString(),
+    };
 
-    return res.redirect(`/exibir_prof/${professorId}`);
+    if (nota) {
+        const notaInt = parseInt(nota, 10);
+        if (notaInt >= 1 && notaInt <= 5) {
+            newComment.nota = notaInt;
+        }
+    }
+
+    req.session.prof_comentarios[professorId].push(newComment);
+
+    req.session.save(err => {
+        if (err) {
+            console.error('Erro ao salvar o comentário na sessão:', err);
+        }
+        return res.redirect(`/exibir_prof/${professorId}`);
+    });
 });
 
-// ROTAS DE CHAT (Melhoria: Chat Dinâmico)
-// Rota para entrar em um chat com um ID/Nome específico
-router.get('/chat/:roomName', (req, res) => {
-    const { roomName } = req.params;
-    
-    // Obter o usuário logado
-    const user = req.session.user_aluno || req.session.user_prof || { nome: 'Visitante', tipo: 'visitante' };
-    
-    // Você pode usar o roomName para buscar o nome do interlocutor
-    const interlocutorName = getUserNameById(roomName); 
-    
-    // Define o nome da sala, por exemplo, "chat_prof123"
-    const room = `chat_${roomName}`;
 
-    // Renderiza a view do chat, passando o nome da sala e o usuário logado
+// --- ROTAS DE CHAT ATUALIZADAS ---
+router.get('/chat/:roomId', (req, res) => {
+    const { roomId } = req.params;
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) return res.redirect('/login');
+    
+    const roomParts = roomId.replace('chat_', '').split('-');
+    const partnerId = roomParts.find(id => id !== user.id);
+    const partner = getUserById(partnerId);
+
     res.render('pages/chat', { 
         user, 
-        room,
-        interlocutorName // Adiciona o nome do interlocutor para o título da página
+        room: roomId,
+        interlocutorName: partner.nome || 'Conversa'
     });
 });
 
-// Rota para chat global (mantida para compatibilidade)
 router.get('/chat', (req, res) => {
-    const user = req.session.user_aluno || req.session.user_prof || { nome: 'Visitante', tipo: 'visitante' };
-    const room = 'global';
-    res.render('pages/chat', { user, room, interlocutorName: 'Sala Global' });
+    res.redirect('/historico_chats');
 });
 
-// rota para pagina video (mantida)
+// Rota para a página de videochamada
 router.get("/video/:room", (req, res) => {
-  const room = req.params.room;
-  res.render("pages/video_call", { room });
+    const { room } = req.params;
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) return res.redirect('/login');
+    res.render("pages/video_call", { room, user });
 });
+// --- FIM DAS ROTAS DE CHAT --
+
 
 router.get('/politica', (req, res) => {
     res.render('pages/politica');
@@ -401,8 +612,11 @@ router.get('/termos', (req, res) => {
 });
 
 router.get('/aulas', (req, res) => {
-    res.render('pages/aulas');
+    const user = req.session.user_prof;
+    if (!user) return res.redirect('/login');
+    res.render('pages/aulas', { user, session: req.session });
 });
+
 
 // GET exibe formulário (dados e erros são opcionais) — padronizado como nas outras rotas
 router.get('/denuncia', (req, res) => {
@@ -411,7 +625,6 @@ router.get('/denuncia', (req, res) => {
 
 // POST valida e processa
 router.post('/denuncia',
-  // regras de validação
   [
     body('tipo').notEmpty().withMessage('O tipo de denúncia é obrigatório.'),
     body('titulo').trim().isLength({ min: 5 }).withMessage('O título deve ter ao menos 5 caracteres.'),
@@ -422,41 +635,25 @@ router.post('/denuncia',
   ],
   (req, res) => {
     const errors = validationResult(req);
-    const dados = {
-      tipo: req.body.tipo,
-      titulo: req.body.titulo,
-      descricao: req.body.descricao,
-      email: req.body.email,
-      evidencia: req.body.evidencia,
-      anonimo: req.body.anonimo ? true : false
-    };
+    const dados = req.body;
 
-        if (!errors.isEmpty()) {
-            // envia no mesmo formato do /login: erros.mapped()
-            return res.status(422).render('pages/denuncia', { erros: errors.mapped(), dados });
-        }
+    if (!errors.isEmpty()) {
+        return res.status(422).render('pages/denuncia', { erros: errors.mapped(), dados });
+    }
 
-    // Se chegou aqui: dados válidos
-    // Aqui você deve salvar no banco / enviar e-mail / criar ticket
-    // Exemplo simples: console.log e resposta de sucesso
     console.log('Nova denúncia:', dados);
-
-    // armazena dados na sessão para a página de sucesso e redireciona
     req.session.dados = dados;
     return res.redirect('/denuncia_sucesso');
   }
 );
 
 // Página simples de sucesso (crie views/denuncia_sucesso.ejs)
-router.get('/denuncia_sucesso', (req,res)=>{
+router.get('/denuncia_sucesso', (req,res)=> {
   res.render('pages/denuncia_sucesso', { dados: req.session.dados });
 });
 
 
 router.get('/logout', (req, res) => {
-    // Limpa ambas as sessões
-    req.session.user_aluno = null;
-    req.session.user_prof = null;
     req.session.destroy(() => {
         res.redirect('/');
     });
@@ -471,10 +668,9 @@ router.get('/pagamento', (req, res) => {
 // Criar preferência de pagamento
 router.get('/create_preference', async (req, res) => {
     try {
-        const mpPreferenceClient = req.app && req.app.locals && req.app.locals.mpPreferenceClient;
+        const mpPreferenceClient = req.app.locals.mpPreferenceClient;
         if (!mpPreferenceClient) return res.status(500).json({ error: 'Mercado Pago não configurado no servidor.' });
 
-        // Configuração da preferência de pagamento
         const preference = {
             items: [
                 {
@@ -501,25 +697,9 @@ router.get('/create_preference', async (req, res) => {
         const response = await mpPreferenceClient.create({ body: preference });
         const body = response && (response.body || response);
 
-        // Persistir preferência (útil para reconciliação via webhook)
-        try {
-            await paymentsStore.addPreference({
-                preferenceId: body && body.id,
-                init_point: body && (body.init_point || body.sandbox_init_point),
-                amount: preference.items[0].unit_price,
-                status: 'created',
-                payer: preference.payer && preference.payer.email,
-                createdAt: new Date().toISOString(),
-                raw: body
-            });
-        } catch (e) {
-            console.warn('Não foi possível persistir preferência:', e?.message || e);
-        }
-
         res.json({
-            id: body && body.id,
-            init_point: body && (body.init_point || body.sandbox_init_point),
-            raw: body
+            id: body?.id,
+            init_point: body?.init_point || body?.sandbox_init_point
         });
     } catch (error) {
         console.error('Erro ao criar preferência:', error);
@@ -527,18 +707,62 @@ router.get('/create_preference', async (req, res) => {
     }
 });
 
-// Rota de sucesso do pagamento
+// Rota de sucesso do pagamento (onde o agendamento é efetivado)
 router.get('/pagamento/sucesso', (req, res) => {
-    const paymentId = req.query.payment_id;
-    const status = req.query.status;
-    const merchantOrderId = req.query.merchant_order_id;
+    const { external_reference } = req.query;
 
-    res.render('pages/pagamento_sucesso', {
-        paymentId,
-        status,
-        merchantOrderId
-    });
+    if (!external_reference) {
+        return res.render('pages/pagamento_sucesso', {
+            paymentId: req.query.payment_id,
+            status: req.query.status,
+            message: "Pagamento da assinatura concluído com sucesso!"
+        });
+    }
+
+    try {
+        const { profId, horarioId, alunoId } = JSON.parse(external_reference);
+        const professor = professores.find(p => p.id == profId);
+
+        if (!professor || !professor.horariosDisponiveis) {
+            return res.status(404).render('pages/pagamento_erro', { error: 'O professor não foi encontrado.' });
+        }
+
+        const horario = professor.horariosDisponiveis.find(h => h.horarioId === horarioId);
+        if (!horario) {
+            return res.status(404).render('pages/pagamento_erro', { error: 'O horário não existe mais.' });
+        }
+
+        if (horario.status === 'disponivel') {
+            horario.status = 'agendado';
+            horario.alunoId = alunoId;
+
+            if (req.session.user_aluno && req.session.user_aluno.id === alunoId) {
+                if (!req.session.user_aluno.agenda) req.session.user_aluno.agenda = [];
+                req.session.user_aluno.agenda.push({
+                    professor: { id: professor.id, nome: professor.nome },
+                    salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+                    data: horario.data,
+                    hora: horario.horaInicio
+                });
+            }
+            
+            req.session.save(err => {
+                if (err) return res.render('pages/pagamento_erro', { error: 'Seu pagamento foi aprovado, mas houve um erro ao salvar o agendamento.' });
+                res.render('pages/pagamento_sucesso', { paymentId: req.query.payment_id, status: req.query.status });
+            });
+
+        } else {
+            console.warn(`Conflito de agendamento: Horário ${horarioId} do prof ${profId} já estava '${horario.status}'.`);
+            res.render('pages/pagamento_erro', { 
+                error: 'O horário escolhido foi agendado por outra pessoa. Contate o suporte para reagendar ou solicitar o estorno.' 
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao processar sucesso do pagamento:', error);
+        res.status(500).render('pages/pagamento_erro', { error: 'Ocorreu um erro crítico ao processar seu agendamento.' });
+    }
 });
+
 
 // Rota de erro do pagamento
 router.get('/pagamento/erro', (req, res) => {
@@ -556,237 +780,352 @@ router.get('/pagamento/pendente', (req, res) => {
 
 router.get('/dashboard_prof', (req, res) => {
     const user = req.session.user_prof;
-    if (!user) {
-        return res.redirect('/login');
+    if (!user) return res.redirect('/login');
+
+    const professor = professores.find(p => p.id === user.id);
+    const agora = new Date();
+    const mesAtual = agora.getMonth();
+    const anoAtual = agora.getFullYear();
+
+    let aulasProximas24h = 0;
+    let proximaAula = null;
+    let ganhosMes = { total: 0, concluidas: 0, futuras: 0 };
+    let avaliacaoMedia = { media: 0, totalAvaliacoes: 0, ultimoFeedback: "Nenhum feedback ainda." };
+
+    if (professor && professor.horariosDisponiveis) {
+        const horariosAgendados = professor.horariosDisponiveis
+            .filter(h => h.status === 'agendado')
+            .map(h => ({ ...h, dataObj: new Date(`${h.data}T${h.horaInicio}`) }))
+            .sort((a, b) => a.dataObj - b.dataObj);
+
+        const aulasFuturas = horariosAgendados.filter(h => h.dataObj > agora);
+
+        // Contagem para as próximas 24h
+        const proximas24h = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
+        aulasProximas24h = aulasFuturas.filter(h => h.dataObj < proximas24h).length;
+
+        // Encontra a próxima aula
+        if (aulasFuturas.length > 0) {
+            const proximoHorario = aulasFuturas[0];
+            const aluno = getUserById(proximoHorario.alunoId);
+            proximaAula = {
+                ...proximoHorario,
+                aluno: aluno,
+                salaId: proximoHorario.salaId || 'geral'
+            };
+        }
+
+        // Cálculo de Ganhos no Mês
+        const aulasConcluidasEsteMes = horariosAgendados.filter(h => 
+            h.dataObj < agora && 
+            h.dataObj.getMonth() === mesAtual && 
+            h.dataObj.getFullYear() === anoAtual
+        );
+
+        ganhosMes.total = aulasConcluidasEsteMes.length * 50; // Preço fixo de 50
+        ganhosMes.concluidas = aulasConcluidasEsteMes.length;
+        ganhosMes.futuras = aulasFuturas.length;
     }
-    res.render('pages/dashboard_prof', { user });
+
+    // Cálculo da Avaliação Média
+    const comentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
+    const avaliacoes = comentarios.filter(c => c.nota);
+    
+    if (avaliacoes.length > 0) {
+        const somaNotas = avaliacoes.reduce((acc, c) => acc + c.nota, 0);
+        avaliacaoMedia.media = (somaNotas / avaliacoes.length).toFixed(1);
+        avaliacaoMedia.totalAvaliacoes = avaliacoes.length;
+        
+        // Pega o feedback mais recente que tenha um texto
+        const ultimoFeedbackComTexto = [...avaliacoes].reverse().find(a => a.texto);
+        if(ultimoFeedbackComTexto) {
+            avaliacaoMedia.ultimoFeedback = ultimoFeedbackComTexto.texto;
+        }
+    }
+
+    res.render('pages/dashboard_prof', { 
+        user,
+        professor: professor || user,
+        session: req.session,
+        aulasProximas24h,
+        proximaAula,
+        ganhosMes,
+        avaliacaoMedia
+    });
 });
+
 
 router.get('/dashboard_aluno', (req, res) => {
     const user = req.session.user_aluno;
-    if (!user) {
-        return res.redirect('/login');
-    }
-    res.render('pages/dashboard_aluno', { user });
+    if (!user) return res.redirect('/login');
+    res.render('pages/dashboard_aluno', { user, session: req.session });
 });
+
 
 router.get('/painel_adm', (req, res) => {
     res.render('pages/painel_adm', { professores });
 });
 
-// Exemplo de como sua rota deve buscar e renderizar (Node.js/Express)
-
+// Rota para buscar o histórico de chats do usuário com filtro de pesquisa
 router.get('/historico_chats', async (req, res) => {
-    // Use session-based user (compatível com o restante da app)
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    // Dados simulados para histórico — em produção substitua por busca no banco
-    const chatsSimulados = [
-        {
-            id: 'sala_a1b2',
-            partnerName: user.tipo === 'aluno' ? 'Prof. João Silva' : 'Aluno Carlos',
-            partnerRole: user.tipo === 'aluno' ? 'professor' : 'aluno',
-            lastMessage: 'Claro, podemos começar a aula amanhã às 10h. O link da sala de vídeo é o mesmo.',
-            lastActive: Date.now()
-        },
-        {
-            id: 'sala_c3d4',
-            partnerName: user.tipo === 'aluno' ? 'Prof. Maria Antunes' : 'Aluno Fernanda',
-            partnerRole: user.tipo === 'aluno' ? 'professor' : 'aluno',
-            lastMessage: 'Achei o exercício muito difícil, pode me ajudar com o passo 3?',
-            lastActive: Date.now() - 86400000
-        }
-    ];
+    // Termo de pesquisa da query string
+    const searchQuery = (req.query.search || '').trim().toLowerCase();
 
-    res.render('pages/historico_chats', {
-        chats: chatsSimulados,
-        user
-    });
+    try {
+        const allMessages = await chatStore.loadMessages();
+        let userChats = []; // Alterado para 'let' para permitir a reatribuição após o filtro
+
+        for (const room in allMessages) {
+            if (room.startsWith('global')) continue;
+
+            const roomParts = room.replace('chat_', '').split('-');
+            // **CORREÇÃO**: Garantir que o ID do usuário da sessão seja string para a comparação
+            if (roomParts.includes(String(user.id))) {
+                const messages = allMessages[room];
+                if (messages.length > 0) {
+                    const lastMessage = messages[messages.length - 1];
+                    const partnerId = roomParts.find(id => id !== String(user.id));
+                    const partner = getUserById(partnerId);
+
+                    userChats.push({
+                        id: room,
+                        partnerName: partner.nome || `Usuário ${partnerId}`,
+                        partnerRole: partner.tipo,
+                        lastMessage: lastMessage.text,
+                        lastActive: lastMessage.time
+                    });
+                }
+            }
+        }
+
+        // Aplica o filtro de pesquisa se um termo foi fornecido
+        if (searchQuery) {
+            userChats = userChats.filter(chat =>
+                chat.partnerName.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        // Ordena os chats pelo mais recente
+        userChats.sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+
+        // Passa o termo de pesquisa para o template
+        res.render('pages/historico_chats', {
+            chats: userChats,
+            user,
+            searchQuery // Envia a pesquisa de volta para o input
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar o histórico de chats:', error);
+        res.status(500).send('Não foi possível carregar o histórico de conversas.');
+    }
 });
 
+
 router.get('/editar_perfil_aluno', (req, res) => {
-    const user = req.session.user_aluno;;
-    if (!user) {
-        return res.redirect('/login');
-    }
+    const user = req.session.user_aluno;
+    if (!user) return res.redirect('/login');
     res.render('pages/editar_perfil_aluno', { user, erros: {}, dados: {} });
 });
 
 router.get('/editar_perfil_prof', (req, res) => {
-    const user = req.session.user_prof;;
-    if (!user) {
-        return res.redirect('/login');
-    }
-    res.render('pages/editar_perfil_prof', { user, erros: {}, dados: {} });
+    const user = req.session.user_prof;
+    if (!user) return res.redirect('/login');
+    res.render('pages/editar_perfil_prof', { user, erros: {}, dados: {}, session: req.session });
 });
 
-// POST: Editar perfil do professor com validação
-router.post('/perfil/editar', async (req, res) => {
-    // Suporta edição de professor e aluno. Validação condicional baseada na sessão.
-    const isProf = !!req.session.user_prof;
-    const isAluno = !!req.session.user_aluno;
-    if (!isProf && !isAluno) return res.redirect('/login');
+// POST: Editar perfil do professor com validação e upload de foto
+router.post('/perfil/editar', (req, res) => {
+    upload(req, res, async (err) => {
+        const isProf = !!req.session.user_prof;
+        const isAluno = !!req.session.user_aluno;
+        if (!isProf && !isAluno) return res.redirect('/login');
 
-    // Executa validações dinamicamente usando express-validator's .run(req)
-    if (isProf) {
-        await body('nome').notEmpty().withMessage('O nome é obrigatório.').run(req);
-        await body('email').isEmail().withMessage('Por favor, insira um email válido.').normalizeEmail().run(req);
-        await body('descricao').optional({ checkFalsy: true }).trim().run(req);
-        await body('disciplinas[]').custom((value) => {
-            const disciplinas = Array.isArray(value) ? value : (value ? [value] : []);
-            if (disciplinas.length === 0) {
-                throw new Error('Adicione pelo menos uma matéria que você leciona.');
-            }
-            if (disciplinas.some(d => !d || !d.trim())) {
-                throw new Error('Todas as matérias devem ser preenchidas.');
-            }
-            return true;
-        }).run(req);
-        await body('link_previa').optional({ checkFalsy: true }).isURL().withMessage('Link deve ser uma URL válida.').trim().run(req);
-        await body('status').notEmpty().withMessage('Selecione um status de disponibilidade.').isIn(['disponivel','indisponivel']).withMessage('Status inválido.').run(req);
-    } else if (isAluno) {
-        // Validações mais simples para aluno
-        await body('nome').notEmpty().withMessage('O nome é obrigatório.').isLength({ min: 3 }).withMessage('O nome deve ter pelo menos 3 caracteres.').run(req);
-        await body('email').isEmail().withMessage('Por favor, insira um email válido.').normalizeEmail().run(req);
-        await body('descricao').optional({ checkFalsy: true }).trim().run(req);
-    }
-
-    const erros = validationResult(req);
-    if (!erros.isEmpty()) {
-        const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
         const user = isProf ? req.session.user_prof : req.session.user_aluno;
-        return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body });
-    }
+        const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
 
-    if (isProf) {
-        // Processa disciplinas como array
-        const disciplinas = Array.isArray(req.body.disciplinas) 
-            ? req.body.disciplinas.map(d => d.trim()).filter(Boolean)
-            : [req.body.disciplinas].map(d => d.trim()).filter(Boolean);
+        if (err) {
+            return res.render(renderPage, {
+                user,
+                erros: { foto: { msg: err.message } },
+                dados: req.body,
+                session: req.session
+            });
+        }
 
-        // Atualiza a sessão do professor
-        req.session.user_prof = {
-            ...req.session.user_prof,
+        await body('nome').notEmpty().withMessage('O nome é obrigatório.').run(req);
+        await body('email').isEmail().withMessage('O e-mail é inválido.').run(req);
+
+        const erros = validationResult(req);
+        if (!erros.isEmpty()) {
+            return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body, session: req.session });
+        }
+        
+        // Garante que 'disciplinas' seja sempre um array
+        let disciplinas = req.body.disciplinas || [];
+        if (disciplinas && !Array.isArray(disciplinas)) {
+            disciplinas = [disciplinas];
+        }
+        // Filtra valores vazios que possam ter sido enviados pelo formulário
+        disciplinas = disciplinas.filter(d => d && d.trim() !== '');
+
+        const updatedData = {
             nome: req.body.nome,
             email: req.body.email,
-            descricao: req.body.descricao || req.session.user_prof.descricao,
-            disciplinas: disciplinas,
-            link_previa: req.body.link_previa || req.session.user_prof.link_previa,
-            status: req.body.status
+            descricao: req.body.descricao || user.descricao,
+            link_previa: req.body.link_previa || user.link_previa,
+            status: req.body.status || user.status,
+            disciplinas: disciplinas // Usa o array de disciplinas que foi tratado
         };
 
-        // Salva na sessão
-        return req.session.save((err) => {
-            if (err) {
-                console.error('Erro ao salvar sessão:', err);
-                return res.render('pages/editar_perfil_prof', {
-                    user: req.session.user_prof,
-                    erros: { general: { msg: 'Erro ao salvar perfil. Tente novamente.' } },
-                    dados: req.body
-                });
-            }
-            // Redireciona para a página de perfil com sucesso
-            res.redirect('/perfil_prof');
-        });
-    }
+        if (req.file) {
+            updatedData.foto = '/imagens/uploads/' + req.file.filename;
+        }
 
-    if (isAluno) {
-        // Atualiza a sessão do aluno
-        req.session.user_aluno = {
-            ...req.session.user_aluno,
-            nome: req.body.nome,
-            email: req.body.email,
-            descricao: req.body.descricao || req.session.user_aluno.descricao
-        };
+        // Atualiza a sessão
+        req.session.user_prof = { ...user, ...updatedData };
 
-        return req.session.save((err) => {
+        // Atualiza o array global `professores`
+        const profIndex = professores.findIndex(p => p.id === user.id);
+        if (profIndex !== -1) {
+            professores[profIndex] = { ...professores[profIndex], ...updatedData };
+        }
+
+        req.session.save(err => {
             if (err) {
-                console.error('Erro ao salvar sessão (aluno):', err);
-                return res.render('pages/editar_perfil_aluno', {
-                    user: req.session.user_aluno,
-                    erros: { general: { msg: 'Erro ao salvar perfil. Tente novamente.' } },
-                    dados: req.body
-                });
+                return res.render(renderPage, { user, erros: { general: { msg: 'Erro ao salvar.' } }, session: req.session });
             }
-            res.redirect('/perfil_aluno');
+            res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
         });
-    }
+    });
 });
+
 
 router.get('/pesquisar_profs', (req, res) => {
-    const query = (req.query.query || '').trim();
-    let results;
-    if (!query) {
-        results = professores;
-    } else {
-        // normaliza strings removendo acentos e convertendo para minúsculas
-        const normalize = (s) => {
-            const str = (s || '');
-            if (typeof str.normalize === 'function') {
-                return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-            }
-            return str.toLowerCase();
-        };
-        const q = normalize(query);
-        results = professores.filter(p => {
-            const nome = normalize(p.nome || '');
-            const desc = normalize(p.descricao || '');
-            return nome.includes(q) || desc.includes(q);
-        });
+    const query = (req.query.query || '').trim().toLowerCase();
+    let results = professores;
+    if (query) {
+        results = professores.filter(p => p.nome.toLowerCase().includes(query) || p.descricao.toLowerCase().includes(query));
     }
-
-    res.render('pages/pesquisar_profs', { professores: results, query });
+    res.render('pages/pesquisar_profs', { professores: results, query, session: req.session });
 });
 
-// Rota compatível com o formulário (action="/professores") — alias para /pesquisar_profs
 router.get('/professores', (req, res) => {
-    // Redireciona para a mesma lógica de pesquisa usando a query string
-    const query = (req.query.query || '').trim();
-    // Reuse the same normalization/filtering logic
-    const normalize = (s) => {
-        const str = (s || '');
-        if (typeof str.normalize === 'function') {
-            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-        }
-        return str.toLowerCase();
-    };
-    let results;
-    if (!query) {
-        results = professores;
-    } else {
-        const q = normalize(query);
-        results = professores.filter(p => {
-            const nome = normalize(p.nome || '');
-            const desc = normalize(p.descricao || '');
-            return nome.includes(q) || desc.includes(q);
-        });
-    }
-    res.render('pages/pesquisar_profs', { professores: results, query });
+    res.redirect('/pesquisar_profs?query=' + (req.query.query || ''));
 });
 
 router.get('/agenda', (req, res) => {
     const user = req.session.user_aluno;
-    if (!user) {
-        return res.redirect('/login');
-    }
-    res.render('pages/agenda', { user });
+    if (!user) return res.redirect('/login');
+    res.render('pages/agenda', { user, session: req.session });
 });
 
 router.get('/ganhos_mes', (req, res) => {
     const user = req.session.user_prof;
-    if (!user) {
-        return res.redirect('/login');
+    if (!user) return res.redirect('/login');
+
+    const professor = professores.find(p => p.id === user.id);
+    const agora = new Date();
+    const mesAtual = agora.getMonth();
+    const anoAtual = agora.getFullYear();
+
+    const VALOR_AULA = 50; // Valor fixo por aula
+
+    let movimentacoes = [];
+    let resumo = {
+        mes: agora.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
+        totalGanhos: 0,
+        aulasConcluidas: 0,
+        aulasAgendadas: 0,
+        ticketMedio: 0
+    };
+
+    if (professor && professor.horariosDisponiveis) {
+        const aulasDoMes = professor.horariosDisponiveis.filter(h => {
+            const dataAula = new Date(`${h.data}T${h.horaInicio}`);
+            return h.status === 'agendado' && dataAula.getMonth() === mesAtual && dataAula.getFullYear() === anoAtual;
+        });
+
+        const aulasConcluidas = aulasDoMes.filter(h => new Date(`${h.data}T${h.horaInicio}`) < agora);
+        resumo.aulasConcluidas = aulasConcluidas.length;
+        resumo.totalGanhos = aulasConcluidas.length * VALOR_AULA;
+        resumo.aulasAgendadas = aulasDoMes.length - aulasConcluidas.length;
+        resumo.ticketMedio = resumo.aulasConcluidas > 0 ? resumo.totalGanhos / resumo.aulasConcluidas : 0;
+
+        // Ordena por data, da mais recente para a mais antiga
+        movimentacoes = aulasConcluidas
+            .sort((a, b) => new Date(`${b.data}T${b.horaInicio}`) - new Date(`${a.data}T${a.horaInicio}`))
+            .map(h => ({
+                titulo: `Aula com ${getUserById(h.alunoId).nome || 'Aluno'}`,
+                data: new Date(`${h.data}T${h.horaInicio}`).toLocaleDateString('pt-BR'),
+                hora: h.horaInicio,
+                valor: VALOR_AULA
+            }));
     }
-    res.render('pages/ganhos_mes', { user });
+
+    res.render('pages/ganhos_mes', { 
+        user,
+        resumo,
+        movimentacoes
+    });
 });
+
 
 router.get('/feedbacks_prof', (req, res) => {
     const user = req.session.user_prof;
-    if (!user) {
-        return res.redirect('/login');
+    if (!user) return res.redirect('/login');
+
+    const allComentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
+    const feedbacks = allComentarios
+        .sort((a, b) => new Date(b.data) - new Date(a.data)); // Mais recentes primeiro
+
+    const avaliacoesComNota = feedbacks.filter(f => f.nota);
+    const totalAvaliacoes = avaliacoesComNota.length;
+
+    const distribuicaoNotas = {
+        5: { count: 0, percent: 0 },
+        4: { count: 0, percent: 0 },
+        3: { count: 0, percent: 0 },
+        2: { count: 0, percent: 0 },
+        1: { count: 0, percent: 0 },
+    };
+
+    let somaNotas = 0;
+
+    if (totalAvaliacoes > 0) {
+        avaliacoesComNota.forEach(f => {
+            somaNotas += f.nota;
+            if (distribuicaoNotas[f.nota]) {
+                distribuicaoNotas[f.nota].count++;
+            }
+        });
+
+        for (let i = 1; i <= 5; i++) {
+            distribuicaoNotas[i].percent = (distribuicaoNotas[i].count / totalAvaliacoes) * 100;
+        }
     }
-    res.render('pages/feedbacks_prof', { user });
+
+    const mediaGeral = totalAvaliacoes > 0 ? (somaNotas / totalAvaliacoes).toFixed(1) : "0.0";
+
+    res.render('pages/feedbacks_prof', {
+        user,
+        feedbacks,
+        resumo: {
+            media: mediaGeral,
+            total: totalAvaliacoes,
+            distribuicao: distribuicaoNotas
+        }
+    });
+});
+
+
+router.get('/feedbacks_aluno', (req, res) => {
+    const user = req.session.user_aluno;
+    if (!user) return res.redirect('/login');
+    res.render('pages/feedbacks_aluno', { user, session: req.session });
 });
 
 module.exports = router;

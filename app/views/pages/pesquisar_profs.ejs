@@ -19,7 +19,7 @@
         <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
     </header>
 
-    <div id="overlay"></div>
+    <section id="overlay"></section>
 
     <nav id="menu" class="overlay collapsed">
         <button id="close-menu" aria-label="Fechar menu">&times;</button>
@@ -43,8 +43,8 @@
 
             <li class="dropdown-regimath">
                 <button class="dropdown-toggle" aria-expanded="false" aria-controls="dropdown-content">
-                    <span class="label">Ver mais</span>
-                    <span class="arrow">▼</span>
+                    <p class="label">Ver mais</p>
+                    <p class="arrow">▼</p>
                 </button>
                 <ul class="dropdown-content" id="dropdown-content" hidden>
                     <li><a href="/politica" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z"/></svg>Política de Privacidade</a></li>
@@ -78,17 +78,17 @@
             <% } %>
             </p>
 
-            <div class="search-bar">
+            <section class="search-bar">
                 <form action="/pesquisar_profs" method="GET" role="search">
-                    <div class="input-wrapper">
+                    <section class="input-wrapper">
                         <input type="search" placeholder="Pesquisar por nome, matéria ou tema específico..." id="pesquisar" name="query" 
                                aria-label="Pesquisar professores" value="<%= query || '' %>">
                         <button type="submit" aria-label="Buscar" class="new">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </button>
-                    </div>
+                    </section>
                 </form>
-            </div>
+            </section>
             <% if (query) { %>
                 <p style="margin-top: 15px; font-size: 0.95rem; color: rgba(255, 255, 255, 0.8);">
                     Resultados para: <%= query %>
@@ -100,13 +100,13 @@
             <% if (professores.length > 0) { %>
                 <h3>Todos os Professores</h3>
                 
-                <div class="container">
+                <section class="container">
                     <% professores.forEach(professor => { %>
                         <article class="card" aria-labelledby="prof-<%= professor.id %>-nome">
-                            <div class='card-header'>
+                            <section class='card-header'>
                                 <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>">
-                            </div>
-                            <div class='card-content'>
+                            </section>
+                            <section class='card-content'>
                                 <h2 id="prof-<%= professor.id %>-nome"><%= professor.nome %></h2>
                                 <p class="limite">Máximo de 5 aulas por mês</p>
                                 <p class="avaliacao" role="img" aria-label="Avaliação de <%= (professor.avaliacao || Math.random() * 0.9 + 4).toFixed(1) %> estrelas">
@@ -116,17 +116,17 @@
                                     <%= professor.descricao ? (professor.descricao.substring(0, 100) + (professor.descricao.length > 100 ? '...' : '')) : 'Professor especializado em ensino de Matemática.' %>
                                 </p>
                                 <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil Completo</a>
-                            </div>
+                            </section>
                         </article>
                     <% }); %>
-                </div>
+                </section>
 
             <% } else { %>
-                <div class="empty-state">
+                <section class="empty-state">
                     <h3>❌ Nenhum professor encontrado</h3>
                     <p>Tente refinar sua busca com outros termos ou disciplinas.</p>
                     <a href="/professores" class="btn-primary">Ver Todos os Professores</a>
-                </div>
+                </section>
             <% } %>
 
             </section>

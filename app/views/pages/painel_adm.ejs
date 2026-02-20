@@ -24,7 +24,7 @@
   </header>
 
   <!-- Overlay (para mobile) -->
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <!-- Menu lateral -->
   <nav id="menu" aria-label="Menu lateral administrativo">
@@ -36,61 +36,61 @@
     </button>
 
     <ul class="nav-links">
-      <li><a href="#page-dashboard" class="admin-nav-link active"><i class="fa-solid fa-chart-pie"></i><span class="label">Dashboard</span></a></li>
-      <li><a href="#page-users" class="admin-nav-link"><i class="fa-solid fa-users"></i><span class="label">Usuários</span><span class="badge">3</span></a></li>
-      <li><a href="#page-finance" class="admin-nav-link"><i class="fa-solid fa-wallet"></i><span class="label">Financeiro</span></a></li>
-      <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><span class="label">Moderação</span><span class="badge">1</span></a></li>
-      <li><a href="#page-settings" class="admin-nav-link"><i class="fa-solid fa-gear"></i><span class="label">Configurações</span></a></li>
-      <li><a href="/" class="admin-nav-link"><i class="fas fa-home"></i><span class="label">Home</span></a></li>
-      <li><a href="/logout" class="admin-nav-link"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg><span class="label">Sair</span></a></li>
+      <li><a href="#page-dashboard" class="admin-nav-link active"><i class="fa-solid fa-chart-pie"></i><p class="label">Dashboard</p></a></li>
+      <li><a href="#page-users" class="admin-nav-link"><i class="fa-solid fa-users"></i><p class="label">Usuários</p><p class="badge">3</p></a></li>
+      <li><a href="#page-finance" class="admin-nav-link"><i class="fa-solid fa-wallet"></i><p class="label">Financeiro</p></a></li>
+      <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><p class="label">Moderação</p><p class="badge">1</p></a></li>
+      <li><a href="#page-settings" class="admin-nav-link"><i class="fa-solid fa-gear"></i><p class="label">Configurações</p></a></li>
+      <li><a href="/" class="admin-nav-link"><i class="fas fa-home"></i><p class="label">Home</p></a></li>
+      <li><a href="/logout" class="admin-nav-link"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg><p class="label">Sair</p></a></li>
     </ul>
   </nav>
 
   <!-- Conteúdo principal -->
   <main>
-    <div class="admin-header-content">
+    <section class="admin-header-content">
       <h1 id="page-title">Dashboard</h1>
-      <div class="admin-profile">
+      <section class="admin-profile">
         <i class="fa-solid fa-user-shield"></i> Olá, <strong>Admin</strong>
-      </div>
-    </div>
+      </section>
+    </section>
 
     <!-- DASHBOARD -->
     <section class="content-page active" id="page-dashboard">
-      <div class="kpi-grid">
-        <div class="kpi-card success">
-          <div class="kpi-label">Receita da Plataforma (Mês)</div>
-          <div class="kpi-value">R$ 1.450,80</div>
-        </div>
-        <div class="kpi-card warning">
-          <div class="kpi-label">Repasse Pendente (Professores)</div>
-          <div class="kpi-value">R$ 5.803,20</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Novos Alunos (Mês)</div>
-          <div class="kpi-value">124</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Aulas Realizadas (Mês)</div>
-          <div class="kpi-value">412</div>
-        </div>
-      </div>
+      <section class="kpi-grid">
+        <section class="kpi-card success">
+          <section class="kpi-label">Receita da Plataforma (Mês)</section>
+          <section class="kpi-value">R$ 1.450,80</section>
+        </section>
+        <section class="kpi-card warning">
+          <section class="kpi-label">Repasse Pendente (Professores)</section>
+          <section class="kpi-value">R$ 5.803,20</section>
+        </section>
+        <section class="kpi-card">
+          <section class="kpi-label">Novos Alunos (Mês)</section>
+          <section class="kpi-value">124</section>
+        </section>
+        <section class="kpi-card">
+          <section class="kpi-label">Aulas Realizadas (Mês)</section>
+          <section class="kpi-value">412</section>
+        </section>
+      </section>
 
-      <div class="card" style="margin-top: 30px;">
+      <section class="card" style="margin-top: 30px;">
         <h2 class="section-title">Atividade Recente</h2>
         <ul style="list-style: none; padding-left: 10px;">
           <li><i class="fa-solid fa-user-plus" style="color: var(--color-success)"></i> <strong>Novo Professor:</strong> Carlos Mendes aguarda aprovação.</li>
           <li><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary)"></i> <strong>Nova Aula:</strong> Mariana Silva pagou R$ 60,00 para Prof. Ana Beatriz.</li>
           <li><i class="fa-solid fa-flag" style="color: var(--color-error)"></i> <strong>Nova Denúncia:</strong> Aluno X denunciou Professor Y por "Não compareceu".</li>
         </ul>
-      </div>
+      </section>
     </section>
 
     <!-- USUÁRIOS -->
     <section class="content-page" id="page-users">
-      <div class="card">
+      <section class="card">
         <h2 class="section-title">Professores Aguardando Aprovação (3)</h2>
-        <div class="table-wrapper">
+        <section class="table-wrapper">
           <table class="data-table">
             <thead>
               <tr><th>Nome</th><th>Email</th><th>Ações</th></tr>
@@ -107,52 +107,52 @@
               </tr>
             </tbody>
           </table>
-        </div>
-      </div>
+        </section>
+      </section>
 
-      <div class="card">
+      <section class="card">
         <h2 class="section-title">Professores Ativos</h2>
-        <div class="table-wrapper"><table class="data-table"></table></div>
-      </div>
+        <section class="table-wrapper"><table class="data-table"></table></section>
+      </section>
     </section>
 
     <!-- FINANCEIRO -->
     <section class="content-page" id="page-finance">
-      <div class="card">
+      <section class="card">
         <h2 class="section-title">Repasses Pendentes</h2>
-        <div class="table-wrapper"><table class="data-table"></table></div>
-      </div>
-      <div class="card">
+        <section class="table-wrapper"><table class="data-table"></table></section>
+      </section>
+      <section class="card">
         <h2 class="section-title">Extrato de Transações</h2>
-        <div class="table-wrapper"><table class="data-table"></table></div>
-      </div>
+        <section class="table-wrapper"><table class="data-table"></table></section>
+      </section>
     </section>
 
     <!-- MODERAÇÃO -->
     <section class="content-page" id="page-moderation">
-      <div class="card">
+      <section class="card">
         <h2 class="section-title">Denúncias Pendentes (1)</h2>
-        <div class="table-wrapper"><table class="data-table"></table></div>
-      </div>
+        <section class="table-wrapper"><table class="data-table"></table></section>
+      </section>
     </section>
 
     <!-- CONFIGURAÇÕES -->
     <section class="content-page" id="page-settings">
-      <div class="card">
+      <section class="card">
         <h2 class="section-title">Configurações da Plataforma</h2>
         <form id="settings-form">
-          <div class="form-group">
+          <section class="form-group">
             <label for="platform-fee">Taxa da Plataforma (%)</label>
             <input type="number" id="platform-fee" value="20" min="0" max="100" step="1">
             <small>Percentual que a Regimath retém sobre cada aula.</small>
-          </div>
-          <div class="form-group">
+          </section>
+          <section class="form-group">
             <label for="admin-email">E-mail de Suporte</label>
             <input type="email" id="admin-email" value="contato@regimath.com">
-          </div>
+          </section>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salvar</button>
         </form>
-      </div>
+      </section>
     </section>
   </main>
 

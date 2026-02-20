@@ -21,79 +21,63 @@
   </header>
 
   <main class="page page-ganhos">
-  <h1>Ganhos no Mês</h1>
+    <h1>Ganhos no Mês</h1>
 
-  <section class="ganhos-resumo">
-    <p class="ganhos-resumo__mes">Dezembro 2025</p>
-    <p class="ganhos-resumo__total">R$ 1.850,00</p>
-    <p class="ganhos-resumo__info">
-      18 aulas concluídas • 6 aulas agendadas
-    </p>
-  </section>
+    <section class="ganhos-resumo">
+      <p class="ganhos-resumo__mes"><%= resumo.mes %></p>
+      <p class="ganhos-resumo__total">R$ <%= resumo.totalGanhos.toFixed(2) %></p>
+      <p class="ganhos-resumo__info">
+        <%= resumo.aulasConcluidas %> aulas concluídas • <%= resumo.aulasAgendadas %> aulas agendadas
+      </p>
+    </section>
 
-  <section class="ganhos-filtros">
-    <label class="ganhos-filtros__campo">
-      <span>Período</span>
-      <select>
-        <option>Últimos 7 dias</option>
-        <option selected>Último mês</option>
-        <option>Últimos 3 meses</option>
-        <option>Personalizado</option>
-      </select>
-    </label>
-    <label class="ganhos-filtros__campo">
-      <span>Tipo</span>
-      <select>
-        <option>Todos</option>
-        <option>Aulas avulsas</option>
-        <option>Assinaturas</option>
-      </select>
-    </label>
-  </section>
+    <section class="ganhos-filtros">
+      <label class="ganhos-filtros__campo">
+        <p>Período</p>
+        <select>
+          <option>Últimos 7 dias</option>
+          <option selected>Último mês</option>
+          <option>Últimos 3 meses</option>
+          <option>Personalizado</option>
+        </select>
+      </label>
+      <label class="ganhos-filtros__campo">
+        <p>Tipo</p>
+        <select>
+          <option>Todos</option>
+          <option>Aulas avulsas</option>
+          <option>Assinaturas</option>
+        </select>
+      </label>
+    </section>
 
-  <section class="ganhos-cards">
-    <article class="ganhos-card">
-      <h2>Aulas Concluídas</h2>
-      <p class="ganhos-card__valor">R$ 1.450,00</p>
-      <p class="ganhos-card__detalhe">14 aulas • ticket médio R$ 103,57</p>
-    </article>
+    <section class="ganhos-cards">
+      <article class="ganhos-card">
+        <h2>Aulas Concluídas</h2>
+        <p class="ganhos-card__valor">R$ <%= resumo.totalGanhos.toFixed(2) %></p>
+        <p class="ganhos-card__detalhe"><%= resumo.aulasConcluidas %> aulas • ticket médio R$ <%= resumo.ticketMedio.toFixed(2) %></p>
+      </article>
+    </section>
 
-    <article class="ganhos-card">
-      <h2>Assinaturas</h2>
-      <p class="ganhos-card__valor">R$ 400,00</p>
-      <p class="ganhos-card__detalhe">4 alunos recorrentes</p>
-    </article>
-  </section>
+    <section class="ganhos-lista">
+      <h2>Movimentações</h2>
 
-  <section class="ganhos-lista">
-    <h2>Movimentações</h2>
-
-    <!-- Exemplo de item. Em EJS você renderiza em loop -->
-    <article class="linha-mov">
-      <div class="linha-mov__info">
-        <strong>Aula – Álgebra Linear</strong>
-        <span>03/12 • 19:00</span>
-      </div>
-      <div class="linha-mov__valor linha-mov__valor--positivo">
-        + R$ 80,00
-      </div>
-    </article>
-
-    <article class="linha-mov">
-      <div class="linha-mov__info">
-        <strong>Assinatura Mensal – João Silva</strong>
-        <span>01/12</span>
-      </div>
-      <div class="linha-mov__valor linha-mov__valor--positivo">
-        + R$ 100,00
-      </div>
-    </article>
-
-    <!-- estado vazio -->
-    <!--
-    <p class="lista-vazia">Nenhuma movimentação neste período.</p>
-    -->
-  </section>
+      <% if (movimentacoes && movimentacoes.length > 0) { %>
+        <% movimentacoes.forEach(mov => { %>
+          <article class="linha-mov">
+            <section class="linha-mov__info">
+              <strong><%= mov.titulo %></strong>
+              <p><%= mov.data %> • <%= mov.hora %></p>
+            </section>
+            <section class="linha-mov__valor linha-mov__valor--positivo">
+              + R$ <%= mov.valor.toFixed(2) %>
+            </section>
+          </article>
+        <% }); %>
+      <% } else { %>
+        <p class="lista-vazia">Nenhuma movimentação neste período.</p>
+      <% } %>
+    </section>
 </main>
 
 </body>

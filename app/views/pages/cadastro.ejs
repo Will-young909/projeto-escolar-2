@@ -47,7 +47,7 @@
     <form id="cadastroForm" action="/cadastro" method="POST" novalidate>
         <h2>Crie sua conta Regimath</h2>
             
-        <div class="form-group">
+        <section class="form-group">
             <label for="email"><i class="fas fa-envelope"></i> Email </label>
             <input type="email" id="email" name="email" required 
                    value="<%= dados?.email || '' %>" 
@@ -55,9 +55,9 @@
                    aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
                    aria-describedby="err-email">
             <p id="err-email" class="error-feedback" aria-live="polite"><%= erros?.email?.msg || '' %></p>
-        </div>
+        </section>
 
-        <div class="form-group">
+        <section class="form-group">
             <label for="nome"><i class="fas fa-user"></i> Nome </label>
             <input type="text" id="nome" name="nome" required 
                    value="<%= dados?.nome || '' %>" 
@@ -65,29 +65,29 @@
                    aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
                    aria-describedby="err-nome">
             <p id="err-nome" class="error-feedback" aria-live="polite"><%= erros?.nome?.msg || '' %></p>
-        </div>
+        </section>
 
-        <div class="form-group">
+        <section class="form-group">
             <label for="senha">
-                <i class="fas fa-lock"></i> Senha <span class="info-tooltip" title="Mínimo 6 caracteres. Recomendamos letras, números e símbolos.">(?)</span>
+                <i class="fas fa-lock"></i> Senha <p class="info-tooltip" title="Mínimo 6 caracteres. Recomendamos letras, números e símbolos."></p>
             </label>
             <input type="password" id="senha" name="senha" minlength="6" required 
                    class="<%= erros?.senha ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.senha ? 'true' : 'false' %>"
                    aria-describedby="err-senha">
             <p id="err-senha" class="error-feedback" aria-live="polite"><%= erros?.senha?.msg || '' %></p>
-        </div>
+        </section>
 
-        <div class="form-group">
+        <section class="form-group">
             <label for="confirmar"><i class="fas fa-lock"></i> Confirmar Senha </label>
             <input type="password" id="confirmar" name="confirmar" required 
                    class="<%= erros?.confirmar ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.confirmar ? 'true' : 'false' %>"
                    aria-describedby="err-confirmar">
             <p id="err-confirmar" class="error-feedback" aria-live="polite"><%= erros?.confirmar?.msg || '' %></p>
-        </div>
+        </section>
 
-        <div class="form-group">
+        <section class="form-group">
             <label for="tipo"><i class="fas fa-graduation-cap"></i> Eu sou: </label>
             <select id="tipo" name="tipo" required 
                     class="<%= erros?.tipo ? 'invalid' : '' %>"
@@ -98,16 +98,16 @@
                 <option value="professor" <%= dados?.tipo === 'professor' ? 'selected' : '' %>>Professor</option>
             </select>
             <p id="err-tipo" class="error-feedback" aria-live="polite"><%= erros?.tipo?.msg || '' %></p>
-        </div>
+        </section>
 
         <button type="submit" class="btn-primary" id="btn-submit">
             <i class="fas fa-user-plus"></i> Criar Conta
         </button>
 
-        <div class="links-footer">
+        <section class="links-footer">
             <p>Já tem uma conta? <a href="/login" class="link-secundario">Faça login</a></p>
             <p><a href="/" class="link-secundario">Voltar para a página inicial</a></p>
-        </div>
+        </section>
     </form>
     </main>
     <script>

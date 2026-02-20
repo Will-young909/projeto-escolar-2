@@ -24,7 +24,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -68,14 +68,14 @@
 
         <h1 class="title">Histórico de Conversas</h1>
 
-        <div class="search-bar">
+        <section class="search-bar">
         <form action="" method="GET" role="search">
-            <div class="input-wrapper">
-                <input type="search" placeholder="Pesquisar por pessoa" id="pesquisarPessoa" name="query" aria-label="Pesquisar pessoa">
+            <section class="input-wrapper">
+                <input type="search" placeholder="Pesquisar por pessoa" id="pesquisarPessoa" name="search" aria-label="Pesquisar pessoa" value="<%= locals.searchQuery || '' %>">
                 <button type="submit" aria-label="Buscar" class="new"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
-            </div>
+            </section>
         </form>
-        </div>
+        </section>
 
         <% function formatLastActive(ts) {
             if (!ts) return "";
@@ -92,21 +92,21 @@
 
         <% if (chats && chats.length > 0) { %>
 
-            <div class="chat-list">
+            <section class="chat-list">
                 <% chats.forEach(chat => { %>
                     
                     <a href="/chat/<%= chat.id %>" class="chat-card">
 
-                        <div class="profile-wrapper">
+                        <section class="profile-wrapper">
                             <i class="fas fa-user-circle profile"></i>
-                            <span class="status <%= chat.online ? 'online' : 'offline' %>"></span>
-                        </div>
+                            <p class="status <%= chat.online ? 'online' : 'offline' %>"></p>
+                        </section>
 
-                        <div class="content">
-                            <div class="top-row">
+                        <section class="content">
+                            <section class="top-row">
                                 <h2 class="name"><%= chat.partnerName || "Conversa" %></h2>
-                                <span class="time"><%= formatLastActive(chat.lastActive) %></span>
-                            </div>
+                                <p class="time"><%= formatLastActive(chat.lastActive) %></p>
+                            </section>
 
                             <p class="last-msg">
                                 <%= chat.lastMessage ? chat.lastMessage.slice(0, 70) : "Nenhuma mensagem ainda." %>
@@ -114,16 +114,16 @@
                             </p>
 
                             <% if (chat.partnerRole) { %>
-                                <span class="tag <%= chat.partnerRole %>">
+                                <p class="tag <%= chat.partnerRole %>">
                                     <%= chat.partnerRole === 'professor' ? 'Professor' : 'Aluno' %>
-                                </span>
+                                </p>
                             <% } %>
-                        </div>
+                        </section>
 
                     </a>
 
                 <% }) %>
-            </div>
+            </section>
 
         <% } else { %>
 

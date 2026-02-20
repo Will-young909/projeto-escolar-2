@@ -21,7 +21,7 @@
 
   <main class="checkout-container">
     <!-- CARD: Pagamento -->
-    <div class="payment-method-card">
+    <section class="payment-method-card">
       <h2><i class="fas fa-credit-card"></i> Opções de Pagamento</h2>
       <p class="payment-tip">Escolha o método e clique em <strong>"Pagar Agora"</strong> para continuar em ambiente seguro.</p>
 
@@ -30,7 +30,7 @@
         <input type="hidden" name="amount" value="365.00">
         <input type="hidden" name="description" value="Pacote de Aulas RegiMath">
 
-        <div class="payment-options">
+        <section class="payment-options">
           <label class="radio-option active">
             <input type="radio" name="method" value="credit_card" checked>
             <i class="fas fa-credit-card"></i> Cartão de Crédito / Débito
@@ -39,34 +39,34 @@
             <input type="radio" name="method" value="pix">
             <i class="fas fa-qrcode"></i> PIX (Pagamento Instantâneo)
           </label>
-        </div>
+        </section>
 
         <button type="submit" class="btn checkout-btn">
           <i class="fas fa-lock"></i> Pagar Agora (R$ 365,00)
         </button>
       </form>
-    </div>
+    </section>
 
     <!-- CARD: Resumo -->
-    <div class="order-summary-card">
+    <section class="order-summary-card">
       <h2><i class="fas fa-shopping-cart"></i> Resumo do Pedido</h2>
 
-      <div class="item-list">
-        <div class="item">
-          <span>Pacote de 5 Aulas - Matemática (Nível Intermediário)</span>
+      <section class="item-list">
+        <section class="item">
+          <p>Pacote de 5 Aulas - Matemática (Nível Intermediário)</p>
           <strong>R$ 350,00</strong>
-        </div>
-        <div class="item">
-          <span>Taxa de Serviço</span>
+        </section>
+        <section class="item">
+          <p>Taxa de Serviço</p>
           <strong>R$ 15,00</strong>
-        </div>
-      </div>
+        </section>
+      </section>
 
-      <div class="total-row">
-        <span>Total a Pagar:</span>
+      <section class="total-row">
+        <p>Total a Pagar:</p>
         <strong class="total-price">R$ 365,00</strong>
-      </div>
-    </div>
+      </section>
+    </section>
   </main>
 
   <footer class="checkout-footer">

@@ -39,17 +39,17 @@
             <h2>Acesse sua conta Regimath</h2>
 
             <% if (typeof erros !== 'undefined' && Object.keys(erros).length > 0) { %>
-                <div class="error-summary" role="alert" aria-live="assertive">
+                <section class="error-summary" role="alert" aria-live="assertive">
                     <h4>⚠️ Por favor, corrija os seguintes erros:</h4>
                     <ul>
                         <% Object.keys(erros).forEach(key => { %>
                             <li><%= erros[key].msg %></li>
                         <% }); %>
                     </ul>
-                </div>
+                </section>
             <% } %>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="email"><i class="fas fa-envelope"></i> Email *</label>
                 <input type="email" id="email" name="email" required value="<%= dados?.email || '' %>"
                     class="<%= erros?.email ? 'invalid' : '' %>"
@@ -58,9 +58,9 @@
                 <p id="err-email" class="error-feedback" aria-live="polite">
                     <%= erros?.email?.msg || '' %>
                 </p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="senha"><i class="fas fa-lock"></i> Senha *</label>
                 <input type="password" id="senha" name="senha" required
                     class="<%= erros?.senha ? 'invalid' : '' %>"
@@ -69,9 +69,9 @@
                 <p id="err-senha" class="error-feedback" aria-live="polite">
                     <%= erros?.senha?.msg || '' %>
                 </p>
-            </div>
+            </section>
 
-            <div class="form-group">
+            <section class="form-group">
                 <label for="tipo"><i class="fas fa-graduation-cap"></i> Eu sou: *</label>
                 <select id="tipo" name="tipo" required
                     class="<%= erros?.tipo ? 'invalid' : '' %>"
@@ -84,17 +84,17 @@
                 <p id="err-tipo" class="error-feedback" aria-live="polite">
                     <%= erros?.tipo?.msg || '' %>
                 </p>
-            </div>
+            </section>
 
             <button type="submit" class="btn-primary" id="btn-submit">
                 <i class="fas fa-sign-in-alt"></i> Fazer Login
             </button>
 
-            <div class="links-footer">
+            <section class="links-footer">
                 <p><a href="/cadastro" class="link-secundario">Ainda não tem uma conta? Registre-se</a></p>
                 <p><a href="/forgot" class="link-secundario">Esqueci minha senha</a></p>
                 <p><a href="/" class="link-secundario">Voltar para a página inicial</a></p>
-            </div>
+            </section>
         </form>
     </main>
     <script>

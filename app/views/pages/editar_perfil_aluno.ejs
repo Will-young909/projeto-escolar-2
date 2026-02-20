@@ -72,7 +72,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -106,43 +106,43 @@
 
         <form action="/perfil/editar" method="POST" class="form-edicao" enctype="multipart/form-data" id="editarPerfilForm" novalidate>
           
-          <div class="form-group foto-upload">
+          <section class="form-group foto-upload">
             <label for="foto">Foto de Perfil</label>
             <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
             <button type="button" class="btn-trocar-foto"><i class="fas fa-camera"></i> Trocar Foto</button>
             <input type="file" id="foto" name="foto" accept="image/*" hidden />
             <p class="input-dica">Arquivos aceitos: JPG, PNG até 5MB</p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="nome">Nome Completo <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="nome">Nome <p class="required">*</p></label>
             <input type="text" id="nome" name="nome" value="<%= dados?.nome || user.nome %>" required
                    class="<%= erros?.nome ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
                    aria-describedby="err-nome" />
             <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="email">E-mail <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="email">E-mail <p class="required">*</p></label>
             <input type="email" id="email" name="email" value="<%= dados?.email || user.email %>" required
                    class="<%= erros?.email ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
                    aria-describedby="err-email" />
             <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="descricao">Descrição / Biografia</label>
+          <section class="form-group">
+            <label for="descricao">Descrição</label>
             <textarea id="descricao" name="descricao" rows="4" placeholder="Conte um pouco sobre você..."><%= dados?.descricao || user.descricao || '' %></textarea>
-          </div>
+          </section>
 
-          <div class="form-actions">
+          <section class="form-actions">
             <section>
                 <button type="submit" class="btn-salvar"><i class="fas fa-save"></i> Salvar</button>
             </section><br>
             <a href="/perfil_aluno" class="btn-cancelar">Cancelar</a>
-          </div>
+          </section>
         </form>
       </article>
 
@@ -152,31 +152,31 @@
         <button id="open-change-password" type="button" class="btn-alterar-senha">Alterar Senha</button>
 
         <!-- Modal: Alterar Senha -->
-        <div id="change-password-modal" class="modal" aria-hidden="true">
-          <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
+        <section id="change-password-modal" class="modal" aria-hidden="true">
+          <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
             <button class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
             <h3 id="change-password-title">Alterar Senha</h3>
             <form id="changePasswordForm" action="/alterar-senha" method="POST">
-              <div class="form-group">
-                <label for="current_password">Senha atual <span class="required">*</span></label>
+              <section class="form-group">
+                <label for="current_password">Senha atual <p class="required">*</p></label>
                 <input type="password" id="current_password" name="current_password" required
                   value="<%= (!user.password && user.initial_password) ? user.initial_password : '' %>" />
-                <div id="currentPasswordError" class="input-error" aria-live="polite"></div>
-              </div>
+                <section id="currentPasswordError" class="input-error" aria-live="polite"></section>
+              </section>
 
-              <div class="form-group">
-                <label for="new_password">Nova senha <span class="required">*</span></label>
+              <section class="form-group">
+                <label for="new_password">Nova senha <p class="required">*</p></label>
                 <input type="password" id="new_password" name="new_password" required minlength="6" />
-                <div id="newPasswordError" class="input-error" aria-live="polite"></div>
-              </div>
+                <section id="newPasswordError" class="input-error" aria-live="polite"></section>
+              </section>
 
-              <div class="btns">
+              <section class="btns">
                 <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
                 <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
-              </div>
+              </section>
             </form>
-          </div>
-        </div>
+          </section>
+        </section>
       </article>
     </section>
   </main>

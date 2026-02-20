@@ -79,7 +79,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -111,41 +111,41 @@
 
         <form action="/perfil/editar" method="POST" class="form-edicao" enctype="multipart/form-data" id="editarPerfilForm" novalidate>
           
-          <div class="form-group foto-upload">
+          <section class="form-group foto-upload">
             <label for="foto">Foto de Perfil</label>
             <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
             <button type="button" class="btn-trocar-foto"><i class="fas fa-camera"></i> Trocar Foto</button>
             <input type="file" id="foto" name="foto" accept="image/*" hidden />
             <p class="input-dica">Arquivos aceitos: JPG, PNG até 5MB</p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="nome">Nome Completo <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="nome">Nome <p class="required">*</p></label>
             <input type="text" id="nome" name="nome" value="<%= dados?.nome || user.nome %>" required 
                    class="<%= erros?.nome ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
                    aria-describedby="err-nome" />
             <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="email">E-mail <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="email">E-mail <p class="required">*</p></label>
             <input type="email" id="email" name="email" value="<%= dados?.email || user.email %>" required 
                    class="<%= erros?.email ? 'invalid' : '' %>"
                    aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
                    aria-describedby="err-email" />
             <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-group">
+          <section class="form-group">
             <label for="descricao">Descrição Profissional</label>
             <textarea id="descricao" name="descricao" rows="4" placeholder="Fale um pouco sobre você, sua formação e metodologia de ensino."><%= dados?.descricao || user.descricao || '' %></textarea>
-          </div>
+          </section>
 
-          <div class="form-group" id="form-group-disciplinas">
-            <label for="disciplinas">Matérias Lecionadas <span class="required">*</span></label>
+          <section class="form-group" id="form-group-disciplinas">
+            <label for="disciplinas">Matérias Lecionadas <p class="required">*</p></label>
 
-            <div id="disciplinas-container"
+            <section id="disciplinas-container"
                  class="<%= erros?.['disciplinas[]'] ? 'invalid' : '' %>"
                  aria-invalid="<%= erros?.['disciplinas[]'] ? 'true' : 'false' %>"
                  aria-describedby="err-disciplinas">
@@ -154,19 +154,19 @@
                 const disciplinaArray = Array.isArray(disciplinas) ? disciplinas : (disciplinas ? [disciplinas] : []);
                 disciplinaArray.forEach(function(disc) { 
               %>
-                <div class="discipline-item">
+                <section class="discipline-item">
                   <input type="text" name="disciplinas[]" value="<%= disc %>" placeholder="Nome da matéria" required />
                   <button type="button" class="remove-discipline">Remover</button>
-                </div>
+                </section>
               <% }) %>
-            </div>
+            </section>
 
             <button type="button" id="add-discipline" class="btn-add">Adicionar matéria</button>
             <p id="err-disciplinas" class="error-feedback"><%= erros?.['disciplinas[]']?.msg || '' %></p>
             <p class="input-dica">Adicione cada matéria que você ministra. Você pode remover campos antes de salvar.</p>
-          </div>
+          </section>
           
-          <div class="form-group">
+          <section class="form-group">
             <label for="link_previa">Link da Aula Prévia (Vídeo de Apresentação)</label>
             <input type="url" id="link_previa" name="link_previa" value="<%= dados?.link_previa || user.link_previa || '' %>" placeholder="Ex: https://youtube.com/watch?v=seu-video"
                    class="<%= erros?.link_previa ? 'invalid' : '' %>"
@@ -174,9 +174,9 @@
                    aria-describedby="err-link_previa" />
             <p id="err-link_previa" class="error-feedback"><%= erros?.link_previa?.msg || '' %></p>
             <p class="input-dica">Um vídeo curto melhora seu perfil!</p>
-          </div>
+          </section>
           
-          <div class="form-group">
+          <section class="form-group">
             <label for="status">Status de Disponibilidade</label>
             <select id="status" name="status"
                     class="<%= erros?.status ? 'invalid' : '' %>"
@@ -186,14 +186,14 @@
               <option value="indisponivel" <%= (dados?.status || user.status) === 'indisponivel' ? 'selected' : '' %>>🟡 Indisponível no Momento</option>
             </select>
             <p id="err-status" class="error-feedback"><%= erros?.status?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-actions">
+          <section class="form-actions">
             <section>
               <button type="submit" class="btn-salvar" id="btn-submit"><i class="fas fa-save"></i> Salvar</button>
             </section><br>
             <a href="/perfil_prof" class="btn-cancelar">Cancelar</a>
-          </div>
+          </section>
         </form>
       </article>
 
@@ -201,8 +201,8 @@
         <h2 id="titulo-calendario"><i class="fas fa-calendar-alt"></i> Gerenciar Agenda</h2>
         <p class="input-dica">Selecione os dias em que você deseja abrir horários para aulas particulares.</p>
         
-        <div id="calendar" class="calendar-grid">
-          </div>
+        <section id="calendar" class="calendar-grid">
+          </section>
 
         <button id="salvar-calendario" class="btn-salvar-agenda"><i class="fas fa-calendar-check"></i> Salvar Agenda</button>
       </article>-->
@@ -213,29 +213,29 @@
        <!--<a href="/config-pagamento" class="btn-alterar-senha btn-pagamento">Configurar Pagamento</a>-->
 
         <!-- Modal de Alterar Senha -->
-        <div id="change-password-modal" class="modal" aria-hidden="<%= (erros?.current_password || erros?.new_password) ? 'false' : 'true' %>" role="dialog" aria-labelledby="modal-title">
-          <div class="modal-content">
+        <section id="change-password-modal" class="modal" aria-hidden="<%= (erros?.current_password || erros?.new_password) ? 'false' : 'true' %>" role="dialog" aria-labelledby="modal-title">
+          <section class="modal-content">
             <button class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
             <h3 id="modal-title">Alterar Senha</h3>
             <form id="changePasswordForm" action="/alterar-senha" method="POST" novalidate>
-              <div class="form-group">
+              <section class="form-group">
                 <label for="current_password">Senha atual</label>
                   <input type="password" id="current_password" name="current_password" required aria-describedby="err-current_password"
                     value="<%= dados?.current_password || ((user?.initial_password && !user?.password) ? user.initial_password : '') || user?.new_password %>" />
                 <p id="err-current_password" class="error-feedback"><%= erros?.current_password?.msg || '' %></p>
-              </div>
-              <div class="form-group">
+              </section>
+              <section class="form-group">
                 <label for="new_password">Nova senha</label>
                 <input type="password" id="new_password" name="new_password" required aria-describedby="err-new_password" />
                 <p id="err-new_password" class="error-feedback"><%= erros?.new_password?.msg || '' %></p>
-              </div>
-              <div class="form-actions">
+              </section>
+              <section class="form-actions">
                 <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
                 <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
-              </div>
+              </section>
             </form>
-          </div>
-        </div>
+          </section>
+        </section>
       </article>
 
     </section>
@@ -295,12 +295,12 @@
       titulo.textContent = `${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${ano}`;
       if (calendarContainer) calendarContainer.appendChild(titulo);
 
-      const diasContainer = document.createElement('div');
+      const diasContainer = document.createElement('section');
       diasContainer.classList.add('dias');
 
       const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
       nomesDias.forEach(nome => {
-        const header = document.createElement('div');
+        const header = document.createElement('section');
         header.classList.add('dia-header');
         header.textContent = nome;
         diasContainer.appendChild(header);
@@ -308,7 +308,7 @@
       
       const primeiroDiaMes = new Date(ano, dataAtual.getMonth(), 1).getDay();
       for (let i = 0; i < primeiroDiaMes; i++) {
-        const emptyDay = document.createElement('div');
+        const emptyDay = document.createElement('section');
         emptyDay.classList.add('dia-vazio');
         diasContainer.appendChild(emptyDay);
       }
@@ -316,7 +316,7 @@
       const ultimoDia = new Date(ano, dataAtual.getMonth() + 1, 0).getDate();
       let diasAulas = <%= JSON.stringify(user.agenda || [5, 12, 19, 26]) %>;
       for (let d = 1; d <= ultimoDia; d++) {
-        const dia = document.createElement('div');
+        const dia = document.createElement('section');
         dia.classList.add('dia');
         dia.textContent = d;
         dia.setAttribute('data-dia', d);
@@ -357,8 +357,8 @@
       const container = document.getElementById('disciplinas-container');
       if (!container) return;
 
-      const divItem = document.createElement('div');
-      divItem.className = 'discipline-item';
+      const sectionItem = document.createElement('section');
+      sectionItem.className = 'discipline-item';
 
       const novoInput = document.createElement('input');
       novoInput.type = 'text';
@@ -371,11 +371,11 @@
       botaoRemover.type = 'button';
       botaoRemover.className = 'remove-discipline';
       botaoRemover.textContent = 'Remover';
-      botaoRemover.addEventListener('click', () => divItem.remove());
+      botaoRemover.addEventListener('click', () => sectionItem.remove());
 
-      divItem.appendChild(novoInput);
-      divItem.appendChild(botaoRemover);
-      container.appendChild(divItem);
+      sectionItem.appendChild(novoInput);
+      sectionItem.appendChild(botaoRemover);
+      container.appendChild(sectionItem);
       novoInput.focus();
     }
 

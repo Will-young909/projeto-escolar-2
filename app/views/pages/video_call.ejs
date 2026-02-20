@@ -14,30 +14,30 @@
   <main class="video-container" role="main">
     <header class="video-header">
       <a href="/" class="btn-exit"><i class="fas fa-arrow-left"></i> Sair</a>
-      <h1>Sala <span class="room-name"><%= room %></span></h1>
-      <div id="statusIndicator" class="connection-status connecting">
+      <h1>Sala <p class="room-name"><%= room %></p></h1>
+      <section id="statusIndicator" class="connection-status connecting">
         <i class="fas fa-circle status-icon"></i> Conectando...
-      </div>
+      </section>
     </header>
 
     <section class="videos-grid">
-      <div class="video-box local-box">
+      <section class="video-box local-box">
         <video id="localVideo" autoplay muted playsinline></video>
-        <div class="video-placeholder active" id="localPlaceholder">
+        <section class="video-placeholder active" id="localPlaceholder">
           <i class="fas fa-user-slash"></i>
           <p>Câmera desligada</p>
-        </div>
-        <div class="label"><i class="fas fa-user-circle"></i> Você</div>
-      </div>
+        </section>
+        <section class="label"><i class="fas fa-user-circle"></i> Você</section>
+      </section>
 
-      <div class="video-box remote-box">
+      <section class="video-box remote-box">
         <video id="remoteVideo" autoplay playsinline></video>
-        <div class="video-placeholder active" id="remotePlaceholder">
+        <section class="video-placeholder active" id="remotePlaceholder">
           <i class="fas fa-user-graduate"></i>
-          <p><span id="remoteStatus">Aguardando parceiro...</span></p>
-        </div>
-        <div class="label"><i class="fas fa-chalkboard-teacher"></i> Parceiro</div>
-      </div>
+          <p><p id="remoteStatus">Aguardando parceiro...</p></p>
+        </section>
+        <section class="label"><i class="fas fa-chalkboard-teacher"></i> Parceiro</section>
+      </section>
     </section>
 
     <section class="controls-bar">
@@ -45,11 +45,11 @@
       <button id="btnToggleCam" class="control-btn" title="Câmera" data-status="on"><i class="fas fa-video"></i></button>
       <button id="btnShareScreen" class="control-btn" title="Compartilhar tela" data-status="off"><i class="fas fa-desktop"></i></button>
 
-      <div class="recording-group">
+      <section class="recording-group">
         <button id="btnStartRec" class="control-btn record-btn" title="Iniciar Gravação"><i class="fas fa-dot-circle"></i></button>
         <button id="btnStopRec" class="control-btn stop-record-btn" disabled title="Parar Gravação"><i class="fas fa-stop"></i></button>
         <a id="downloadLink" class="download-link" style="display:none" download><i class="fas fa-download"></i></a>
-      </div>
+      </section>
 
       <button id="btnEndCall" class="control-btn end-call-btn" title="Encerrar chamada"><i class="fas fa-phone-slash"></i></button>
     </section>

@@ -18,7 +18,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <div id="overlay"></div>
+  <section id="overlay"></section>
 
   <nav id="menu" class="overlay collapsed">
 
@@ -46,14 +46,14 @@
   <main class="perfil-container" role="main">
     
     <aside class="perfil-card" aria-labelledby="perfil-nome-titulo">
-      <div class="perfil-foto">
+      <section class="perfil-foto">
         <img
           src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>"
           alt="Foto de perfil de <%= user.nome %>"
           class="foto-perfil"
           loading="lazy"
         />
-      </div>
+      </section>
 
       <h1 class="perfil-nome" id="perfil-nome-titulo"><%= user.nome %></h1>
       <p class="perfil-descricao">
@@ -70,42 +70,48 @@
       <article class="dados-aluno card" aria-labelledby="dados-titulo">
         <h2 id="dados-titulo"><i class="fas fa-info-circle"></i> Meus Dados</h2>
         <dl class="data-list">
-          <div class="data-item">
+          <section class="data-item">
             <dt>Tipo:</dt>
             <dd>Aluno</dd>
-          </div>
-          <div class="data-item">
+          </section>
+          <section class="data-item">
             <dt>Email:</dt>
             <dd class="highlight-data"><%= user.email || "Não informado" %></dd>
-          </div>
-          <div class="data-item">
+          </section>
+          <section class="data-item">
             <dt>Registro:</dt>
-            <dd><%= user.registro_id || "N/A" %></dd>
-          </div>
+            <dd><%= user.id || "N/A" %></dd>
+          </section>
         </dl>
       </article>
 
       <article class="historico card" aria-labelledby="historico-titulo">
-        <h2 id="historico-titulo"><i class="fas fa-book-open"></i> Histórico de Atividades</h2>
-        
-        <% if (user.aulas && user.aulas.length > 0) { %>
-          <ul class="historico-list">
-            <% user.aulas.forEach(aula => { %>
-              <li class="historico-item" aria-label="Aula sobre <%= aula.conteudo %> na data <%= aula.data %>">
-                <time datetime="<%= aula.data %>" class="aula-data">
-                  <%= new Date(aula.data).toLocaleDateString('pt-BR') %>
-                </time> 
-                — 
-                <span class="aula-conteudo">**<%= aula.conteudo %>**</span>
-              </li>
-            <% }) %>
-          </ul>
-        <% } else { %>
-          <p class="empty-state" aria-live="polite" style="background: #f5f5f5;">
-            <i class="fas fa-exclamation-circle"></i> Ainda não há atividades ou aulas registradas no seu histórico.
-          </p>
-        <% } %>
-      </article>
+    <h2 id="historico-titulo"><i class="fas fa-book-open"></i> Histórico de Aulas</h2>
+
+    <% const agenda = user.agenda || []; %>
+    <% if (agenda.length > 0) { %>
+        <ul class="historico-list">
+            <% agenda.forEach(aula => { %>
+                <li class="historico-item" aria-label="Aula com <%= aula.professor.nome %> em <%= new Date(aula.data).toLocaleDateString('pt-BR') %>">
+                    <time datetime="<%= aula.data %>" class="aula-data">
+                        <%= new Date(aula.data + 'T00:00:00').toLocaleDateString('pt-BR') %>
+                    </time>
+                    <p class="aula-info">
+                        <strong class="aula-professor">com <%= aula.professor.nome %></strong> (<%= aula.hora %>)
+                    </p>
+                    <a href="/video/<%= aula.salaId %>" class="btn-detalhes" aria-label="Detalhes da aula">
+                        <i class="fas fa-eye"></i> Detalhes
+                    </a>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p class="empty-state" aria-live="polite">
+            <i class="fas fa-exclamation-circle"></i> Ainda não há aulas registradas no seu histórico.
+        </p>
+    <% } %>
+</article>
+
     </section>
   </main>
   
