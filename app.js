@@ -11,7 +11,7 @@ const chatStore = require('./app/lib/chatStore');
 const paymentsStore = require('./app/lib/paymentsStore');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
