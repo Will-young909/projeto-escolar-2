@@ -205,9 +205,9 @@ router.post('/agendar-horario', async (req, res) => {
                 unit_price: 50 // Preço fixo para a aula (ex: R$ 50,00)
             }],
             back_urls: {
-                success: "http://localhost:3000/pagamento/sucesso",
-                failure: "http://localhost:3000/pagamento/erro",
-                pending: "http://localhost:3000/pagamento/pendente"
+                success: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/sucesso`,
+                failure: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/erro`,
+                pending: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/pendente`
             },
             auto_return: "approved",
             // Passa os IDs como referência externa para reconciliação
@@ -682,11 +682,11 @@ router.get('/create_preference', async (req, res) => {
                 }
             ],
             back_urls: {
-                success: "http://localhost:3000/pagamento/sucesso",
-                failure: "http://localhost:3000/pagamento/erro",
-                pending: "http://localhost:3000/pagamento/pendente"
+                success: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/sucesso`,
+                failure: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/erro`,
+                pending: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/pagamento/pendente`
             },
-            notification_url: "https://seu-dominio/webhook",
+            notification_url: `${process.env.SITE_URL || 'http://localhost:' + (process.env.PORT || 3001)}/webhook/mercadopago`,
             auto_return: "approved",
             payer: req.session.user_aluno ? {
                 name: req.session.user_aluno.nome,
