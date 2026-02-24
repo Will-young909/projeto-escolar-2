@@ -305,11 +305,12 @@
 
             if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
             if(addTimeSlotBtn) addTimeSlotBtn.addEventListener('click', addTimeSlot);
-            if(saveScheduleBtn) {
-                saveScheduleBtn.addEventListener('click', () => {
+            if (saveScheduleBtn) {
+                saveScheduleBtn.addEventListener('click', async () => {
                     const slots = [];
                     const slotElements = timeSlotsContainer.querySelectorAll('.time-slot');
                     let allValid = true;
+
                     slotElements.forEach(slot => {
                         const start = slot.querySelector('.start-time').value;
                         const end = slot.querySelector('.end-time').value;
@@ -320,16 +321,39 @@
                         }
                     });
 
-                    if (!allValid || slots.length === 0) {
+                    if (!allValid) {
                         alert('Por favor, preencha todos os horários corretamente (o horário final deve ser depois do inicial).');
                         return;
                     }
 
-                    console.log('Salvando horários para', selectedFullDate, slots);
-                    alert(`Horários para ${selectedFullDate} salvos (simulado): ${JSON.stringify(slots)}`);
-                    closeModal();
+                    try {
+                        const response = await fetch('/professor/horarios', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                date: selectedFullDate,
+                                slots: slots
+                            }),
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            alert(result.message);
+                            closeModal();
+                            // Opcional: Recarregar ou atualizar a visualização do calendário para mostrar os dias com horários.
+                        } else {
+                            alert('Erro ao salvar: ' + result.message);
+                        }
+                    } catch (error) {
+                        console.error('Falha ao enviar os horários:', error);
+                        alert('Ocorreu uma falha na comunicação com o servidor.');
+                    }
                 });
             }
+
 
             window.addEventListener('click', (event) => {
                 if (event.target == modal) {

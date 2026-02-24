@@ -195,9 +195,14 @@
                 <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Horários Disponíveis</h2>
                 <ul class="lista-aulas">
                     <% 
-                      const horariosDisponiveis = (professor.horariosDisponiveis || []).filter(h => h.status === 'disponivel');
-                      const horariosAgrupados = horariosDisponiveis.reduce((acc, h) => {
-                        (acc[h.data] = acc[h.data] || []).push(h);
+                      const horarios = professor.horariosDisponiveis || [];
+                      const isOwner = user && user.id === professor.id;
+
+                      const horariosAgrupados = horarios.reduce((acc, h) => {
+                        const showHorario = isOwner || h.status === 'disponivel';
+                        if (showHorario) {
+                            (acc[h.data] = acc[h.data] || []).push(h);
+                        }
                         return acc;
                       }, {});
                       const datasOrdenadas = Object.keys(horariosAgrupados).sort((a, b) => new Date(a) - new Date(b));
@@ -208,16 +213,24 @@
                                 <strong><i class="fas fa-calendar-day"></i> <%= new Date(data + 'T00:00:00').toLocaleDateString('pt-BR') %></strong>
                                 <ul>
                                     <% horariosAgrupados[data].sort((a,b) => a.horaInicio.localeCompare(b.horaInicio)).forEach(horario => { %>
-                                        <li class="aula-item">
-                                            <section class="aula-info">
+                                        <li class="aula-item aula-status-<%= horario.status %>">
+                                            <div class="aula-info">
                                                 <p class="hora"><i class="far fa-clock"></i> <%= horario.horaInicio %> - <%= horario.horaFim %></p>
-                                            </section>
-                                            <% if (typeof session !== 'undefined' && session.user_aluno) { %>
+                                                <% if (isOwner && horario.status === 'agendado') { %>
+                                                    <p class="aluno-info">com <%= horario.alunoNome || 'Aluno' %></p>
+                                                <% } %>
+                                            </div>
+                                            
+                                            <% if (!isOwner && horario.status === 'disponivel' && session.user_aluno) { %>
                                                 <form action="/agendar-horario" method="POST" class="form-agendar">
                                                     <input type="hidden" name="profId" value="<%= professor.id %>">
                                                     <input type="hidden" name="horarioId" value="<%= horario.horarioId %>">
                                                     <button type="submit" class="btn-primary btn-agendar">Agendar</button>
                                                 </form>
+                                            <% } else if (isOwner && horario.status === 'agendado') { %>
+                                                <span class="status-tag agendado">Agendado</span>
+                                            <% } else if (isOwner && horario.status === 'disponivel') { %>
+                                                 <span class="status-tag disponivel">Disponível</span>
                                             <% } %>
                                         </li>
                                     <% }) %>
@@ -228,7 +241,7 @@
                         <li class="empty-state">Nenhum horário disponível no momento.</li>
                     <% } %>
 
-                    <% if ((typeof session === 'undefined' || !session.user_aluno) && datasOrdenadas.length > 0) { %>
+                    <% if (!isOwner && (!session.user_aluno) && datasOrdenadas.length > 0) { %>
                         <p class="login-prompt-agendar">
                             Faça <a href="/login" class="link-primary">login como aluno</a> para agendar um horário.
                         </p>

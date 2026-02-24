@@ -138,17 +138,21 @@ router.post('/professor/horarios', (req, res) => {
         return res.status(400).json({ success: false, message: 'Dados incompletos ou em formato inválido.' });
     }
 
-    const user = req.session.user_prof;
+    const sessionUser = req.session.user_prof;
+    const profIndex = professores.findIndex(p => p.id === sessionUser.id);
 
-    if (!user.horariosDisponiveis) {
-        user.horariosDisponiveis = [];
+    if (profIndex === -1) {
+        return res.status(404).json({ success: false, message: 'Professor não encontrado.' });
     }
-
-    user.horariosDisponiveis = user.horariosDisponiveis.filter(h => h.data !== date);
+    const professor = professores[profIndex];
+    if (!professor.horariosDisponiveis) {
+        professor.horariosDisponiveis = [];
+    }
+    professor.horariosDisponiveis = professor.horariosDisponiveis.filter(h => h.data !== date);
 
     slots.forEach(slot => {
         if (slot.start && slot.end) {
-            user.horariosDisponiveis.push({
+            professor.horariosDisponiveis.push({
                 data: date,
                 horaInicio: slot.start,
                 horaFim: slot.end,
@@ -158,6 +162,8 @@ router.post('/professor/horarios', (req, res) => {
             });
         }
     });
+    
+    req.session.user_prof.horariosDisponiveis = professor.horariosDisponiveis;
 
     req.session.save(err => {
         if (err) {
@@ -165,7 +171,7 @@ router.post('/professor/horarios', (req, res) => {
             return res.status(500).json({ success: false, message: 'Erro interno ao salvar os horários.' });
         }
         
-        console.log(`Horários atualizados para ${user.nome}:`, user.horariosDisponiveis);
+        console.log(`Horários atualizados para ${professor.nome}:`, professor.horariosDisponiveis);
         res.json({ success: true, message: 'Horários salvos com sucesso!' });
     });
 });
@@ -178,18 +184,54 @@ router.post('/agendar-horario', async (req, res) => {
     }
 
     const { profId, horarioId } = req.body;
-    const professor = professores.find(p => p.id == profId);
+    const alunoId = req.session.user_aluno.id;
 
-    if (!professor || !professor.horariosDisponiveis) {
-        return res.status(404).send('Professor ou horário não encontrado.');
+    const profIndex = professores.findIndex(p => p.id == profId);
+    if (profIndex === -1) {
+        return res.status(404).send('Professor não encontrado.');
     }
 
-    const horario = professor.horariosDisponiveis.find(h => h.horarioId === horarioId && h.status === 'disponivel');
+    const professor = professores[profIndex];
+    if (!professor.horariosDisponiveis) {
+        return res.status(404).send('Professor não tem horários.');
+    }
 
-    if (!horario) {
+    const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId && h.status === 'disponivel');
+    if (horarioIndex === -1) {
         return res.status(404).send('Horário não disponível.');
     }
+    
+    // --- MUDANÇA TEMPORÁRIA: Pular pagamento ---
+    
+    const horario = professor.horariosDisponiveis[horarioIndex];
 
+    horario.status = 'agendado';
+    horario.alunoId = alunoId;
+
+    if (!req.session.user_aluno.agenda) {
+        req.session.user_aluno.agenda = [];
+    }
+    req.session.user_aluno.agenda.push({
+        professor: { id: professor.id, nome: professor.nome },
+        salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+        data: horario.data,
+        hora: horario.horaInicio
+    });
+    
+    const alunoIndex = alunos.findIndex(a => a.id === alunoId);
+    if(alunoIndex !== -1) {
+        alunos[alunoIndex].agenda = req.session.user_aluno.agenda;
+    }
+
+    req.session.save(err => {
+        if (err) {
+            console.error('Erro ao salvar agendamento:', err);
+            return res.status(500).send('Houve um erro ao salvar o agendamento.');
+        }
+        res.redirect(`/pagamento/sucesso?external_reference=${JSON.stringify({profId, horarioId, alunoId})}`);
+    });
+    
+    /* --- CÓDIGO ORIGINAL DE PAGAMENTO (Comentado) ---
     try {
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
         if (!mpPreferenceClient) {
@@ -224,6 +266,7 @@ router.post('/agendar-horario', async (req, res) => {
         console.error('Erro ao criar preferência de pagamento:', error);
         res.status(500).send('Falha ao iniciar o processo de pagamento.');
     }
+    */
 });
 
 // --- ROTAS DE AUTENTICAÇÃO ATUALIZADAS ---
@@ -383,9 +426,22 @@ router.get('/perfil_prof', (req, res) => {
 
 router.get('/exibir_prof/:id', (req, res) => {
     const professorId = req.params.id;
-    const professor = professores.find(p => p.id === professorId);
+    const professorData = professores.find(p => p.id === professorId);
 
-    if (!professor) return res.redirect('/');
+    if (!professorData) return res.redirect('/');
+    
+    const professor = JSON.parse(JSON.stringify(professorData));
+
+    if (professor.horariosDisponiveis) {
+        professor.horariosDisponiveis.forEach(horario => {
+            if (horario.status === 'agendado' && horario.alunoId) {
+                const aluno = getUserById(horario.alunoId);
+                if (aluno) {
+                    horario.alunoNome = aluno.nome;
+                }
+            }
+        });
+    }
 
     if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
     professor.comentarios = req.session.prof_comentarios[professorId] || [];
@@ -612,11 +668,31 @@ router.get('/termos', (req, res) => {
 });
 
 router.get('/aulas', (req, res) => {
-    const user = req.session.user_prof;
-    if (!user) return res.redirect('/login');
-    res.render('pages/aulas', { user, session: req.session });
-});
+    const sessionUser = req.session.user_prof;
+    if (!sessionUser) {
+        return res.redirect('/login');
+    }
 
+    // Busca os dados mais recentes do professor diretamente da "base de dados"
+    const professor = professores.find(p => p.id === sessionUser.id);
+    if (!professor) {
+        // Caso o professor não seja encontrado (improvável se a sessão existe), desloga.
+        return res.redirect('/logout'); 
+    }
+
+    // Para cada horário agendado, busca o nome do aluno para exibição
+    if (professor.horariosDisponiveis) {
+        professor.horariosDisponiveis.forEach(horario => {
+            if (horario.status === 'agendado' && horario.alunoId) {
+                const aluno = getUserById(horario.alunoId);
+                horario.alunoNome = aluno ? aluno.nome : 'Aluno desconhecido';
+            }
+        });
+    }
+
+    // Renderiza a página com os dados atualizados do professor
+    res.render('pages/aulas', { user: professor, session: req.session });
+});
 
 // GET exibe formulário (dados e erros são opcionais) — padronizado como nas outras rotas
 router.get('/denuncia', (req, res) => {
@@ -732,31 +808,15 @@ router.get('/pagamento/sucesso', (req, res) => {
             return res.status(404).render('pages/pagamento_erro', { error: 'O horário não existe mais.' });
         }
 
-        if (horario.status === 'disponivel') {
-            horario.status = 'agendado';
-            horario.alunoId = alunoId;
+        //Lógica de agendamento que estava aqui foi movida para a rota /agendar-horario para bypassar o pagamento.
+        //O ideal é manter a lógica de negócio separada da rota de sucesso de pagamento.
+        
+        res.render('pages/pagamento_sucesso', { 
+            paymentId: req.query.payment_id, 
+            status: req.query.status,
+            message: "Agendamento concluído com sucesso!"
+        });
 
-            if (req.session.user_aluno && req.session.user_aluno.id === alunoId) {
-                if (!req.session.user_aluno.agenda) req.session.user_aluno.agenda = [];
-                req.session.user_aluno.agenda.push({
-                    professor: { id: professor.id, nome: professor.nome },
-                    salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-                    data: horario.data,
-                    hora: horario.horaInicio
-                });
-            }
-            
-            req.session.save(err => {
-                if (err) return res.render('pages/pagamento_erro', { error: 'Seu pagamento foi aprovado, mas houve um erro ao salvar o agendamento.' });
-                res.render('pages/pagamento_sucesso', { paymentId: req.query.payment_id, status: req.query.status });
-            });
-
-        } else {
-            console.warn(`Conflito de agendamento: Horário ${horarioId} do prof ${profId} já estava '${horario.status}'.`);
-            res.render('pages/pagamento_erro', { 
-                error: 'O horário escolhido foi agendado por outra pessoa. Contate o suporte para reagendar ou solicitar o estorno.' 
-            });
-        }
     } catch (error) {
         console.error('Erro ao processar sucesso do pagamento:', error);
         res.status(500).render('pages/pagamento_erro', { error: 'Ocorreu um erro crítico ao processar seu agendamento.' });
