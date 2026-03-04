@@ -2,495 +2,642 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#800020" />
   <title>Regimath | Sala <%= room %></title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/video_call.css" />
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" type="image/png"/>
+  <link rel="manifest" href="/manifest.json" />
 </head>
 
 <body>
+
   <main class="video-container" role="main">
-    <header class="video-header">
-      <a href="/" class="btn-exit"><i class="fas fa-arrow-left"></i> Sair</a>
-      <h1>Sala <p class="room-name"><%= room %></p></h1>
-      <section id="statusIndicator" class="connection-status connecting">
-        <i class="fas fa-circle status-icon"></i> Conectando...
-      </section>
+    <!-- Header com gestos swipe -->
+    <header class="video-header" role="banner">
+      <a href="/"><button class="btn-exit" aria-label="Sair da sala">
+        <i class="fas fa-arrow-left"></i>
+      </button></a>
+      <div class="header-center">
+        <h1>Sala <span class="room-name"><%= room %></span></h1>
+        <div id="statusIndicator" class="connection-status connecting" role="status">
+          <i class="fas fa-circle status-icon"></i>
+          <span>Conectando...</span>
+        </div>
+      </div>
+      <div class="header-spacer"></div>
     </header>
 
-    <section class="videos-grid">
-      <section class="video-box local-box">
-        <video id="localVideo" autoplay muted playsinline></video>
-        <section class="video-placeholder active" id="localPlaceholder">
-          <i class="fas fa-user-slash"></i>
-          <p>Câmera desligada</p>
-        </section>
-        <section class="label"><i class="fas fa-user-circle"></i> Você</section>
-      </section>
-
-      <section class="video-box remote-box">
-        <video id="remoteVideo" autoplay playsinline></video>
-        <section class="video-placeholder active" id="remotePlaceholder">
+    <!-- Vídeos com PIP automático -->
+    <section class="videos-section" role="region" aria-label="Vídeos da chamada">
+      <!-- Vídeo principal (grande) -->
+      <div class="video-main-wrapper">
+        <video id="remoteVideo" autoplay playsinline class="video-main" muted></video>
+        <div class="video-placeholder active" id="remotePlaceholder">
           <i class="fas fa-user-graduate"></i>
-          <p><p id="remoteStatus">Aguardando parceiro...</p></p>
-        </section>
-        <section class="label"><i class="fas fa-chalkboard-teacher"></i> Parceiro</section>
-      </section>
+          <p id="remoteStatus">Aguardando parceiro...</p>
+        </div>
+        <div class="video-label">
+          <i class="fas fa-chalkboard-teacher"></i>
+          Parceiro
+        </div>
+      </div>
+
+      <!-- Mini vídeo local (PIP) -->
+      <div class="pip-container" id="pipContainer">
+        <div class="video-pip-wrapper">
+          <video id="localVideo" autoplay muted playsinline class="video-pip"></video>
+          <div class="video-placeholder active" id="localPlaceholder">
+            <i class="fas fa-user-slash"></i>
+            <p>Câmera desligada</p>
+          </div>
+          <div class="pip-label">
+            <i class="fas fa-user-circle"></i> Você
+          </div>
+          <button class="pip-drag-handle" aria-label="Arrastar vídeo PIP">
+            <i class="fas fa-grip-vertical"></i>
+          </button>
+        </div>
+      </div>
     </section>
 
-    <section class="controls-bar">
-      <button id="btnToggleAudio" class="control-btn" title="Microfone" data-status="on"><i class="fas fa-microphone"></i></button>
-      <button id="btnToggleCam" class="control-btn" title="Câmera" data-status="on"><i class="fas fa-video"></i></button>
-      <button id="btnShareScreen" class="control-btn" title="Compartilhar tela" data-status="off"><i class="fas fa-desktop"></i></button>
+    <!-- Barra de controles otimizada para mobile -->
+    <section class="controls-bar" role="toolbar" aria-label="Controles da chamada">
+      <div class="controls-left">
+        <button id="btnToggleAudio" class="control-btn audio-btn" title="Microfone" data-status="on" aria-label="Microfone ligado">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button id="btnToggleCam" class="control-btn video-btn" title="Câmera" data-status="on" aria-label="Câmera ligada">
+          <i class="fas fa-video"></i>
+        </button>
+      </div>
 
-      <section class="recording-group">
-        <button id="btnStartRec" class="control-btn record-btn" title="Iniciar Gravação"><i class="fas fa-dot-circle"></i></button>
-        <button id="btnStopRec" class="control-btn stop-record-btn" disabled title="Parar Gravação"><i class="fas fa-stop"></i></button>
-        <a id="downloadLink" class="download-link" style="display:none" download><i class="fas fa-download"></i></a>
-      </section>
+      <div class="controls-main">
+        <button id="btnShareScreen" class="control-btn screen-btn" title="Compartilhar tela" data-status="off" aria-label="Compartilhar tela">
+          <i class="fas fa-desktop"></i>
+        </button>
+      </div>
 
-      <button id="btnEndCall" class="control-btn end-call-btn" title="Encerrar chamada"><i class="fas fa-phone-slash"></i></button>
+      <div class="controls-right">
+        <div class="recording-group">
+          <button id="btnStartRec" class="control-btn record-btn" title="Gravar" aria-label="Iniciar gravação">
+            <i class="fas fa-circle"></i>
+          </button>
+          <button id="btnStopRec" class="control-btn stop-btn" disabled title="Parar gravação" aria-label="Parar gravação">
+            <i class="fas fa-stop"></i>
+          </button>
+        </div>
+        <button id="btnEndCall" class="control-btn end-btn" title="Encerrar chamada" aria-label="Encerrar chamada">
+          <i class="fas fa-phone-slash"></i>
+        </button>
+      </div>
     </section>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
   </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+    const socket = io();
 const ROOM = "<%= room %>"; // Variável EJS
+
 
 // Mapeamento de elementos para evitar repetição de document.getElementById
 const ELEMENTS = {
-    localVideo: document.getElementById('localVideo'),
-    remoteVideo: document.getElementById('remoteVideo'),
-    remoteStatus: document.getElementById('remoteStatus'),
-    statusIndicator: document.getElementById('statusIndicator'),
-    localPlaceholder: document.getElementById('localPlaceholder'),
-    remotePlaceholder: document.getElementById('remotePlaceholder'),
-    btnToggleCam: document.getElementById('btnToggleCam'),
-    btnToggleAudio: document.getElementById('btnToggleAudio'),
-    btnShareScreen: document.getElementById('btnShareScreen'),
-    btnStartRec: document.getElementById('btnStartRec'),
-    btnStopRec: document.getElementById('btnStopRec'),
-    btnEndCall: document.getElementById('btnEndCall'),
-    downloadLink: document.getElementById('downloadLink')
+    localVideo: document.getElementById('localVideo'),
+    remoteVideo: document.getElementById('remoteVideo'),
+    remoteStatus: document.getElementById('remoteStatus'),
+    statusIndicator: document.getElementById('statusIndicator'),
+    localPlaceholder: document.getElementById('localPlaceholder'),
+    remotePlaceholder: document.getElementById('remotePlaceholder'),
+    btnToggleCam: document.getElementById('btnToggleCam'),
+    btnToggleAudio: document.getElementById('btnToggleAudio'),
+    btnShareScreen: document.getElementById('btnShareScreen'),
+    btnStartRec: document.getElementById('btnStartRec'),
+    btnStopRec: document.getElementById('btnStopRec'),
+    btnEndCall: document.getElementById('btnEndCall'),
+    downloadLink: document.getElementById('downloadLink')
 };
 
+
 const configuration = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        // Adicionar mais STUN servers para redundância e estabilidade
-        { urls: 'stun:stun1.l.google.com:19302' } 
-    ]
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        // Adicionar mais STUN servers para redundância e estabilidade
+        { urls: 'stun:stun1.l.google.com:19302' } 
+    ]
 };
+
 
 // ===================== CLASSE PRINCIPAL (SINGLETON) =====================
 
+
 class VideoCallManager {
-    constructor() {
-        this.localStream = null;
-        this.remoteStream = null;
-        this.pc = null;
-        this.mediaRecorder = null;
-        this.recordedBlobs = [];
-        this.isSharingScreen = false;
-        this.peerId = null;
-        this.currentRoom = ROOM;
-
-        this.init();
-    }
-
-    // ===================== UTILIDADES (UX/UI) =====================
-
-    updateStatus(text, className, isRemote = false) {
-        const element = isRemote ? ELEMENTS.remoteStatus : ELEMENTS.statusIndicator;
-        
-        if (isRemote) {
-            element.textContent = text;
-            ELEMENTS.remotePlaceholder.classList.toggle('active', className !== 'connected');
-        } else {
-            // Atualiza o status geral
-            ELEMENTS.statusIndicator.className = 'connection-status ' + className;
-            ELEMENTS.statusIndicator.innerHTML = `<i class="fas fa-circle status-icon"></i> ${text}`;
-        }
-    }
-
-    // Alterna a classe 'off' e o ícone do botão
-    toggleButtonState(button, track, iconOn, iconOff, placeholderElement = null) {
-        if (!track) return;
-        
-        const isEnabled = track.enabled;
-        button.classList.toggle('off', !isEnabled);
-        button.querySelector('i').className = isEnabled ? iconOn : iconOff;
-        button.setAttribute('data-status', isEnabled ? 'on' : 'off');
-        
-        if (placeholderElement) {
-            // Oculta o placeholder se a track estiver ativa (vídeo)
-            placeholderElement.classList.toggle('active', !isEnabled);
-        }
-        // Atualiza aria-label com o novo estado
-        button.setAttribute('aria-label', `${isEnabled ? 'Desativar' : 'Ativar'} ${button.title}`);
-    }
-
-    // ===================== WEBRTC E STREAMING =====================
-
-    async initLocalStream(isScreenShare = false) {
-        try {
-            if (this.localStream) {
-                this.localStream.getTracks().forEach(track => track.stop());
-            }
-
-            let stream;
-            if (isScreenShare) {
-                // Adicionado systemAudio opcional no getDisplayMedia
-                stream = await navigator.mediaDevices.getDisplayMedia({ 
-                    video: true, 
-                    audio: true 
-                });
-                this.isSharingScreen = true;
-                ELEMENTS.btnShareScreen.classList.add('active');
-                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-share-square';
-                
-                // Handler para quando o usuário para de compartilhar pela UI nativa do SO
-                stream.getVideoTracks()[0].onended = () => this.restoreLocalCamera();
-            } else {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-                    audio: true
-                });
-                this.isSharingScreen = false;
-                ELEMENTS.btnShareScreen.classList.remove('active');
-                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
-            }
-
-            this.localStream = stream;
-            ELEMENTS.localVideo.srcObject = this.localStream;
-            this.updateStatus('Mídia OK', 'local-ready');
-            this.toggleButtonState(
-                ELEMENTS.btnToggleCam, 
-                this.localStream.getVideoTracks()[0], 
-                'fas fa-video', 
-                'fas fa-video-slash', 
-                ELEMENTS.localPlaceholder
-            );
-            this.toggleButtonState(
-                ELEMENTS.btnToggleAudio, 
-                this.localStream.getAudioTracks()[0], 
-                'fas fa-microphone', 
-                'fas fa-microphone-slash'
-            );
-
-        } catch (err) {
-            console.error('Erro ao acessar mídia local:', err);
-            this.updateStatus('Erro na Mídia', 'error');
-            alert('Não foi possível acessar mídia: ' + err.message);
-            ELEMENTS.localPlaceholder.classList.add('active');
-        }
-    }
-
-    createPeerConnection() {
-        if (this.pc) return; // Se já existe, não recria
-        
-        this.pc = new RTCPeerConnection(configuration);
-
-        // 1. Receber tracks remotas (on 'track')
-        this.pc.ontrack = (evt) => {
-            if (!this.remoteStream) {
-                this.remoteStream = new MediaStream();
-                ELEMENTS.remoteVideo.srcObject = this.remoteStream;
-            }
-            // Adiciona tracks de forma segura para lidar com múltiplas streams ou substituições
-            evt.streams[0].getTracks().forEach(t => {
-                // Previne adicionar tracks duplicadas (problema comum em WebRTC)
-                if (!this.remoteStream.getTrackById(t.id)) {
-                    this.remoteStream.addTrack(t);
-                }
-            });
-            
-            this.updateStatus('Conectado', 'connected', true);
-        };
-
-        // 2. Enviar ICE candidates
-        this.pc.onicecandidate = (evt) => {
-            if (evt.candidate && this.peerId) {
-                socket.emit('signal', { to: this.peerId, from: socket.id, data: { candidate: evt.candidate } });
-            }
-        };
-        
-        // 3. Monitorar estado da conexão
-        this.pc.onconnectionstatechange = () => {
-            const state = this.pc.connectionState;
-            const statusMap = {
-                'connected': ['Conexão Ativa', 'connected'],
-                'disconnected': ['Desconectado', 'disconnected'],
-                'failed': ['Falha na Conexão', 'error'],
-                'connecting': ['Conectando...', 'connecting'] // Adicionar estado "connecting"
-            };
-            const [text, className] = statusMap[state] || ['Estado Desconhecido', 'warning'];
-            this.updateStatus(text, className);
-        };
-
-        // 4. Adiciona tracks locais (após a inicialização do stream)
-        if (this.localStream) {
-            this.localStream.getTracks().forEach(track => this.pc.addTrack(track, this.localStream));
-        }
-    }
-
-    closePeerConnection() {
-        if (this.pc) {
-            this.pc.close();
-            this.pc = null;
-            this.peerId = null;
-        }
-        if (ELEMENTS.remoteVideo.srcObject) ELEMENTS.remoteVideo.srcObject = null;
-        this.remoteStream = null;
-        
-        this.updateStatus('Chamada Encerrada', 'disconnected');
-        this.updateStatus('Parceiro Desconectado', 'disconnected', true);
-        
-        if (this.isSharingScreen) {
-            this.restoreLocalCamera();
-        }
-    }
-
-    async startCall(isInitiator) {
-        if (!this.localStream) await this.initLocalStream();
-        this.createPeerConnection();
-
-        if (isInitiator) {
-            this.updateStatus('Iniciando Chamada...', 'connecting');
-            const offer = await this.pc.createOffer();
-            await this.pc.setLocalDescription(offer);
-            socket.emit('signal', { to: this.peerId, from: socket.id, data: { sdp: this.pc.localDescription } });
-        }
-    }
-
-    // Troca as tracks de forma mais genérica
-    async switchLocalStream(newStream) {
-        this.localStream = newStream;
-        ELEMENTS.localVideo.srcObject = newStream;
-
-        if (this.pc) {
-            const senders = this.pc.getSenders();
-            newStream.getTracks().forEach(async newTrack => {
-                const sender = senders.find(s => s.track && s.track.kind === newTrack.kind);
-                if (sender) {
-                    await sender.replaceTrack(newTrack);
-                } else {
-                    // Adiciona se a track for nova (ex: áudio do sistema na partilha de tela)
-                    this.pc.addTrack(newTrack, newStream);
-                }
-            });
-
-            // Lidar com tracks que não existem mais (ex: se o áudio foi removido)
-            senders.forEach(sender => {
-                if (sender.track && !newStream.getTracks().some(t => t.kind === sender.track.kind)) {
-                    // Nota: A remoção de tracks é complexa, replaceTrack com null é uma opção mais segura
-                    // Ou renegociar SDP, mas replaceTrack é suficiente para mute/screenshare.
-                }
-            });
-        }
-    }
-
-    async restoreLocalCamera() {
-        this.isSharingScreen = false;
-        ELEMENTS.btnShareScreen.classList.remove('active');
-        ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
-
-        if (ELEMENTS.localVideo.srcObject) {
-            ELEMENTS.localVideo.srcObject.getTracks().forEach(track => track.stop());
-        }
-        
-        await this.initLocalStream(false); 
-        await this.switchLocalStream(this.localStream);
-    }
-
-    // ===================== HANDLERS DE CONTROLE (UX) =====================
-
-    handleToggleAudio() {
-        if (!this.localStream) return;
-        const audioTrack = this.localStream.getAudioTracks()[0];
-        if (!audioTrack) return;
-        
-        audioTrack.enabled = !audioTrack.enabled;
-        this.toggleButtonState(ELEMENTS.btnToggleAudio, audioTrack, 'fas fa-microphone', 'fas fa-microphone-slash');
-    }
-
-    handleToggleCam() {
-        if (!this.localStream) return;
-        const videoTrack = this.localStream.getVideoTracks()[0];
-        if (!videoTrack) return;
-
-        videoTrack.enabled = !videoTrack.enabled;
-        this.toggleButtonState(ELEMENTS.btnToggleCam, videoTrack, 'fas fa-video', 'fas fa-video-slash', ELEMENTS.localPlaceholder);
-    }
-
-    async handleShareScreen() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            alert('Compartilhar tela não é suportado neste navegador.');
-            return;
-        }
-
-        if (this.isSharingScreen) {
-            await this.restoreLocalCamera();
-        } else {
-            await this.initLocalStream(true);
-            // Chama o switch para propagar as novas tracks da tela
-            await this.switchLocalStream(this.localStream); 
-        }
-    }
-
-    handleEndCall(e) {
-        e.preventDefault();
-        if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
-            socket.emit('end-call', this.currentRoom);
-            this.closePeerConnection();
-            window.history.back(); // Volta para a página anterior
-        }
-    }
-    
-    // ===================== GRAVAÇÃO (MediaRecorder) =====================
-
-    getMixedStreamForRecording() {
-        const mixed = new MediaStream();
-        // Clona tracks existentes para não interferir na chamada WebRTC
-        if (this.localStream) this.localStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
-        if (this.remoteStream) this.remoteStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
-
-        return mixed;
-    }
-
-    handleStartRec() {
-        this.recordedBlobs = [];
-        const mixed = this.getMixedStreamForRecording();
-        if (!mixed.getTracks().length) {
-            alert('Nenhuma mídia disponível para gravar. Aguarde a conexão.');
-            return;
-        }
-        
-        // Mime Type robusto e verificação
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
-            ? 'video/webm;codecs=vp9,opus' 
-            : (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') 
-                ? 'video/webm;codecs=vp8,opus' 
-                : 'video/webm');
-
-        try {
-            this.mediaRecorder = new MediaRecorder(mixed, { mimeType });
-        } catch (e) {
-            console.error('MediaRecorder não suportado:', e);
-            alert('MediaRecorder não é suportado no seu navegador');
-            return;
-        }
-
-        this.mediaRecorder.ondataavailable = (event) => {
-            if (event.data && event.data.size > 0) this.recordedBlobs.push(event.data);
-        };
-
-        this.mediaRecorder.onstop = () => {
-            const blob = new Blob(this.recordedBlobs, { type: mimeType.split(';')[0] });
-            const url = window.URL.createObjectURL(blob);
-            
-            ELEMENTS.downloadLink.href = url;
-            ELEMENTS.downloadLink.download = `Regimath_Gravacao_${this.currentRoom}_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-            ELEMENTS.downloadLink.style.display = 'inline-flex';
-            
-            // Reverter estados dos botões
-            ELEMENTS.btnStartRec.disabled = false;
-            ELEMENTS.btnStopRec.disabled = true;
-            ELEMENTS.btnStartRec.classList.remove('recording');
-            ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-dot-circle';
-        };
-
-        this.mediaRecorder.start(1000); 
-        ELEMENTS.btnStartRec.disabled = true;
-        ELEMENTS.btnStopRec.disabled = false;
-        ELEMENTS.downloadLink.style.display = 'none';
-        
-        ELEMENTS.btnStartRec.classList.add('recording');
-        ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-pause';
-        alert('Gravação iniciada.');
-    }
-
-    handleStopRec() {
-        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
-        ELEMENTS.btnStopRec.disabled = true;
-    }
+    constructor() {
+        this.localStream = null;
+        this.remoteStream = null;
+        this.pc = null;
+        this.mediaRecorder = null;
+        this.recordedBlobs = [];
+        this.isSharingScreen = false;
+        this.peerId = null;
+        this.currentRoom = ROOM;
 
 
-    // ===================== SOCKET.IO HANDLERS =====================
+        this.init();
+    }
 
-    setupSocketHandlers() {
-        socket.on('connect', () => {
-            socket.emit('join', this.currentRoom);
-        });
 
-        socket.on('peer-joined', id => {
-            this.peerId = id;
-            this.updateStatus('Chamando...', 'connecting');
-            ELEMENTS.remoteStatus.textContent = 'Conectando ao interlocutor...';
-            this.startCall(true); 
-        });
+    // ===================== UTILIDADES (UX/UI) =====================
 
-        socket.on('peer-left', id => {
-            if (id === this.peerId) {
-                this.closePeerConnection();
-                ELEMENTS.remoteStatus.textContent = 'Chamada encerrada pelo parceiro.';
-            }
-        });
 
-        socket.on('signal', async ({ from, data }) => {
-            if (!this.peerId || from !== this.peerId) this.peerId = from;
+    updateStatus(text, className, isRemote = false) {
+        const element = isRemote ? ELEMENTS.remoteStatus : ELEMENTS.statusIndicator;
+        
+        if (isRemote) {
+            element.textContent = text;
+            ELEMENTS.remotePlaceholder.classList.toggle('active', className !== 'connected');
+        } else {
+            // Atualiza o status geral
+            ELEMENTS.statusIndicator.className = 'connection-status ' + className;
+            ELEMENTS.statusIndicator.innerHTML = `<i class="fas fa-circle status-icon"></i> ${text}`;
+        }
+    }
 
-            this.createPeerConnection();
 
-            if (data.sdp) {
-                try {
-                    await this.pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-                    if (data.sdp.type === 'offer') {
-                        const answer = await this.pc.createAnswer();
-                        await this.pc.setLocalDescription(answer);
-                        socket.emit('signal', { to: from, from: socket.id, data: { sdp: this.pc.localDescription } });
-                    }
-                } catch(e) {
-                    console.error("Erro ao configurar SDP", e);
-                }
-            }
+    // Alterna a classe 'off' e o ícone do botão
+    toggleButtonState(button, track, iconOn, iconOff, placeholderElement = null) {
+        if (!track) return;
+        
+        const isEnabled = track.enabled;
+        button.classList.toggle('off', !isEnabled);
+        button.querySelector('i').className = isEnabled ? iconOn : iconOff;
+        button.setAttribute('data-status', isEnabled ? 'on' : 'off');
+        
+        if (placeholderElement) {
+            // Oculta o placeholder se a track estiver ativa (vídeo)
+            placeholderElement.classList.toggle('active', !isEnabled);
+        }
+        // Atualiza aria-label com o novo estado
+        button.setAttribute('aria-label', `${isEnabled ? 'Desativar' : 'Ativar'} ${button.title}`);
+    }
 
-            if (data.candidate) {
-                try {
-                    await this.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch (e) {
-                    console.warn('Erro ao adicionar candidate', e);
-                }
-            }
-        });
-    }
 
-    // ===================== INICIALIZAÇÃO =====================
+    // ===================== WEBRTC E STREAMING =====================
 
-    setupEventListeners() {
-        ELEMENTS.btnToggleAudio.addEventListener('click', () => this.handleToggleAudio());
-        ELEMENTS.btnToggleCam.addEventListener('click', () => this.handleToggleCam());
-        ELEMENTS.btnShareScreen.addEventListener('click', () => this.handleShareScreen());
-        ELEMENTS.btnEndCall.addEventListener('click', (e) => this.handleEndCall(e));
-        ELEMENTS.btnStartRec.addEventListener('click', () => this.handleStartRec());
-        ELEMENTS.btnStopRec.addEventListener('click', () => this.handleStopRec());
-    }
 
-    async init() {
-        this.setupEventListeners();
-        this.setupSocketHandlers();
-        // Inicializa o stream da câmera (não inicia a chamada, apenas a pré-visualização)
-        await this.initLocalStream(false);
-    }
+    async initLocalStream(isScreenShare = false) {
+        try {
+            if (this.localStream) {
+                this.localStream.getTracks().forEach(track => track.stop());
+            }
+
+
+            let stream;
+            if (isScreenShare) {
+                // Adicionado systemAudio opcional no getDisplayMedia
+                stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: true, 
+                    audio: true 
+                });
+                this.isSharingScreen = true;
+                ELEMENTS.btnShareScreen.classList.add('active');
+                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-share-square';
+                
+                // Handler para quando o usuário para de compartilhar pela UI nativa do SO
+                stream.getVideoTracks()[0].onended = () => this.restoreLocalCamera();
+            } else {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: true
+                });
+                this.isSharingScreen = false;
+                ELEMENTS.btnShareScreen.classList.remove('active');
+                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
+            }
+
+
+            this.localStream = stream;
+            ELEMENTS.localVideo.srcObject = this.localStream;
+            this.updateStatus('Mídia OK', 'local-ready');
+            this.toggleButtonState(
+                ELEMENTS.btnToggleCam, 
+                this.localStream.getVideoTracks()[0], 
+                'fas fa-video', 
+                'fas fa-video-slash', 
+                ELEMENTS.localPlaceholder
+            );
+            this.toggleButtonState(
+                ELEMENTS.btnToggleAudio, 
+                this.localStream.getAudioTracks()[0], 
+                'fas fa-microphone', 
+                'fas fa-microphone-slash'
+            );
+
+
+        } catch (err) {
+            console.error('Erro ao acessar mídia local:', err);
+            this.updateStatus('Erro na Mídia', 'error');
+            alert('Não foi possível acessar mídia: ' + err.message);
+            ELEMENTS.localPlaceholder.classList.add('active');
+        }
+    }
+
+
+    createPeerConnection() {
+        if (this.pc) return; // Se já existe, não recria
+        
+        this.pc = new RTCPeerConnection(configuration);
+
+
+        // 1. Receber tracks remotas (on 'track')
+        this.pc.ontrack = (evt) => {
+            if (!this.remoteStream) {
+                this.remoteStream = new MediaStream();
+                ELEMENTS.remoteVideo.srcObject = this.remoteStream;
+            }
+            // Adiciona tracks de forma segura para lidar com múltiplas streams ou substituições
+            evt.streams[0].getTracks().forEach(t => {
+                // Previne adicionar tracks duplicadas (problema comum em WebRTC)
+                if (!this.remoteStream.getTrackById(t.id)) {
+                    this.remoteStream.addTrack(t);
+                }
+            });
+            
+            this.updateStatus('Conectado', 'connected', true);
+        };
+
+
+        // 2. Enviar ICE candidates
+        this.pc.onicecandidate = (evt) => {
+            if (evt.candidate && this.peerId) {
+                socket.emit('signal', { to: this.peerId, from: socket.id, data: { candidate: evt.candidate } });
+            }
+        };
+        
+        // 3. Monitorar estado da conexão
+        this.pc.onconnectionstatechange = () => {
+            const state = this.pc.connectionState;
+            const statusMap = {
+                'connected': ['Conexão Ativa', 'connected'],
+                'disconnected': ['Desconectado', 'disconnected'],
+                'failed': ['Falha na Conexão', 'error'],
+                'connecting': ['Conectando...', 'connecting'] // Adicionar estado "connecting"
+            };
+            const [text, className] = statusMap[state] || ['Estado Desconhecido', 'warning'];
+            this.updateStatus(text, className);
+        };
+
+
+        // 4. Adiciona tracks locais (após a inicialização do stream)
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => this.pc.addTrack(track, this.localStream));
+        }
+    }
+
+
+    closePeerConnection() {
+        if (this.pc) {
+            this.pc.close();
+            this.pc = null;
+            this.peerId = null;
+        }
+        if (ELEMENTS.remoteVideo.srcObject) ELEMENTS.remoteVideo.srcObject = null;
+        this.remoteStream = null;
+        
+        this.updateStatus('Chamada Encerrada', 'disconnected');
+        this.updateStatus('Parceiro Desconectado', 'disconnected', true);
+        
+        if (this.isSharingScreen) {
+            this.restoreLocalCamera();
+        }
+    }
+
+
+    async startCall(isInitiator) {
+        if (!this.localStream) await this.initLocalStream();
+        this.createPeerConnection();
+
+
+        if (isInitiator) {
+            this.updateStatus('Iniciando Chamada...', 'connecting');
+            const offer = await this.pc.createOffer();
+            await this.pc.setLocalDescription(offer);
+            socket.emit('signal', { to: this.peerId, from: socket.id, data: { sdp: this.pc.localDescription } });
+        }
+    }
+
+
+    // Troca as tracks de forma mais genérica
+    async switchLocalStream(newStream) {
+        this.localStream = newStream;
+        ELEMENTS.localVideo.srcObject = newStream;
+
+
+        if (this.pc) {
+            const senders = this.pc.getSenders();
+            newStream.getTracks().forEach(async newTrack => {
+                const sender = senders.find(s => s.track && s.track.kind === newTrack.kind);
+                if (sender) {
+                    await sender.replaceTrack(newTrack);
+                } else {
+                    // Adiciona se a track for nova (ex: áudio do sistema na partilha de tela)
+                    this.pc.addTrack(newTrack, newStream);
+                }
+            });
+
+
+            // Lidar com tracks que não existem mais (ex: se o áudio foi removido)
+            senders.forEach(sender => {
+                if (sender.track && !newStream.getTracks().some(t => t.kind === sender.track.kind)) {
+                    // Nota: A remoção de tracks é complexa, replaceTrack com null é uma opção mais segura
+                    // Ou renegociar SDP, mas replaceTrack é suficiente para mute/screenshare.
+                }
+            });
+        }
+    }
+
+
+    async restoreLocalCamera() {
+        this.isSharingScreen = false;
+        ELEMENTS.btnShareScreen.classList.remove('active');
+        ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
+
+
+        if (ELEMENTS.localVideo.srcObject) {
+            ELEMENTS.localVideo.srcObject.getTracks().forEach(track => track.stop());
+        }
+        
+        await this.initLocalStream(false); 
+        await this.switchLocalStream(this.localStream);
+    }
+
+
+    // ===================== HANDLERS DE CONTROLE (UX) =====================
+
+
+    handleToggleAudio() {
+        if (!this.localStream) return;
+        const audioTrack = this.localStream.getAudioTracks()[0];
+        if (!audioTrack) return;
+        
+        audioTrack.enabled = !audioTrack.enabled;
+        this.toggleButtonState(ELEMENTS.btnToggleAudio, audioTrack, 'fas fa-microphone', 'fas fa-microphone-slash');
+    }
+
+
+    handleToggleCam() {
+        if (!this.localStream) return;
+        const videoTrack = this.localStream.getVideoTracks()[0];
+        if (!videoTrack) return;
+
+
+        videoTrack.enabled = !videoTrack.enabled;
+        this.toggleButtonState(ELEMENTS.btnToggleCam, videoTrack, 'fas fa-video', 'fas fa-video-slash', ELEMENTS.localPlaceholder);
+    }
+
+
+    async handleShareScreen() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('Compartilhar tela não é suportado neste navegador.');
+            return;
+        }
+
+
+        if (this.isSharingScreen) {
+            await this.restoreLocalCamera();
+        } else {
+            await this.initLocalStream(true);
+            // Chama o switch para propagar as novas tracks da tela
+            await this.switchLocalStream(this.localStream); 
+        }
+    }
+
+
+    handleEndCall(e) {
+        e.preventDefault();
+        if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
+            socket.emit('end-call', this.currentRoom);
+            this.closePeerConnection();
+            window.history.back(); // Volta para a página anterior
+        }
+    }
+    
+    // ===================== GRAVAÇÃO (MediaRecorder) =====================
+
+
+    getMixedStreamForRecording() {
+        const mixed = new MediaStream();
+        // Clona tracks existentes para não interferir na chamada WebRTC
+        if (this.localStream) this.localStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
+        if (this.remoteStream) this.remoteStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
+
+
+        return mixed;
+    }
+
+
+    handleStartRec() {
+        this.recordedBlobs = [];
+        const mixed = this.getMixedStreamForRecording();
+        if (!mixed.getTracks().length) {
+            alert('Nenhuma mídia disponível para gravar. Aguarde a conexão.');
+            return;
+        }
+        
+        // Mime Type robusto e verificação
+        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
+            ? 'video/webm;codecs=vp9,opus' 
+            : (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') 
+                ? 'video/webm;codecs=vp8,opus' 
+                : 'video/webm');
+
+
+        try {
+            this.mediaRecorder = new MediaRecorder(mixed, { mimeType });
+        } catch (e) {
+            console.error('MediaRecorder não suportado:', e);
+            alert('MediaRecorder não é suportado no seu navegador');
+            return;
+        }
+
+
+        this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data && event.data.size > 0) this.recordedBlobs.push(event.data);
+        };
+
+
+        this.mediaRecorder.onstop = () => {
+            const blob = new Blob(this.recordedBlobs, { type: mimeType.split(';')[0] });
+            const url = window.URL.createObjectURL(blob);
+            
+            ELEMENTS.downloadLink.href = url;
+            ELEMENTS.downloadLink.download = `Regimath_Gravacao_${this.currentRoom}_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+            ELEMENTS.downloadLink.style.display = 'inline-flex';
+            
+            // Reverter estados dos botões
+            ELEMENTS.btnStartRec.disabled = false;
+            ELEMENTS.btnStopRec.disabled = true;
+            ELEMENTS.btnStartRec.classList.remove('recording');
+            ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-dot-circle';
+        };
+
+
+        this.mediaRecorder.start(1000); 
+        ELEMENTS.btnStartRec.disabled = true;
+        ELEMENTS.btnStopRec.disabled = false;
+        ELEMENTS.downloadLink.style.display = 'none';
+        
+        ELEMENTS.btnStartRec.classList.add('recording');
+        ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-pause';
+        alert('Gravação iniciada.');
+    }
+
+
+    handleStopRec() {
+        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
+        ELEMENTS.btnStopRec.disabled = true;
+    }
+
+
+
+    // ===================== SOCKET.IO HANDLERS =====================
+
+
+    setupSocketHandlers() {
+        socket.on('connect', () => {
+            socket.emit('join', this.currentRoom);
+        });
+
+
+        socket.on('peer-joined', id => {
+            this.peerId = id;
+            this.updateStatus('Chamando...', 'connecting');
+            ELEMENTS.remoteStatus.textContent = 'Conectando ao interlocutor...';
+            this.startCall(true); 
+        });
+
+
+        socket.on('peer-left', id => {
+            if (id === this.peerId) {
+                this.closePeerConnection();
+                ELEMENTS.remoteStatus.textContent = 'Chamada encerrada pelo parceiro.';
+            }
+        });
+
+
+        socket.on('signal', async ({ from, data }) => {
+            if (!this.peerId || from !== this.peerId) this.peerId = from;
+
+
+            this.createPeerConnection();
+
+
+            if (data.sdp) {
+                try {
+                    await this.pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+                    if (data.sdp.type === 'offer') {
+                        const answer = await this.pc.createAnswer();
+                        await this.pc.setLocalDescription(answer);
+                        socket.emit('signal', { to: from, from: socket.id, data: { sdp: this.pc.localDescription } });
+                    }
+                } catch(e) {
+                    console.error("Erro ao configurar SDP", e);
+                }
+            }
+
+
+            if (data.candidate) {
+                try {
+                    await this.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } catch (e) {
+                    console.warn('Erro ao adicionar candidate', e);
+                }
+            }
+        });
+    }
+
+
+    // ===================== INICIALIZAÇÃO =====================
+
+
+    setupEventListeners() {
+        ELEMENTS.btnToggleAudio.addEventListener('click', () => this.handleToggleAudio());
+        ELEMENTS.btnToggleCam.addEventListener('click', () => this.handleToggleCam());
+        ELEMENTS.btnShareScreen.addEventListener('click', () => this.handleShareScreen());
+        ELEMENTS.btnEndCall.addEventListener('click', (e) => this.handleEndCall(e));
+        ELEMENTS.btnStartRec.addEventListener('click', () => this.handleStartRec());
+        ELEMENTS.btnStopRec.addEventListener('click', () => this.handleStopRec());
+    }
+
+
+    async init() {
+        this.setupEventListeners();
+        this.setupSocketHandlers();
+        // Inicializa o stream da câmera (não inicia a chamada, apenas a pré-visualização)
+        await this.initLocalStream(false);
+    }
 }
+
 
 // Inicializa a aplicação
 document.addEventListener('DOMContentLoaded', () => {
-    window.videoCallManager = new VideoCallManager();
+    window.videoCallManager = new VideoCallManager();
 });
+    
+    // Função para mostrar toast (mobile-friendly)
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      document.getElementById('toastContainer').appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Inicializar com as melhorias mobile
+    document.addEventListener('DOMContentLoaded', () => {
+      window.videoCallManager = new VideoCallManager();
+      
+      // Detectar suporte a gestos
+      if ('ontouchstart' in window) {
+        initMobileGestures();
+      }
+    });
+
+    function initMobileGestures() {
+      // Swipe para sair
+      let startX, startY;
+      document.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      });
+      
+      document.addEventListener('touchend', (e) => {
+        if (!startX || !startY) return;
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+        
+        if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX > 0) {
+            // Swipe direita para esquerda = sair
+            document.querySelector('.btn-exit').click();
+          }
+        }
+      });
+    }
   </script>
 </body>
 </html>

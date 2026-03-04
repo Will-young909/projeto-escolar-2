@@ -217,6 +217,16 @@ router.post('/agendar-horario', async (req, res) => {
         data: horario.data,
         hora: horario.horaInicio
     });
+
+    if (!professor.agenda) {
+        professor.agenda = [];
+    }
+    professor.agenda.push({
+        aluno: { id: alunoId, nome: req.session.user_aluno.nome },
+        salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+        data: horario.data,
+        hora: horario.horaInicio
+    });
     
     const alunoIndex = alunos.findIndex(a => a.id === alunoId);
     if(alunoIndex !== -1) {
@@ -478,8 +488,17 @@ router.post('/cancelar-aula-prof', (req, res) => {
 
     const professor = professores.find(p => p.id === req.session.user_prof.id);
     if (professor) {
-        if (!professor.aulas) professor.aulas = [];
-        professor.aulas.push({ data, hora });
+        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === alunoId);
+
+        if (horarioIndex > -1) {
+            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
+            professor.horariosDisponiveis[horarioIndex].alunoId = null;
+        }
+
+        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === alunoId);
+        if (profAgendaIndex > -1) {
+            professor.agenda.splice(profAgendaIndex, 1);
+        }
     }
 
     req.session.save(err => {
@@ -507,6 +526,13 @@ router.post('/cancelar-aula', (req, res) => {
     const professor = professores.find(p => p.id == profId);
 
     if (professor) {
+        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === req.session.user_aluno.id);
+
+        if (horarioIndex > -1) {
+            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
+            professor.horariosDisponiveis[horarioIndex].alunoId = null;
+        }
+
         if (!professor.notificacoes) professor.notificacoes = [];
         professor.notificacoes.push({
             tipo: 'cancelamento',
@@ -516,8 +542,10 @@ router.post('/cancelar-aula', (req, res) => {
             data: new Date().toISOString()
         });
 
-        if (!professor.aulas) professor.aulas = [];
-        professor.aulas.push({ data: aulaCancelada.data, hora: aulaCancelada.hora });
+        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === req.session.user_aluno.id);
+        if (profAgendaIndex > -1) {
+            professor.agenda.splice(profAgendaIndex, 1);
+        }
     }
 
     req.session.save(err => {

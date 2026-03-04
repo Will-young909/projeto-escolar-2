@@ -143,13 +143,13 @@
             </section>
 
             <section class="perfil-destaques">
-                <section class="destaque avaliacao" role="img" aria-label="Avaliação média de <%= professor.avaliacao_media || '4.8' %> estrelas">
+                <article class="destaque avaliacao" role="img" aria-label="Avaliação média de <%= professor.avaliacao_media || '4.8' %> estrelas">
                     <i class="fas fa-star"></i>
                     <p>
                         <%= professor.avaliacao_media || '4.8' %> 
                         (<%= professor.num_avaliacoes || '95' %> avaliações)
                     </p>
-                </section>
+                </article>
             </section>
 
             <h2 class="section-title">Sobre o Professor(a)</h2>
@@ -190,7 +190,7 @@
             <% } %>
         </section>
 
-        <section class="secondary-column">
+        <aside class="secondary-column">
             <section class="calendario card">
                 <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Horários Disponíveis</h2>
                 <ul class="lista-aulas">
@@ -214,12 +214,12 @@
                                 <ul>
                                     <% horariosAgrupados[data].sort((a,b) => a.horaInicio.localeCompare(b.horaInicio)).forEach(horario => { %>
                                         <li class="aula-item aula-status-<%= horario.status %>">
-                                            <div class="aula-info">
+                                            <section class="aula-info">
                                                 <p class="hora"><i class="far fa-clock"></i> <%= horario.horaInicio %> - <%= horario.horaFim %></p>
                                                 <% if (isOwner && horario.status === 'agendado') { %>
                                                     <p class="aluno-info">com <%= horario.alunoNome || 'Aluno' %></p>
                                                 <% } %>
-                                            </div>
+                                            </section>
                                             
                                             <% if (!isOwner && horario.status === 'disponivel' && session.user_aluno) { %>
                                                 <form action="/agendar-horario" method="POST" class="form-agendar">
@@ -256,7 +256,7 @@
                     <% if (professor.comentarios && professor.comentarios.length > 0) { %>
                         <% professor.comentarios.forEach(comentario => { %>
                             <li aria-label="Comentário de <%= comentario.usuario %>">
-                                <section class="comentario-header">
+                                <header class="comentario-header">
                                     <strong><%= comentario.usuario %></strong>
                                     <% if (comentario.nota && comentario.nota > 0) { %>
                                         <section class="comentario-rating" aria-label="Nota: <%= comentario.nota %> de 5 estrelas">
@@ -265,7 +265,7 @@
                                             <% } %>
                                         </section>
                                     <% } %>
-                                </section>
+                                </header>
                                 <p class="texto-comentario"><%= comentario.texto %></p>
                                 <small class="data"><%= new Date(comentario.data || Date.now()).toLocaleString('pt-BR') %></small>
                             </li>
@@ -299,7 +299,7 @@
                     </p>
                 <% } %>
             </section>
-        </section>
+        </aside>
     </main>
 
     <script>

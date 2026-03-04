@@ -116,26 +116,26 @@
     <main class="perfil-container">
         <section class="perfil-info card">
             <section class="profile-header">
-                <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" 
-                     alt="Foto do Professor" 
+                <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>"
+                     alt="Foto do Professor"
                      class="foto-perfil">
-                
+               
                 <h1><%= user.nome %></h1>
                 <a href="/editar_perfil_prof" class="btn-edit" aria-label="Editar configurações do perfil">
                     <i class="fas fa-user-edit"></i> Editar Perfil
                 </a>
             </section>
             <h2>Informações</h2>
-            <section class="form-group">
+            <article class="form-group">
                 <p><strong>Descrição:</strong> <%= user.descricao || 'Descrição profissional' %></p>
-            </section>
-            <section class="form-group">
+            </article>
+            <article class="form-group">
                 <p><strong>Aula Prévia:</strong> <%= user.link_previa || 'Link da aula prévia' %></p>
-            </section>
-            <section class="form-group">
+            </article>
+            <article class="form-group">
                 <p><strong>Status:</strong> <%= user.status || 'Status do(a) professor(a)' %></p>
-            </section>
-            <section class="form-group">
+            </article>
+            <article class="form-group">
                 <p><strong>Matérias Lecionadas:</strong></p>
                 <section class="tags-disciplinas">
                     <% const disciplinas = user.disciplinas; %>
@@ -147,13 +147,13 @@
                         <p class="tag">Nenhuma adicionada</p>
                     <% } %>
                 </section>
-            </section>
+            </article>
         </section>
 
         <section class="calendario card">
             <h2><i class="fas fa-calendar-alt"></i> Gerenciador de Horários</h2>
             <p class="card-subtitle">Clique em um dia para definir seus horários de aula disponíveis.</p>
-            <div id="calendar" class="calendar-grid"></div>
+            <section id="calendar" class="calendar-grid"></section>
         </section>
 
         <section class="alunos card">
@@ -172,21 +172,21 @@
         </section>
     </main>
 
-    <div id="schedule-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <dialog id="schedule-modal" class="modal">
+        <article class="modal-content">
+            <header class="modal-header">
                 <h3 id="modal-date"></h3>
                 <p class="close-button">&times;</p>
-            </div>
-            <div id="time-slots-container">
+            </header>
+            <ul id="time-slots-container">
                 <!-- Time slots will be dynamically added here -->
-            </div>
-            <div class="modal-footer">
+            </ul>
+            <footer class="modal-footer">
                 <button id="add-time-slot" class="btn-secondary"><i class="fas fa-plus"></i> Adicionar Horário</button>
                 <button id="save-schedule" class="btn-primary"><i class="fas fa-save"></i> Salvar Horários</button>
-            </div>
-        </div>
-    </div>
+            </footer>
+        </article>
+    </dialog>
 
     <script>
         // --- Menu lateral (código original preservado) ---
@@ -284,18 +284,18 @@
             }
 
             function addTimeSlot() {
-                const slotDiv = document.createElement('div');
-                slotDiv.classList.add('time-slot');
-                slotDiv.innerHTML = `
+                const slotLi = document.createElement('li');
+                slotLi.classList.add('time-slot');
+                slotLi.innerHTML = `
                     <label>Início:</label>
                     <input type="time" class="start-time" required>
                     <label>Fim:</label>
                     <input type="time" class="end-time" required>
                     <button type="button" class="remove-slot-btn">&times;</button>
                 `;
-                timeSlotsContainer.appendChild(slotDiv);
-                slotDiv.querySelector('.remove-slot-btn').addEventListener('click', () => {
-                    slotDiv.remove();
+                timeSlotsContainer.appendChild(slotLi);
+                slotLi.querySelector('.remove-slot-btn').addEventListener('click', () => {
+                    slotLi.remove();
                 });
             }
             

@@ -8,6 +8,19 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/dashboard_prof.css">
   <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+  <style>
+    .btn.disabled, .btn.disabled:hover, .btn:disabled {
+        background-color: #ccc;
+        border-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    .btn.disabled:hover {
+      filter: brightness(1.1);
+      transform: scale(1.02);
+    }
+  </style>
 </head>
 
 <body>
@@ -137,7 +150,7 @@
           <p><i class="fas fa-calendar-day"></i> <%= new Date(proximaAula.data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></p>
         </section>
         <section class="class-actions">
-          <a href="/video/<%= proximaAula.salaId %>" class="btn primary"><i class="fas fa-video"></i> Entrar na Sala</a>
+          <a href="/video/<%= proximaAula.salaId %>" class="btn primary enter-room-btn"><i class="fas fa-video"></i> Entrar na Sala</a>
           <a href="/chat/with/<%= proximaAula.aluno.id %>" class="btn secondary"><i class="fas fa-comment-dots"></i> Enviar Mensagem</a>
         </section>
       </section>
@@ -162,6 +175,7 @@
   </main>
 
   <script>
+      document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');
     const overlay = document.getElementById('overlay');
@@ -212,6 +226,29 @@ document.querySelectorAll('.popup-overlay').forEach(overlay => {
   });
 });
 
+    const enterRoomBtn = document.querySelector('.enter-room-btn');
+    if (enterRoomBtn) {
+        <% if (proximaAula) { %>
+            const classTime = new Date(`<%= proximaAula.data %>T<%= proximaAula.horaInicio %>`);
+            const now = new Date();
+
+            const startTime = new Date(classTime.getTime() - 10 * 60 * 1000); // 10 minutos antes
+            const endTime = new Date(classTime.getTime() + 50 * 60 * 1000);   // 50 minutos depois (duração da aula)
+
+            if (now >= startTime && now <= endTime) {
+                enterRoomBtn.classList.remove('disabled');
+                enterRoomBtn.title = 'Clique para entrar na sala de aula';
+            } else {
+                enterRoomBtn.classList.add('disabled');
+                enterRoomBtn.removeAttribute('href');
+                enterRoomBtn.title = 'A sala fica disponível 10 minutos antes do início da aula.';
+            }
+        <% } else { %>
+            enterRoomBtn.classList.add('disabled');
+            enterRoomBtn.removeAttribute('href');
+        <% } %>
+    }
+});
 
   </script>
 </body>

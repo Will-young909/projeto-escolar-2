@@ -63,7 +63,7 @@
     <h1 class="header-title"><i class="fas fa-calendar-check"></i> Minhas Aulas Agendadas</h1>
 
     <% 
-      const aulasAgendadas = session.user_prof && session.user_prof.agenda ? session.user_prof.agenda : [];
+      const aulasAgendadas = user && user.agenda ? user.agenda : [];
       const aulasAgrupadas = aulasAgendadas.reduce((acc, aula) => {
         const dia = aula.data;
         (acc[dia] ||= []).push(aula);
@@ -95,7 +95,7 @@
                 <a href="/video/<%= aula.salaId %>" class="action-btn primary enter-class-btn" data-data="<%= aula.data %>" data-hora="<%= aula.hora %>">
                     <i class="fas fa-video"></i> Entrar na Sala
                 </a>
-                <a href="/chat/<%= aula.aluno.id %>" class="action-btn secondary">
+                <a href="/chat/with/<%= aula.aluno.id %>" class="action-btn secondary">
                     <i class="fas fa-comment-dots"></i> Conversar com Aluno
                 </a>
                 <button class="action-btn danger cancel-btn">
