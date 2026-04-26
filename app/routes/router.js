@@ -3,46 +3,22 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const router = express.Router();
 const paymentsStore = require('../lib/paymentsStore');
-const chatStore = require('../lib/chatStore'); // Importa o chatStore
+const chatStore = require('../lib/chatStore');
 const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
 
-// Armazenamento em memória para alunos e professores (simulando um banco de dados)
-let alunos = [
-    {
-        id: '1',
-        nome: "Maria",
-        email: "maria@exemplo.com",
-        agenda: [],
-        notificacoes: []
-    }
-];
-
-const professores = [
-    {
-        id: '2',
-        nome: "Mateus",
-        email: "mateus@exemplo.com",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 7 doutorados na USP, dei aula pra Einstein...",
-        link_previa: "#",
-        status: "disponivel",
-        horariosDisponiveis: [],
-        disciplinas: ["Cálculo I", "Álgebra Linear"]
-    },
-    {
-        id: '3',
-        nome: "Jonas",
-        email: "jonas@exemplo.com",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 5 doutorados na usp, dei aula pra Newton...",
-        link_previa: "#",
-        status: "disponivel",
-        horariosDisponiveis: [],
-        disciplinas: ["Física I"]
-    }
-];
+const AlunoModel = require('../models/AlunoModel');
+const ProfessorModel = require('../models/ProfessorModel');
+const DisciplinaModel = require('../models/DisciplinaModel');
+const HorarioModel = require('../models/HorarioModel');
+const AgendamentoModel = require('../models/AgendamentoModel');
+const AtividadeModel = require('../models/AtividadeModel');
+const QuestaoModel = require('../models/QuestaoModel');
+const ComentarioModel = require('../models/ComentarioModel');
+const DenunciaModel = require('../models/DenunciaModel');
+const PagamentoModel = require('../models/PagamentoModel');
+const NotificacaoModel = require('../models/NotificacaoModel');
 
 // --- Configuração do Multer para Upload de Imagem ---
 const storage = multer.diskStorage({
@@ -73,7 +49,24 @@ const upload = multer({
 }).single('foto');
 
 
-// --- NOVAS FUNÇÕES AUXILIARES ---
+// --- FUNÇÕES AUXILIARES ---
+async function getUserById(id) {
+    const prof = await ProfessorModel.findById(id);
+    if (prof) return { ...prof, tipo: 'professor' };
+
+    const aluno = await AlunoModel.findById(id);
+    if (aluno) return { ...aluno, tipo: 'aluno' };
+
+    return { id, nome: `Usuário ${id}`, tipo: 'desconhecido' };
+}
+
+const PASSWORD_SALT = process.env.PASSWORD_SALT || 'regimath_demo_salt';
+
+function hashPassword(password) {
+    return crypto.createHmac('sha256', PASSWORD_SALT).update(password).digest('hex');
+}
+// --- FIM DAS FUNÇÕES AUXILIARES ---
+
 // Rota para iniciar um chat ou redirecionar para uma sala existente
 router.get('/chat/with/:userId', (req, res) => {
     const currentUser = req.session.user_aluno || req.session.user_prof;
@@ -92,44 +85,15 @@ router.get('/chat/with/:userId', (req, res) => {
 
     res.redirect(`/chat/${roomId}`);
 });
-// Função para obter o nome de um usuário pelo ID (simulação)
-function getUserById(id) {
-    const professor = professores.find(p => p.id === id);
-    if (professor) return { ...professor, tipo: 'professor' };
-
-    const aluno = alunos.find(a => a.id === id);
-    if (aluno) return { ...aluno, tipo: 'aluno' };
-
-    return { id, nome: `Usuário ${id}`, tipo: 'desconhecido' };
-}
-
-// Função para obter usuário por e-mail
-function getUserByEmail(email, tipo) {
-    const searchEmail = email.toLowerCase();
-    if (tipo === 'aluno') {
-        return alunos.find(a => a.email && a.email.toLowerCase() === searchEmail);
-    }
-    if (tipo === 'professor') {
-        return professores.find(p => p.email && p.email.toLowerCase() === searchEmail);
-    }
-    return null;
-}
 
 
-// Salt simples para demo. Em produção, use gerenciamento seguro de segredos.
-const PASSWORD_SALT = process.env.PASSWORD_SALT || 'regimath_demo_salt';
-
-function hashPassword(password) {
-    return crypto.createHmac('sha256', PASSWORD_SALT).update(password).digest('hex');
-}
-// --- FIM DAS FUNÇÕES AUXILIARES ---
-
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+    const professores = await ProfessorModel.findAll();
     res.render('pages/home', { professores });
 });
 
 // Rota para salvar/atualizar horários do professor
-router.post('/professor/horarios', (req, res) => {
+router.post('/professor/horarios', async (req, res) => {
     if (!req.session.user_prof) {
         return res.status(401).json({ success: false, message: 'Não autenticado' });
     }
@@ -140,42 +104,27 @@ router.post('/professor/horarios', (req, res) => {
     }
 
     const sessionUser = req.session.user_prof;
-    const profIndex = professores.findIndex(p => p.id === sessionUser.id);
+    const professor = await ProfessorModel.findById(sessionUser.id);
 
-    if (profIndex === -1) {
+    if (!professor) {
         return res.status(404).json({ success: false, message: 'Professor não encontrado.' });
     }
-    const professor = professores[profIndex];
-    if (!professor.horariosDisponiveis) {
-        professor.horariosDisponiveis = [];
-    }
-    professor.horariosDisponiveis = professor.horariosDisponiveis.filter(h => h.data !== date);
 
-    slots.forEach(slot => {
+    await HorarioModel.deleteByProfessorAndData(professor.id, date);
+
+    for (const slot of slots) {
         if (slot.start && slot.end && slot.price) {
-            professor.horariosDisponiveis.push({
+            await HorarioModel.create({
+                professor_id: professor.id,
                 data: date,
-                horaInicio: slot.start,
-                horaFim: slot.end,
-                price: slot.price,
-                status: 'disponivel',
-                alunoId: null,
-                horarioId: crypto.randomBytes(8).toString('hex')
+                hora_inicio: slot.start,
+                hora_fim: slot.end,
+                preco: slot.price
             });
         }
-    });
-    
-    req.session.user_prof.horariosDisponiveis = professor.horariosDisponiveis;
+    }
 
-    req.session.save(err => {
-        if (err) {
-            console.error('Erro ao salvar sessão:', err);
-            return res.status(500).json({ success: false, message: 'Erro interno ao salvar os horários.' });
-        }
-        
-        console.log(`Horários atualizados para ${professor.nome}:`, professor.horariosDisponiveis);
-        res.json({ success: true, message: 'Horários salvos com sucesso!' });
-    });
+    res.json({ success: true, message: 'Horários salvos com sucesso!' });
 });
 
 
@@ -188,22 +137,15 @@ router.post('/agendar-horario', async (req, res) => {
     const { profId, horarioId } = req.body;
     const alunoId = req.session.user_aluno.id;
 
-    const profIndex = professores.findIndex(p => p.id == profId);
-    if (profIndex === -1) {
+    const professor = await ProfessorModel.findById(profId);
+    if (!professor) {
         return res.status(404).send('Professor não encontrado.');
     }
 
-    const professor = professores[profIndex];
-    if (!professor.horariosDisponiveis) {
-        return res.status(404).send('Professor não tem horários.');
-    }
-
-    const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId && h.status === 'disponivel');
-    if (horarioIndex === -1) {
+    const horario = await HorarioModel.findById(horarioId);
+    if (!horario || horario.status !== 'disponivel') {
         return res.status(404).send('Horário não disponível.');
     }
-    
-    const horario = professor.horariosDisponiveis[horarioIndex];
 
     try {
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
@@ -214,10 +156,10 @@ router.post('/agendar-horario', async (req, res) => {
         const preference = {
             items: [{
                 title: `Aula com ${professor.nome}`,
-                description: `Agendamento para ${horario.data} às ${horario.horaInicio}`,
+                description: `Agendamento para ${horario.data} às ${horario.hora_inicio}`,
                 quantity: 1,
                 currency_id: 'BRL',
-                unit_price: horario.price
+                unit_price: Number(horario.preco)
             }],
             back_urls: {
                 success: "http://localhost:3000/pagamento/sucesso",
@@ -225,14 +167,11 @@ router.post('/agendar-horario', async (req, res) => {
                 pending: "http://localhost:3000/pagamento/pendente"
             },
             auto_return: "approved",
-            // Passa os IDs como referência externa para reconciliação
-            external_reference: JSON.stringify({ profId, horarioId, alunoId: req.session.user_aluno.id }),
+            external_reference: JSON.stringify({ profId, horarioId, alunoId }),
         };
 
         const response = await mpPreferenceClient.create({ body: preference });
         const body = response.body || response;
-        
-        // Redireciona o usuário para o checkout do Mercado Pago
         res.redirect(body.init_point || body.sandbox_init_point);
 
     } catch (error) {
@@ -256,40 +195,34 @@ router.post('/cadastro', [
     body('confirmar')
         .custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], (req, res) => {
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.render('pages/cadastro', { erros: erros.mapped(), dados: req.body });
     }
 
-    const existingUser = getUserByEmail(req.body.email, req.body.tipo);
-    if (existingUser) {
-        return res.render('pages/cadastro', { 
-            erros: { email: { msg: 'Este e-mail já está em uso.' } }, 
-            dados: req.body 
-        });
-    }
+    const { nome, email, senha, tipo } = req.body;
 
-    const newUser = {
-        id: crypto.randomBytes(4).toString('hex'),
-        nome: req.body.nome,
-        email: req.body.email,
-        tipo: req.body.tipo,
-        password: hashPassword(req.body.senha),
-        initial_password: req.body.senha, // Manter para demo
-        agenda: [],
-        notificacoes: [],
-    };
-
-    if (req.body.tipo === "aluno") {
-        alunos.push(newUser);
-        req.session.user_aluno = newUser;
+    if (tipo === 'aluno') {
+        const existing = await AlunoModel.findByEmail(email);
+        if (existing) {
+            return res.render('pages/cadastro', {
+                erros: { email: { msg: 'Este e-mail já está em uso.' } },
+                dados: req.body
+            });
+        }
+        const created = await AlunoModel.create({ nome, email, senha: hashPassword(senha) });
+        req.session.user_aluno = { id: created.id, nome, email, tipo };
     } else {
-        newUser.horariosDisponiveis = []; // Adicionar para professores
-        newUser.link_previa = '';
-        newUser.disciplinas = [];
-        professores.push(newUser);
-        req.session.user_prof = newUser;
+        const existing = await ProfessorModel.findByEmail(email);
+        if (existing) {
+            return res.render('pages/cadastro', {
+                erros: { email: { msg: 'Este e-mail já está em uso.' } },
+                dados: req.body
+            });
+        }
+        const created = await ProfessorModel.create({ nome, email, senha: hashPassword(senha) });
+        req.session.user_prof = { id: created.id, nome, email, tipo };
     }
 
     req.session.save(() => res.redirect('/'));
@@ -305,29 +238,31 @@ router.post('/login', [
         .normalizeEmail(),
     body('senha').notEmpty().withMessage('A senha é obrigatória.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], (req, res) => {
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.render('pages/login', { erros: erros.mapped(), dados: req.body });
     }
 
     const { email, senha, tipo } = req.body;
-    const user = getUserByEmail(email, tipo);
+    let user;
+    if (tipo === 'aluno') {
+        user = await AlunoModel.findByEmail(email);
+    } else {
+        user = await ProfessorModel.findByEmail(email);
+    }
 
-    const passwordHash = user ? user.password : '';
-    const isValidPassword = (user && passwordHash === hashPassword(senha)) || (user && user.initial_password === senha);
-
-    if (!user || !isValidPassword) {
-        return res.render('pages/login', { 
-            erros: { general: { msg: 'E-mail ou senha incorretos.' } }, 
-            dados: req.body 
+    if (!user || user.senha !== hashPassword(senha)) {
+        return res.render('pages/login', {
+            erros: { general: { msg: 'E-mail ou senha incorretos.' } },
+            dados: req.body
         });
     }
 
     if (tipo === "aluno") {
-        req.session.user_aluno = user;
+        req.session.user_aluno = { id: user.id, nome: user.nome, email: user.email, tipo };
     } else {
-        req.session.user_prof = user;
+        req.session.user_prof = { id: user.id, nome: user.nome, email: user.email, tipo };
     }
     
     req.session.save(() => res.redirect('/'));
@@ -366,178 +301,143 @@ router.get('/perfil_aluno', (req, res) => {
     res.render('pages/perfil_aluno', { user: req.session.user_aluno, session: req.session });
 });
 
-router.get('/perfil_prof', (req, res) => {
+router.get('/perfil_prof', async (req, res) => {
     if (!req.session.user_prof) {
         return res.redirect('/login');
     }
 
-    const professorCompleto = professores.find(p => p.id === req.session.user_prof.id);
-    if (!professorCompleto) {
+    const professor = await ProfessorModel.findById(req.session.user_prof.id);
+    if (!professor) {
         return res.redirect('/login');
     }
 
-    let historicoAlunos = [];
-    if (professorCompleto.horariosDisponiveis) {
-        const aulasAgendadas = professorCompleto.horariosDisponiveis.filter(
-            h => h.status === 'agendado' && h.alunoId
-        );
+    const horarios = await HorarioModel.findByProfessor(professor.id);
+    const aulasAgendadas = horarios.filter(h => h.status === 'agendado' && h.aluno_id);
+    const alunoIds = [...new Set(aulasAgendadas.map(h => h.aluno_id))];
 
-        const alunoIds = [...new Set(aulasAgendadas.map(h => h.alunoId))];
-
-        historicoAlunos = alunoIds.map(id => getUserById(id)).filter(aluno => aluno.tipo === 'aluno');
+    const historicoAlunos = [];
+    for (const id of alunoIds) {
+        const aluno = await AlunoModel.findById(id);
+        if (aluno) historicoAlunos.push({ ...aluno, tipo: 'aluno' });
     }
 
+    const disciplinas = await DisciplinaModel.findByProfessor(professor.id);
+
     const userParaRender = {
-        ...req.session.user_prof,
-        historicoAlunos: historicoAlunos
+        ...professor,
+        historicoAlunos,
+        disciplinas: disciplinas.map(d => d.nome),
+        horariosDisponiveis: horarios
     };
 
     res.render('pages/perfil_prof', { user: userParaRender, session: req.session });
 });
 
 
-router.get('/exibir_prof/:id', (req, res) => {
+router.get('/exibir_prof/:id', async (req, res) => {
     const professorId = req.params.id;
-    const professorData = professores.find(p => p.id === professorId);
+    const professorData = await ProfessorModel.findById(professorId);
 
     if (!professorData) return res.redirect('/');
-    
-    const professor = JSON.parse(JSON.stringify(professorData));
 
-    if (professor.horariosDisponiveis) {
-        professor.horariosDisponiveis.forEach(horario => {
-            if (horario.status === 'agendado' && horario.alunoId) {
-                const aluno = getUserById(horario.alunoId);
-                if (aluno) {
-                    horario.alunoNome = aluno.nome;
-                }
-            }
-        });
+    const horarios = await HorarioModel.findByProfessor(professorId);
+    for (const horario of horarios) {
+        if (horario.status === 'agendado' && horario.aluno_id) {
+            const aluno = await AlunoModel.findById(horario.aluno_id);
+            if (aluno) horario.alunoNome = aluno.nome;
+        }
     }
 
-    if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
-    professor.comentarios = req.session.prof_comentarios[professorId] || [];
+    const disciplinas = await DisciplinaModel.findByProfessor(professorId);
+    const comentarios = await ComentarioModel.findByProfessor(professorId);
+
+    const professor = {
+        ...professorData,
+        horariosDisponiveis: horarios,
+        disciplinas: disciplinas.map(d => d.nome),
+        comentarios
+    };
 
     const user = req.session.user_aluno || req.session.user_prof;
-
     res.render('pages/exibir_prof', { professor, session: req.session, user });
 });
 
 // Rota para o PROFESSOR cancelar uma aula
-router.post('/cancelar-aula-prof', (req, res) => {
+router.post('/cancelar-aula-prof', async (req, res) => {
     if (!req.session.user_prof) {
         return res.status(401).json({ success: false, message: 'Professor não autenticado.' });
     }
 
     const { alunoId, data, hora, motivo } = req.body;
-    const aluno = alunos.find(a => a.id == alunoId);
 
-    if (aluno && aluno.agenda) {
-        const aulaIndex = aluno.agenda.findIndex(aula => aula.data === data && aula.hora === hora);
-        if (aulaIndex > -1) {
-            aluno.agenda.splice(aulaIndex, 1);
-
-            if (!aluno.notificacoes) aluno.notificacoes = [];
-            aluno.notificacoes.push({
-                tipo: 'cancelamento_prof',
-                professor: req.session.user_prof.nome,
-                aula: { data, hora },
-                motivo: motivo || 'Não especificado',
-                data: new Date().toISOString()
-            });
-        }
-    }
-
-    const professor = professores.find(p => p.id === req.session.user_prof.id);
-    if (professor) {
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === alunoId);
-
-        if (horarioIndex > -1) {
-            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
-            professor.horariosDisponiveis[horarioIndex].alunoId = null;
-        }
-
-        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === alunoId);
-        if (profAgendaIndex > -1) {
-            professor.agenda.splice(profAgendaIndex, 1);
-        }
-    }
-
-    req.session.save(err => {
-        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar sessão.' });
-        res.json({ success: true, message: 'Aula cancelada e aluno notificado.' });
+    await NotificacaoModel.create({
+        usuario_id: alunoId,
+        usuario_tipo: 'aluno',
+        tipo: 'cancelamento_prof',
+        mensagem: `Aula do dia ${data} às ${hora} cancelada pelo professor ${req.session.user_prof.nome}. Motivo: ${motivo || 'Não especificado'}`
     });
+
+    const horarios = await HorarioModel.findByProfessor(req.session.user_prof.id);
+    const horario = horarios.find(h => String(h.data) === data && h.hora_inicio === hora && h.aluno_id == alunoId);
+    if (horario) {
+        await HorarioModel.update(horario.id, { status: 'disponivel', aluno_id: null });
+    }
+
+    res.json({ success: true, message: 'Aula cancelada e aluno notificado.' });
 });
 
 
 // Rota para o ALUNO cancelar uma aula
-router.post('/cancelar-aula', (req, res) => {
-    if (!req.session.user_aluno || !req.session.user_aluno.agenda) {
+router.post('/cancelar-aula', async (req, res) => {
+    if (!req.session.user_aluno) {
         return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
     }
 
     const { profId, data, hora, reason } = req.body;
-    const agenda = req.session.user_aluno.agenda;
-    const aulaIndex = agenda.findIndex(a => a.professor.id == profId && a.data === data && a.hora === hora);
 
-    if (aulaIndex === -1) {
+    const horarios = await HorarioModel.findByProfessor(profId);
+    const horario = horarios.find(h => String(h.data) === data && h.hora_inicio === hora && h.aluno_id == req.session.user_aluno.id);
+
+    if (!horario) {
         return res.status(404).json({ success: false, message: 'Aula não encontrada.' });
     }
 
-    const aulaCancelada = agenda.splice(aulaIndex, 1)[0];
-    const professor = professores.find(p => p.id == profId);
+    await HorarioModel.update(horario.id, { status: 'disponivel', aluno_id: null });
 
-    if (professor) {
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === req.session.user_aluno.id);
-
-        if (horarioIndex > -1) {
-            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
-            professor.horariosDisponiveis[horarioIndex].alunoId = null;
-        }
-
-        if (!professor.notificacoes) professor.notificacoes = [];
-        professor.notificacoes.push({
-            tipo: 'cancelamento',
-            aluno: req.session.user_aluno.nome,
-            aula: aulaCancelada,
-            motivo: reason || 'Não especificado',
-            data: new Date().toISOString()
-        });
-
-        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === req.session.user_aluno.id);
-        if (profAgendaIndex > -1) {
-            professor.agenda.splice(profAgendaIndex, 1);
-        }
-    }
-
-    req.session.save(err => {
-        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar a sessão.' });
-        res.json({ success: true, message: 'Aula cancelada com sucesso.' });
+    await NotificacaoModel.create({
+        usuario_id: profId,
+        usuario_tipo: 'professor',
+        tipo: 'cancelamento',
+        mensagem: `Aula do dia ${data} às ${hora} cancelada pelo aluno ${req.session.user_aluno.nome}. Motivo: ${reason || 'Não especificado'}`
     });
+
+    res.json({ success: true, message: 'Aula cancelada com sucesso.' });
 });
 
 // POST: alterar senha (suporta professor e aluno)
 router.post('/alterar-senha', [
     body('current_password').notEmpty().withMessage('Informe sua senha atual.'),
     body('new_password').isLength({ min: 6 }).withMessage('A nova senha precisa ter ao menos 6 caracteres.'),
-], (req, res) => {
+], async (req, res) => {
     const isProf = !!req.session.user_prof;
     const isAluno = !!req.session.user_aluno;
     if (!isProf && !isAluno) return res.redirect('/login');
 
-    const user = isProf ? req.session.user_prof : req.session.user_aluno;
+    const sessionUser = isProf ? req.session.user_prof : req.session.user_aluno;
     const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
 
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
-        return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body });
+        return res.render(renderPage, { user: sessionUser, erros: erros.mapped(), dados: req.body });
     }
 
     const { current_password, new_password } = req.body;
-    const sessionUser = user;
 
-    const hashedCurrent = hashPassword(current_password);
-    if (sessionUser.password !== hashedCurrent && sessionUser.initial_password !== current_password) {
+    const dbUser = isProf
+        ? await ProfessorModel.findById(sessionUser.id)
+        : await AlunoModel.findById(sessionUser.id);
+
+    if (!dbUser || dbUser.senha !== hashPassword(current_password)) {
         return res.render(renderPage, {
             user: sessionUser,
             erros: { current_password: { msg: 'Senha atual incorreta.' } },
@@ -545,36 +445,32 @@ router.post('/alterar-senha', [
         });
     }
 
-    sessionUser.password = hashPassword(new_password);
-    sessionUser.initial_password = undefined;
+    const Model = isProf ? ProfessorModel : AlunoModel;
+    await Model.update(sessionUser.id, { senha: hashPassword(new_password) });
 
-    req.session.save(err => {
-        if (err) {
-            return res.render(renderPage, {
-                user: sessionUser,
-                erros: { general: { msg: 'Erro ao alterar senha. Tente novamente.' } },
-                dados: req.body
-            });
-        }
-        res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
-    });
+    res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
 });
 
 
 // API: verifica senha atual via AJAX (retorna JSON)
 router.post('/api/verify-current-password', [
     body('current_password').notEmpty().withMessage('Informe sua senha atual.'),
-], (req, res) => {
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.status(400).json({ valid: false, msg: erros.array()[0].msg });
     }
 
-    const user = req.session.user_prof || req.session.user_aluno;
-    if (!user) return res.status(401).json({ valid: false, msg: 'Usuário não autenticado.' });
+    const sessionUser = req.session.user_prof || req.session.user_aluno;
+    if (!sessionUser) return res.status(401).json({ valid: false, msg: 'Usuário não autenticado.' });
+
+    const isProf = !!req.session.user_prof;
+    const dbUser = isProf
+        ? await ProfessorModel.findById(sessionUser.id)
+        : await AlunoModel.findById(sessionUser.id);
 
     const { current_password } = req.body;
-    if ((user.password && hashPassword(current_password) === user.password) || (user.initial_password && current_password === user.initial_password)) {
+    if (dbUser && dbUser.senha === hashPassword(current_password)) {
         return res.json({ valid: true });
     }
 
@@ -582,51 +478,41 @@ router.post('/api/verify-current-password', [
 });
 
 // Rota para adicionar comentário a um professor
-router.post('/exibir_prof/:id/comentar', (req, res) => {
+router.post('/exibir_prof/:id/comentar', async (req, res) => {
     const professorId = req.params.id;
     const texto = (req.body.texto || '').trim();
-    const nota = req.body.nota; 
+    const nota = req.body.nota;
 
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
     if (!texto) return res.redirect(`/exibir_prof/${professorId}`);
 
-    if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
-    if (!req.session.prof_comentarios[professorId]) req.session.prof_comentarios[professorId] = [];
-
-    const newComment = {
-        usuario: user.nome,
-        texto,
-        data: new Date().toISOString(),
-    };
-
+    let notaInt = null;
     if (nota) {
-        const notaInt = parseInt(nota, 10);
-        if (notaInt >= 1 && notaInt <= 5) {
-            newComment.nota = notaInt;
-        }
+        notaInt = parseInt(nota, 10);
+        if (notaInt < 1 || notaInt > 5) notaInt = null;
     }
 
-    req.session.prof_comentarios[professorId].push(newComment);
-
-    req.session.save(err => {
-        if (err) {
-            console.error('Erro ao salvar o comentário na sessão:', err);
-        }
-        return res.redirect(`/exibir_prof/${professorId}`);
+    await ComentarioModel.create({
+        professor_id: professorId,
+        usuario_nome: user.nome,
+        texto,
+        nota: notaInt
     });
+
+    res.redirect(`/exibir_prof/${professorId}`);
 });
 
 
 // --- ROTAS DE CHAT ATUALIZADAS ---
-router.get('/chat/:roomId', (req, res) => {
+router.get('/chat/:roomId', async (req, res) => {
     const { roomId } = req.params;
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
     
     const roomParts = roomId.replace('chat_', '').split('-');
-    const partnerId = roomParts.find(id => id !== user.id);
-    const partner = getUserById(partnerId);
+    const partnerId = roomParts.find(id => String(id) !== String(user.id));
+    const partner = await getUserById(partnerId);
 
     res.render('pages/chat', { 
         user, 
@@ -657,31 +543,27 @@ router.get('/termos', (req, res) => {
     res.render('pages/termos');
 });
 
-router.get('/aulas', (req, res) => {
+router.get('/aulas', async (req, res) => {
     const sessionUser = req.session.user_prof;
     if (!sessionUser) {
         return res.redirect('/login');
     }
 
-    // Busca os dados mais recentes do professor diretamente da "base de dados"
-    const professor = professores.find(p => p.id === sessionUser.id);
+    const professor = await ProfessorModel.findById(sessionUser.id);
     if (!professor) {
-        // Caso o professor não seja encontrado (improvável se a sessão existe), desloga.
-        return res.redirect('/logout'); 
+        return res.redirect('/logout');
     }
 
-    // Para cada horário agendado, busca o nome do aluno para exibição
-    if (professor.horariosDisponiveis) {
-        professor.horariosDisponiveis.forEach(horario => {
-            if (horario.status === 'agendado' && horario.alunoId) {
-                const aluno = getUserById(horario.alunoId);
-                horario.alunoNome = aluno ? aluno.nome : 'Aluno desconhecido';
-            }
-        });
+    const horarios = await HorarioModel.findByProfessor(professor.id);
+    for (const horario of horarios) {
+        if (horario.status === 'agendado' && horario.aluno_id) {
+            const aluno = await AlunoModel.findById(horario.aluno_id);
+            horario.alunoNome = aluno ? aluno.nome : 'Aluno desconhecido';
+        }
     }
 
-    // Renderiza a página com os dados atualizados do professor
-    res.render('pages/aulas', { user: professor, session: req.session });
+    const user = { ...professor, horariosDisponiveis: horarios };
+    res.render('pages/aulas', { user, session: req.session });
 });
 
 // GET exibe formulário (dados e erros são opcionais) — padronizado como nas outras rotas
@@ -699,7 +581,7 @@ router.post('/denuncia',
     body('evidencia').optional({ checkFalsy: true }).isURL().withMessage('Link de evidência inválido.'),
     body('anonimo').optional().toBoolean()
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
     const dados = req.body;
 
@@ -707,7 +589,15 @@ router.post('/denuncia',
         return res.status(422).render('pages/denuncia', { erros: errors.mapped(), dados });
     }
 
-    console.log('Nova denúncia:', dados);
+    await DenunciaModel.create({
+        tipo: dados.tipo,
+        titulo: dados.titulo,
+        descricao: dados.descricao,
+        email: dados.email,
+        evidencia: dados.evidencia,
+        anonimo: dados.anonimo
+    });
+
     req.session.dados = dados;
     return res.redirect('/denuncia_sucesso');
   }
@@ -774,7 +664,7 @@ router.get('/create_preference', async (req, res) => {
 });
 
 // Rota de sucesso do pagamento (onde o agendamento é efetivado)
-router.get('/pagamento/sucesso', (req, res) => {
+router.get('/pagamento/sucesso', async (req, res) => {
     const { external_reference } = req.query;
 
     if (!external_reference) {
@@ -787,42 +677,32 @@ router.get('/pagamento/sucesso', (req, res) => {
 
     try {
         const { profId, horarioId, alunoId } = JSON.parse(external_reference);
-        const professor = professores.find(p => p.id == profId);
+        const professor = await ProfessorModel.findById(profId);
 
-        if (!professor || !professor.horariosDisponiveis) {
+        if (!professor) {
             return res.status(404).render('pages/pagamento_erro', { error: 'O professor não foi encontrado.' });
         }
 
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId);
-        if (horarioIndex === -1) {
+        const horario = await HorarioModel.findById(horarioId);
+        if (!horario) {
             return res.status(404).render('pages/pagamento_erro', { error: 'O horário não existe mais.' });
         }
 
-        const horario = professor.horariosDisponiveis[horarioIndex];
-        horario.status = 'agendado';
-        horario.alunoId = alunoId;
+        await HorarioModel.update(horario.id, { status: 'agendado', aluno_id: alunoId });
 
-        const aluno = alunos.find(a => a.id === alunoId);
-        if (aluno) {
-            if (!aluno.agenda) aluno.agenda = [];
-            aluno.agenda.push({
-                professor: { id: professor.id, nome: professor.nome },
-                salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-                data: horario.data,
-                hora: horario.horaInicio
-            });
-        }
+        const salaId = crypto.randomBytes(16).toString('hex');
 
-        if (!professor.agenda) professor.agenda = [];
-        professor.agenda.push({
-            aluno: { id: alunoId, nome: aluno.nome },
-            salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+        await AgendamentoModel.create({
+            aluno_id: alunoId,
+            professor_id: profId,
+            horario_id: horario.id,
+            sala_id: salaId,
             data: horario.data,
-            hora: horario.horaInicio
+            hora: horario.hora_inicio
         });
-        
-        res.render('pages/pagamento_sucesso', { 
-            paymentId: req.query.payment_id, 
+
+        res.render('pages/pagamento_sucesso', {
+            paymentId: req.query.payment_id,
             status: req.query.status,
             message: "Agendamento concluído com sucesso!"
         });
@@ -848,11 +728,11 @@ router.get('/pagamento/pendente', (req, res) => {
     });
 });
 
-router.get('/dashboard_prof', (req, res) => {
+router.get('/dashboard_prof', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const professor = professores.find(p => p.id === user.id);
+    const professor = await ProfessorModel.findById(user.id);
     const agora = new Date();
     const mesAtual = agora.getMonth();
     const anoAtual = agora.getFullYear();
@@ -862,58 +742,47 @@ router.get('/dashboard_prof', (req, res) => {
     let ganhosMes = { total: 0, concluidas: 0, futuras: 0 };
     let avaliacaoMedia = { media: 0, totalAvaliacoes: 0, ultimoFeedback: "Nenhum feedback ainda." };
 
-    if (professor && professor.horariosDisponiveis) {
-        const horariosAgendados = professor.horariosDisponiveis
-            .filter(h => h.status === 'agendado')
-            .map(h => ({ ...h, dataObj: new Date(`${h.data}T${h.horaInicio}`) }))
-            .sort((a, b) => a.dataObj - b.dataObj);
+    const horarios = await HorarioModel.findByProfessor(user.id);
+    const horariosAgendados = horarios
+        .filter(h => h.status === 'agendado')
+        .map(h => ({ ...h, dataObj: new Date(`${h.data}T${h.hora_inicio}`) }))
+        .sort((a, b) => a.dataObj - b.dataObj);
 
-        const aulasFuturas = horariosAgendados.filter(h => h.dataObj > agora);
+    const aulasFuturas = horariosAgendados.filter(h => h.dataObj > agora);
 
-        // Contagem para as próximas 24h
-        const proximas24h = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
-        aulasProximas24h = aulasFuturas.filter(h => h.dataObj < proximas24h).length;
+    const proximas24h = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
+    aulasProximas24h = aulasFuturas.filter(h => h.dataObj < proximas24h).length;
 
-        // Encontra a próxima aula
-        if (aulasFuturas.length > 0) {
-            const proximoHorario = aulasFuturas[0];
-            const aluno = getUserById(proximoHorario.alunoId);
-            proximaAula = {
-                ...proximoHorario,
-                aluno: aluno,
-                salaId: proximoHorario.salaId || 'geral'
-            };
-        }
-
-        // Cálculo de Ganhos no Mês
-        const aulasConcluidasEsteMes = horariosAgendados.filter(h => 
-            h.dataObj < agora && 
-            h.dataObj.getMonth() === mesAtual && 
-            h.dataObj.getFullYear() === anoAtual
-        );
-
-        ganhosMes.total = aulasConcluidasEsteMes.length * 50; // Preço fixo de 50
-        ganhosMes.concluidas = aulasConcluidasEsteMes.length;
-        ganhosMes.futuras = aulasFuturas.length;
+    if (aulasFuturas.length > 0) {
+        const proximoHorario = aulasFuturas[0];
+        const aluno = await getUserById(proximoHorario.aluno_id);
+        proximaAula = {
+            ...proximoHorario,
+            aluno,
+            salaId: 'geral'
+        };
     }
 
-    // Cálculo da Avaliação Média
-    const comentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
-    const avaliacoes = comentarios.filter(c => c.nota);
-    
-    if (avaliacoes.length > 0) {
-        const somaNotas = avaliacoes.reduce((acc, c) => acc + c.nota, 0);
-        avaliacaoMedia.media = (somaNotas / avaliacoes.length).toFixed(1);
-        avaliacaoMedia.totalAvaliacoes = avaliacoes.length;
-        
-        // Pega o feedback mais recente que tenha um texto
-        const ultimoFeedbackComTexto = [...avaliacoes].reverse().find(a => a.texto);
-        if(ultimoFeedbackComTexto) {
-            avaliacaoMedia.ultimoFeedback = ultimoFeedbackComTexto.texto;
-        }
+    const aulasConcluidasEsteMes = horariosAgendados.filter(h =>
+        h.dataObj < agora &&
+        h.dataObj.getMonth() === mesAtual &&
+        h.dataObj.getFullYear() === anoAtual
+    );
+
+    ganhosMes.total = aulasConcluidasEsteMes.length * 50;
+    ganhosMes.concluidas = aulasConcluidasEsteMes.length;
+    ganhosMes.futuras = aulasFuturas.length;
+
+    const statsAvaliacao = await ComentarioModel.mediaByProfessor(user.id);
+    if (statsAvaliacao.total > 0) {
+        avaliacaoMedia.media = Number(statsAvaliacao.media).toFixed(1);
+        avaliacaoMedia.totalAvaliacoes = statsAvaliacao.total;
+        const comentarios = await ComentarioModel.findByProfessor(user.id);
+        const ultimoFb = comentarios.find(c => c.texto);
+        if (ultimoFb) avaliacaoMedia.ultimoFeedback = ultimoFb.texto;
     }
 
-    res.render('pages/dashboard_prof', { 
+    res.render('pages/dashboard_prof', {
         user,
         professor: professor || user,
         session: req.session,
@@ -932,7 +801,8 @@ router.get('/dashboard_aluno', (req, res) => {
 });
 
 
-router.get('/painel_adm', (req, res) => {
+router.get('/painel_adm', async (req, res) => {
+    const professores = await ProfessorModel.findAll();
     res.render('pages/painel_adm', { professores });
 });
 
@@ -958,7 +828,7 @@ router.get('/historico_chats', async (req, res) => {
                 if (messages.length > 0) {
                     const lastMessage = messages[messages.length - 1];
                     const partnerId = roomParts.find(id => id !== String(user.id));
-                    const partner = getUserById(partnerId);
+                    const partner = await getUserById(partnerId);
 
                     userChats.push({
                         id: room,
@@ -1033,39 +903,34 @@ router.post('/perfil/editar', (req, res) => {
         if (!erros.isEmpty()) {
             return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body, session: req.session });
         }
-        
-        // Garante que 'disciplinas' seja sempre um array
+
         let disciplinas = req.body.disciplinas || [];
-        if (disciplinas && !Array.isArray(disciplinas)) {
-            disciplinas = [disciplinas];
-        }
-        // Filtra valores vazios que possam ter sido enviados pelo formulário
+        if (!Array.isArray(disciplinas)) disciplinas = [disciplinas];
         disciplinas = disciplinas.filter(d => d && d.trim() !== '');
 
         const updatedData = {
             nome: req.body.nome,
             email: req.body.email,
-            descricao: req.body.descricao || user.descricao,
-            link_previa: req.body.link_previa || user.link_previa,
-            status: req.body.status || user.status,
-            disciplinas: disciplinas // Usa o array de disciplinas que foi tratado
+            descricao: req.body.descricao || user.descricao || '',
+            link_previa: req.body.link_previa || user.link_previa || '',
+            status: req.body.status || user.status || 'disponivel'
         };
 
         if (req.file) {
             updatedData.foto = '/imagens/uploads/' + req.file.filename;
         }
 
-        // Atualiza a sessão
-        req.session.user_prof = { ...user, ...updatedData };
-
-        // Atualiza o array global `professores`
-        const profIndex = professores.findIndex(p => p.id === user.id);
-        if (profIndex !== -1) {
-            professores[profIndex] = { ...professores[profIndex], ...updatedData };
+        if (isProf) {
+            await ProfessorModel.update(user.id, updatedData);
+            await DisciplinaModel.syncProfessor(user.id, disciplinas);
+            req.session.user_prof = { ...user, ...updatedData };
+        } else {
+            await AlunoModel.update(user.id, { nome: updatedData.nome, email: updatedData.email });
+            req.session.user_aluno = { ...user, nome: updatedData.nome, email: updatedData.email };
         }
 
-        req.session.save(err => {
-            if (err) {
+        req.session.save(saveErr => {
+            if (saveErr) {
                 return res.render(renderPage, { user, erros: { general: { msg: 'Erro ao salvar.' } }, session: req.session });
             }
             res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
@@ -1074,11 +939,14 @@ router.post('/perfil/editar', (req, res) => {
 });
 
 
-router.get('/pesquisar_profs', (req, res) => {
+router.get('/pesquisar_profs', async (req, res) => {
     const query = (req.query.query || '').trim().toLowerCase();
-    let results = professores;
+    let results = await ProfessorModel.findAll();
     if (query) {
-        results = professores.filter(p => p.nome.toLowerCase().includes(query) || p.descricao.toLowerCase().includes(query));
+        results = results.filter(p =>
+            p.nome.toLowerCase().includes(query) ||
+            (p.descricao && p.descricao.toLowerCase().includes(query))
+        );
     }
     res.render('pages/pesquisar_profs', { professores: results, query, session: req.session });
 });
@@ -1093,16 +961,14 @@ router.get('/agenda', (req, res) => {
     res.render('pages/agenda', { user, session: req.session });
 });
 
-router.get('/ganhos_mes', (req, res) => {
+router.get('/ganhos_mes', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const professor = professores.find(p => p.id === user.id);
     const agora = new Date();
     const mesAtual = agora.getMonth();
     const anoAtual = agora.getFullYear();
-
-    const VALOR_AULA = 50; // Valor fixo por aula
+    const VALOR_AULA = 50;
 
     let movimentacoes = [];
     let resumo = {
@@ -1113,44 +979,38 @@ router.get('/ganhos_mes', (req, res) => {
         ticketMedio: 0
     };
 
-    if (professor && professor.horariosDisponiveis) {
-        const aulasDoMes = professor.horariosDisponiveis.filter(h => {
-            const dataAula = new Date(`${h.data}T${h.horaInicio}`);
-            return h.status === 'agendado' && dataAula.getMonth() === mesAtual && dataAula.getFullYear() === anoAtual;
+    const horarios = await HorarioModel.findByProfessor(user.id);
+    const aulasDoMes = horarios.filter(h => {
+        const dataAula = new Date(`${h.data}T${h.hora_inicio}`);
+        return h.status === 'agendado' && dataAula.getMonth() === mesAtual && dataAula.getFullYear() === anoAtual;
+    });
+
+    const aulasConcluidas = aulasDoMes.filter(h => new Date(`${h.data}T${h.hora_inicio}`) < agora);
+    resumo.aulasConcluidas = aulasConcluidas.length;
+    resumo.totalGanhos = aulasConcluidas.length * VALOR_AULA;
+    resumo.aulasAgendadas = aulasDoMes.length - aulasConcluidas.length;
+    resumo.ticketMedio = resumo.aulasConcluidas > 0 ? resumo.totalGanhos / resumo.aulasConcluidas : 0;
+
+    const sorted = aulasConcluidas.sort((a, b) => new Date(`${b.data}T${b.hora_inicio}`) - new Date(`${a.data}T${a.hora_inicio}`));
+    for (const h of sorted) {
+        const aluno = await getUserById(h.aluno_id);
+        movimentacoes.push({
+            titulo: `Aula com ${aluno.nome || 'Aluno'}`,
+            data: new Date(`${h.data}T${h.hora_inicio}`).toLocaleDateString('pt-BR'),
+            hora: h.hora_inicio,
+            valor: VALOR_AULA
         });
-
-        const aulasConcluidas = aulasDoMes.filter(h => new Date(`${h.data}T${h.horaInicio}`) < agora);
-        resumo.aulasConcluidas = aulasConcluidas.length;
-        resumo.totalGanhos = aulasConcluidas.length * VALOR_AULA;
-        resumo.aulasAgendadas = aulasDoMes.length - aulasConcluidas.length;
-        resumo.ticketMedio = resumo.aulasConcluidas > 0 ? resumo.totalGanhos / resumo.aulasConcluidas : 0;
-
-        // Ordena por data, da mais recente para a mais antiga
-        movimentacoes = aulasConcluidas
-            .sort((a, b) => new Date(`${b.data}T${b.horaInicio}`) - new Date(`${a.data}T${a.horaInicio}`))
-            .map(h => ({
-                titulo: `Aula com ${getUserById(h.alunoId).nome || 'Aluno'}`,
-                data: new Date(`${h.data}T${h.horaInicio}`).toLocaleDateString('pt-BR'),
-                hora: h.horaInicio,
-                valor: VALOR_AULA
-            }));
     }
 
-    res.render('pages/ganhos_mes', { 
-        user,
-        resumo,
-        movimentacoes
-    });
+    res.render('pages/ganhos_mes', { user, resumo, movimentacoes });
 });
 
 
-router.get('/feedbacks_prof', (req, res) => {
+router.get('/feedbacks_prof', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const allComentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
-    const feedbacks = allComentarios
-        .sort((a, b) => new Date(b.data) - new Date(a.data)); // Mais recentes primeiro
+    const feedbacks = await ComentarioModel.findByProfessor(user.id);
 
     const avaliacoesComNota = feedbacks.filter(f => f.nota);
     const totalAvaliacoes = avaliacoesComNota.length;
@@ -1224,17 +1084,18 @@ router.post('/atividades', (req, res) => {
 });
 
 // Rota para explorar todas as atividades
-router.get('/explorar_atividades', (req, res) => {
+router.get('/explorar_atividades', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
     const activitiesData = activityStore.getActivities();
 
-    const activities = activitiesData.activities.map(activity => {
-        const creator = getUserById(activity.professorId);
-        return {
+    const activities = [];
+    for (const activity of activitiesData.activities) {
+        const creator = await getUserById(activity.professorId);
+        activities.push({
             ...activity,
             professorNome: creator ? creator.nome : 'Anônimo'
-        };
-    });
+        });
+    }
 
     res.render('pages/explorar_atividades', { 
         activities,
@@ -1244,13 +1105,13 @@ router.get('/explorar_atividades', (req, res) => {
 });
 
 // Rota para ver uma atividade específica
-router.get('/ver_atividade/:id', (req, res) => {
+router.get('/ver_atividade/:id', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
     const activitiesData = activityStore.getActivities();
     const activity = activitiesData.activities.find(a => a.id === req.params.id);
 
     if (activity) {
-        const creator = getUserById(activity.professorId);
+        const creator = await getUserById(activity.professorId);
         const activityData = {
             ...activity,
             professorNome: creator ? creator.nome : 'Anônimo'
