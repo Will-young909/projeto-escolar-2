@@ -157,7 +157,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      /* Lógica para habilitar/desabilitar o botão "Entrar na Sala"
+      // Lógica para habilitar/desabilitar o botão "Entrar na Sala"
       document.querySelectorAll('.enter-class-btn').forEach(btn => {
         const [dia, mes, ano] = btn.dataset.data.split('-');
         const [hora, minuto] = btn.dataset.hora.split(':');
@@ -176,7 +176,7 @@
           btn.removeAttribute('href');
           btn.title = 'A sala abre 10 minutos antes do início da aula.';
         }
-      });*/
+      });
 
       // Lógica para cancelar aula
       document.querySelectorAll('.cancel-btn').forEach(btn => {

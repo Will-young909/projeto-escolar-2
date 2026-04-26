@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= activity.title %> | RegiMath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/atividades.css">
+    <style>
+        .question { margin-bottom: 20px; }
+        .options label { display: block; margin-bottom: 10px; }
+        .result { margin-top: 20px; font-weight: bold; }
+        .correct { color: green; }
+        .incorrect { color: red; }
+    </style>
+</head>
+<body>
+    <main class="atividades-container">
+        <div class="form-builder-card" style="max-width: 800px; margin: auto;">
+            <header class="form-header">
+                <h1><%= activity.title %></h1>
+                <p><%= activity.description %></p>
+                <p><strong>Professor:</strong> <%= activity.professorNome %></p>
+            </header>
+
+            <% if (activity && activity.questions && activity.questions.length > 0) { %>
+                <form id="activity-form">
+                    <% activity.questions.forEach((question, index) => { %>
+                        <div class="question">
+                            <p><strong>Questão <%= index + 1 %>:</strong> <%= question.title %></p>
+                            <% if (question.type === 'multiple_choice' && question.options) { %>
+                                <div class="options">
+                                    <% Object.values(question.options).forEach((option, optionIndex) => { %>
+                                        <label>
+                                            <input type="radio" name="question-<%= index %>" value="<%= optionIndex + 1 %>">
+                                            <%= option %>
+                                        </label>
+                                    <% }); %>
+                                </div>
+                            <% } else if (question.type === 'short_text') { %>
+                                <input type="text" name="question-<%= index %>" class="form-control">
+                            <% } else if (question.type === 'long_text') { %>
+                                <textarea name="question-<%= index %>" class="form-control"></textarea>
+                            <% } else { %>
+                                <p><em>Questão sem formato definido ou opções ausentes.</em></p>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                    <button type="submit" class="btn-primary">Finalizar Atividade</button>
+                </form>
+            <% } else { %>
+                <p>Esta atividade ainda não possui questões.</p>
+            <% } %>
+
+            <div id="result-container" class="result" style="display: none;">
+                <h3>Resultados:</h3>
+                <p id="score"></p>
+                <div id="feedback"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('activity-form')?.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const activity = <%- JSON.stringify(activity) %>;
+            if (!activity || !activity.questions) return;
+
+            let score = 0;
+            const feedbackContainer = document.getElementById('feedback');
+            feedbackContainer.innerHTML = '';
+
+            activity.questions.forEach((question, index) => {
+                const feedbackElement = document.createElement('p');
+                let isCorrect = false;
+
+                if (question.type === 'multiple_choice') {
+                    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+                    if (selectedOption) {
+                        isCorrect = selectedOption.value === question.correct;
+                        if (isCorrect) score++;
+                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${question.options[question.correct]}`}</span>`;
+                    } else {
+                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                    }
+                } else {
+                    const userInput = document.querySelector(`[name="question-${index}"]`).value.trim();
+                    if (userInput) {
+                        isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
+                        if (isCorrect) score++;
+                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</span>`;
+                    } else {
+                         feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                    }
+                }
+                feedbackContainer.appendChild(feedbackElement);
+            });
+
+            const totalQuestions = activity.questions.length;
+            document.getElementById('score').innerText = `Você acertou ${score} de ${totalQuestions} questões.`;
+            document.getElementById('result-container').style.display = 'block';
+
+            const formElements = document.getElementById('activity-form').elements;
+            for (let i = 0; i < formElements.length; i++) {
+                formElements[i].disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

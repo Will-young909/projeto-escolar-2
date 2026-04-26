@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorar Atividades | RegiMath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .search-container input {
+            width: 50%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .activity-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+        .activity-card:hover {
+            transform: translateY(-5px);
+        }
+        .activity-card h3 {
+            margin: 0 0 10px 0;
+            color: #800020; 
+        }
+        .activity-card p {
+            margin: 0 0 15px 0;
+            flex-grow: 1;
+        }
+        .activity-card .author {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 15px;
+        }
+        .activity-card .btn-primary {
+            display: inline-block;
+            background-color: #800020;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .no-activities {
+            text-align: center;
+            color: #777;
+            width: 100%;
+        }
+         h2 {
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-search"></i> Explorar Atividades</h2>
+
+        <div class="search-container">
+            <input type="text" id="search-box" placeholder="Pesquisar por título, descrição ou professor...">
+        </div>
+
+        <% if (locals.activities && locals.activities.length > 0) { %>
+            <div class="activities-grid">
+                <% locals.activities.forEach(activity => { %>
+                    <div class="activity-card">
+                        <h3><%= activity.title %></h3>
+                        <p><%= activity.description %></p>
+                        <p class="author">Criado por: <strong><%= activity.professorNome || 'Professor Anônimo' %></strong></p>
+                        <a href="/ver_atividade/<%= activity.id %>" class="btn-primary">Ver Atividade</a>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p class="no-activities">Nenhuma atividade disponível no momento.</p>
+        <% } %>
+    </div>
+
+    <script>
+        document.getElementById('search-box').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let cards = document.querySelectorAll('.activity-card');
+            cards.forEach(card => {
+                let title = card.querySelector('h3').textContent.toLowerCase();
+                let description = card.querySelector('p').textContent.toLowerCase();
+                let author = card.querySelector('.author').textContent.toLowerCase();
+                if (title.includes(filter) || description.includes(filter) || author.includes(filter)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

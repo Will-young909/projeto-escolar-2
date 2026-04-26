@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const router = express.Router();
 const paymentsStore = require('../lib/paymentsStore');
 const chatStore = require('../lib/chatStore'); // Importa o chatStore
+const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
 
@@ -151,11 +152,12 @@ router.post('/professor/horarios', (req, res) => {
     professor.horariosDisponiveis = professor.horariosDisponiveis.filter(h => h.data !== date);
 
     slots.forEach(slot => {
-        if (slot.start && slot.end) {
+        if (slot.start && slot.end && slot.price) {
             professor.horariosDisponiveis.push({
                 data: date,
                 horaInicio: slot.start,
                 horaFim: slot.end,
+                price: slot.price,
                 status: 'disponivel',
                 alunoId: null,
                 horarioId: crypto.randomBytes(8).toString('hex')
@@ -201,47 +203,8 @@ router.post('/agendar-horario', async (req, res) => {
         return res.status(404).send('Horário não disponível.');
     }
     
-    // --- MUDANÇA TEMPORÁRIA: Pular pagamento ---
-    
     const horario = professor.horariosDisponiveis[horarioIndex];
 
-    horario.status = 'agendado';
-    horario.alunoId = alunoId;
-
-    if (!req.session.user_aluno.agenda) {
-        req.session.user_aluno.agenda = [];
-    }
-    req.session.user_aluno.agenda.push({
-        professor: { id: professor.id, nome: professor.nome },
-        salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-        data: horario.data,
-        hora: horario.horaInicio
-    });
-
-    if (!professor.agenda) {
-        professor.agenda = [];
-    }
-    professor.agenda.push({
-        aluno: { id: alunoId, nome: req.session.user_aluno.nome },
-        salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-        data: horario.data,
-        hora: horario.horaInicio
-    });
-    
-    const alunoIndex = alunos.findIndex(a => a.id === alunoId);
-    if(alunoIndex !== -1) {
-        alunos[alunoIndex].agenda = req.session.user_aluno.agenda;
-    }
-
-    req.session.save(err => {
-        if (err) {
-            console.error('Erro ao salvar agendamento:', err);
-            return res.status(500).send('Houve um erro ao salvar o agendamento.');
-        }
-        res.redirect(`/pagamento/sucesso?external_reference=${JSON.stringify({profId, horarioId, alunoId})}`);
-    });
-    
-    /* --- CÓDIGO ORIGINAL DE PAGAMENTO (Comentado) ---
     try {
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
         if (!mpPreferenceClient) {
@@ -254,7 +217,7 @@ router.post('/agendar-horario', async (req, res) => {
                 description: `Agendamento para ${horario.data} às ${horario.horaInicio}`,
                 quantity: 1,
                 currency_id: 'BRL',
-                unit_price: 50 // Preço fixo para a aula (ex: R$ 50,00)
+                unit_price: horario.price
             }],
             back_urls: {
                 success: "http://localhost:3000/pagamento/sucesso",
@@ -276,7 +239,6 @@ router.post('/agendar-horario', async (req, res) => {
         console.error('Erro ao criar preferência de pagamento:', error);
         res.status(500).send('Falha ao iniciar o processo de pagamento.');
     }
-    */
 });
 
 // --- ROTAS DE AUTENTICAÇÃO ATUALIZADAS ---
@@ -831,13 +793,33 @@ router.get('/pagamento/sucesso', (req, res) => {
             return res.status(404).render('pages/pagamento_erro', { error: 'O professor não foi encontrado.' });
         }
 
-        const horario = professor.horariosDisponiveis.find(h => h.horarioId === horarioId);
-        if (!horario) {
+        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId);
+        if (horarioIndex === -1) {
             return res.status(404).render('pages/pagamento_erro', { error: 'O horário não existe mais.' });
         }
 
-        //Lógica de agendamento que estava aqui foi movida para a rota /agendar-horario para bypassar o pagamento.
-        //O ideal é manter a lógica de negócio separada da rota de sucesso de pagamento.
+        const horario = professor.horariosDisponiveis[horarioIndex];
+        horario.status = 'agendado';
+        horario.alunoId = alunoId;
+
+        const aluno = alunos.find(a => a.id === alunoId);
+        if (aluno) {
+            if (!aluno.agenda) aluno.agenda = [];
+            aluno.agenda.push({
+                professor: { id: professor.id, nome: professor.nome },
+                salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+                data: horario.data,
+                hora: horario.horaInicio
+            });
+        }
+
+        if (!professor.agenda) professor.agenda = [];
+        professor.agenda.push({
+            aluno: { id: alunoId, nome: aluno.nome },
+            salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
+            data: horario.data,
+            hora: horario.horaInicio
+        });
         
         res.render('pages/pagamento_sucesso', { 
             paymentId: req.query.payment_id, 
@@ -1214,6 +1196,158 @@ router.get('/feedbacks_aluno', (req, res) => {
     const user = req.session.user_aluno;
     if (!user) return res.redirect('/login');
     res.render('pages/feedbacks_aluno', { user, session: req.session });
+});
+
+router.get('/atividades', (req, res) => {
+    res.render('pages/atividades');
+});
+
+router.get('/lista_atividades', (req, res) => {
+    const activities = activityStore.getActivities();
+    res.render('pages/lista_atividades', { activities: activities.activities });
+});
+
+router.post('/atividades', (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    const activities = activityStore.getActivities();
+    const newActivity = req.body;
+    newActivity.id = Math.random().toString(36).substring(7);
+    newActivity.professorId = user.id; // Save creator's ID
+
+    activities.activities.push(newActivity);
+    activityStore.saveActivities(activities);
+    res.redirect('/lista_atividades');
+});
+
+// Rota para explorar todas as atividades
+router.get('/explorar_atividades', (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    const activitiesData = activityStore.getActivities();
+
+    const activities = activitiesData.activities.map(activity => {
+        const creator = getUserById(activity.professorId);
+        return {
+            ...activity,
+            professorNome: creator ? creator.nome : 'Anônimo'
+        };
+    });
+
+    res.render('pages/explorar_atividades', { 
+        activities,
+        user,
+        session: req.session
+    });
+});
+
+// Rota para ver uma atividade específica
+router.get('/ver_atividade/:id', (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    const activitiesData = activityStore.getActivities();
+    const activity = activitiesData.activities.find(a => a.id === req.params.id);
+
+    if (activity) {
+        const creator = getUserById(activity.professorId);
+        const activityData = {
+            ...activity,
+            professorNome: creator ? creator.nome : 'Anônimo'
+        };
+        res.render('pages/ver_atividade', { 
+            activity: activityData, 
+            user, 
+            session: req.session 
+        });
+    } else {
+        res.redirect('/explorar_atividades');
+    }
+});
+
+router.get('/nivel_escolar', (req, res) => {
+    res.render('pages/nivel_escolar');
+});
+
+router.post('/gerar_atividade', async (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    const { level } = req.body;
+    let prompt;
+
+    switch (level) {
+        case 'fundamental1':
+            prompt = 'um exercício de matemática para o 1º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental2':
+            prompt = 'um exercício de matemática para o 2º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental3':
+            prompt = 'um exercício de matemática para o 3º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental4':
+            prompt = 'um exercício de matemática para o 4º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental5':
+            prompt = 'um exercício de matemática para o 5º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental6':
+            prompt = 'um exercício de matemática para o 6º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental7':
+            prompt = 'um exercício de matemática para o 7º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental8':
+            prompt = 'um exercício de matemática para o 8º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'fundamental9':
+            prompt = 'um exercício de matemática para o 9º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            break;
+        case 'medio1':
+            prompt = 'um exercício de matemática para o 1º ano do ensino médio com 10 questões de múltipla escolha.';
+            break;
+        case 'medio2':
+            prompt = 'um exercício de matemática para o 2º ano do ensino médio com 10 questões de múltipla escolha.';
+            break;
+        case 'medio3':
+            prompt = 'um exercício de matemática para o 3º ano do ensino médio com 10 questões de múltipla escolha.';
+            break;
+        default:
+            prompt = 'um exercício de matemática com 10 questões de múltipla escolha.';
+    }
+
+    try {
+        const port = process.env.APP_PORT;
+        const response = await fetch(`http://localhost:${port}/ia/generate-exercise`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt }),
+        });
+
+        if (!response.ok) {
+            throw new Error('A resposta do servidor não foi OK.');
+        }
+
+        const data = await response.json();
+        const activities = activityStore.getActivities();
+        const newActivity = {
+            id: Math.random().toString(36).substring(7),
+            professorId: user.id,
+            title: data.title || 'Atividade Gerada por IA',
+            description: data.description || '',
+            questions: data.questions || []
+        };
+
+        activities.activities.push(newActivity);
+        activityStore.saveActivities(activities);
+        res.redirect(`/ver_atividade/${newActivity.id}`);
+    } catch (error) {
+        console.error('Erro ao gerar exercício com IA:', error);
+        res.status(500).send('Não foi possível gerar o exercício. Verifique o console para mais detalhes.');
+    }
 });
 
 module.exports = router;

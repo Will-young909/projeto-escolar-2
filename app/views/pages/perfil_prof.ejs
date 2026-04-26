@@ -1,18 +1,26 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil de Professor - <%= user.nome %></title>
+    <title>Perfil de Professor - <%= user.nome %>
+    </title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/perfilProf.css">
-    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
     <style>
         .btn-secondary {
             background: none;
             border: none;
         }
+
+        .btn-secondary:focus, .btn-secondary:hover {
+            background-color:#ddd;
+            border-radius: 8px;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -22,10 +30,11 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
             align-items: center;
             justify-content: center;
         }
+
         .modal-content {
             background-color: #fefefe;
             margin: auto;
@@ -34,8 +43,9 @@
             width: 90%;
             max-width: 500px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -43,39 +53,78 @@
             padding-bottom: 10px;
             border-bottom: 1px solid #ddd;
         }
+
         .close-button {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover, .close-button:focus {
-            color: black;
-            text-decoration: none;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 30px;
             cursor: pointer;
+            transition: color 0.2s;
         }
+
+        .close-button:hover {
+            color: var(--color-text-dark);
+        }
+
         #time-slots-container {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: var(--spacing-md);
+            padding-right: 5px;
+            /* Espaço para scroll */
         }
+
         .time-slot {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
+            background: var(--color-background);
+            padding: 10px;
+            border-radius: 8px;
             margin-bottom: 10px;
+            border: 1px solid var(--color-border);
         }
-        .time-slot input[type="time"] {
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .time-slot input {
             padding: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--color-border);
             border-radius: 4px;
+            font-family: var(--font-family);
+            width: 100%;
         }
+
         .remove-slot-btn {
             cursor: pointer;
-            color: #a00020;
+            color: var(--color-secondary);
             border: none;
             background: none;
-            font-size: 1.5rem;
-            line-height: 1;
+            font-size: 1.2rem;
+            padding: 5px;
+            margin-top: 15px;
+            /* Alinha com os inputs */
+            transition: color 0.2s;
         }
+
+        .remove-slot-btn:hover {
+            color: red;
+        }
+
         .modal-footer {
             display: flex;
             justify-content: space-between;
@@ -84,6 +133,7 @@
         }
     </style>
 </head>
+
 <body>
     <header>
         <a href="/">
@@ -97,55 +147,88 @@
     <nav id="menu" class="overlay collapsed">
         <button id="close-menu" aria-label="Fechar menu">&times;</button>
         <button id="toggle-menu" aria-label="Recolher menu">
-            <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
+            <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+                fill="white">
                 <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
             </svg>
         </button>
         <ul class="nav-links">
-            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
+                        fill="#fff">
+                        <path
+                            d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z" />
+                    </svg>Home</a></li>
             <% if (session.user_prof) { %>
-                <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil professor</a></li>
-                <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Professor</a></li>
-                <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Aulas</a></li>
-                <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
-                <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
-            <% } %>
+                <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                            viewBox="0 -960 960 960" width="24px" fill="#fff">
+                            <path
+                                d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z" />
+                        </svg>Perfil professor</a></li>
+                <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                            viewBox="0 -960 960 960" width="24px" fill="#fff">
+                            <path
+                                d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z" />
+                        </svg>Dashboard Professor</a></li>
+                <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px"
+                            viewBox="0 -960 960 960" width="20px" fill="#fff">
+                            <path
+                                d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z" />
+                        </svg>Aulas</a></li>
+                <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                            viewBox="0 -960 960 960" width="24px" fill="#fff">
+                            <path
+                                d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
+                        </svg>Histórico de Chats</a></li>
+                <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960"
+                            width="20px" fill="#fff">
+                            <path
+                                d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z" />
+                        </svg>Sair</a></li>
+                <% } %>
         </ul>
     </nav>
 
     <main class="perfil-container">
         <section class="perfil-info card">
             <section class="profile-header">
-                <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>"
-                     alt="Foto do Professor"
-                     class="foto-perfil">
-               
-                <h1><%= user.nome %></h1>
+                <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do Professor" class="foto-perfil">
+
+                <h1>
+                    <%= user.nome %>
+                </h1>
                 <a href="/editar_perfil_prof" class="btn-edit" aria-label="Editar configurações do perfil">
                     <i class="fas fa-user-edit"></i> Editar Perfil
                 </a>
             </section>
             <h2>Informações</h2>
             <article class="form-group">
-                <p><strong>Descrição:</strong> <%= user.descricao || 'Descrição profissional' %></p>
+                <p><strong>Descrição:</strong>
+                    <%= user.descricao || 'Descrição profissional' %>
+                </p>
             </article>
             <article class="form-group">
-                <p><strong>Aula Prévia:</strong> <%= user.link_previa || 'Link da aula prévia' %></p>
+                <p><strong>Aula Prévia:</strong>
+                    <%= user.link_previa || 'Link da aula prévia' %>
+                </p>
             </article>
             <article class="form-group">
-                <p><strong>Status:</strong> <%= user.status || 'Status do(a) professor(a)' %></p>
+                <p><strong>Status:</strong>
+                    <%= user.status || 'Status do(a) professor(a)' %>
+                </p>
             </article>
             <article class="form-group">
                 <p><strong>Matérias Lecionadas:</strong></p>
                 <section class="tags-disciplinas">
-                    <% const disciplinas = user.disciplinas; %>
-                    <% if (disciplinas && disciplinas.length > 0) { %>
-                        <% disciplinas.forEach(disciplina => { %>
-                            <p class="tag"><%= disciplina %></p>
-                        <% }); %>
-                    <% } else { %>
-                        <p class="tag">Nenhuma adicionada</p>
-                    <% } %>
+                    <% const disciplinas=user.disciplinas; %>
+                        <% if (disciplinas && disciplinas.length> 0) { %>
+                            <% disciplinas.forEach(disciplina=> { %>
+                                <p class="tag">
+                                    <%= disciplina %>
+                                </p>
+                                <% }); %>
+                                    <% } else { %>
+                                        <p class="tag">Nenhuma adicionada</p>
+                                        <% } %>
                 </section>
             </article>
         </section>
@@ -159,15 +242,17 @@
         <section class="alunos card">
             <h2>🧑‍🎓 Histórico de Alunos</h2>
             <ul class="alunos-list">
-                <% if (user.historicoAlunos && user.historicoAlunos.length > 0) { %>
-                    <% user.historicoAlunos.forEach(aluno => { %>
+                <% if (user.historicoAlunos && user.historicoAlunos.length> 0) { %>
+                    <% user.historicoAlunos.forEach(aluno=> { %>
                         <li class="aluno-item" data-id="<%= aluno.id %>">
-                            <a href="/aluno/<%= aluno.id %>"><%= aluno.nome %></a>
+                            <a href="/aluno/<%= aluno.id %>">
+                                <%= aluno.nome %>
+                            </a>
                         </li>
-                    <% }) %>
-                <% } else { %>
-                    <li class="empty-state">Nenhum aluno registrado.</li>
-                <% } %>
+                        <% }) %>
+                            <% } else { %>
+                                <li class="empty-state">Nenhum aluno registrado.</li>
+                                <% } %>
             </ul>
         </section>
     </main>
@@ -267,7 +352,7 @@
                     const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                     dia.dataset.date = fullDateStr;
                     dia.setAttribute('role', 'button');
-                    
+
                     dia.addEventListener('click', () => openModalForDate(fullDateStr));
                     diasContainer.appendChild(dia);
                 }
@@ -278,8 +363,8 @@
                 selectedFullDate = dateStr;
                 const dateObj = new Date(dateStr + 'T00:00:00');
                 modalDateElem.textContent = `Horários para ${dateObj.toLocaleDateString('pt-BR')}`;
-                timeSlotsContainer.innerHTML = ''; 
-                addTimeSlot(); 
+                timeSlotsContainer.innerHTML = '';
+                addTimeSlot();
                 modal.style.display = 'flex';
             }
 
@@ -291,20 +376,22 @@
                     <input type="time" class="start-time" required>
                     <label>Fim:</label>
                     <input type="time" class="end-time" required>
-                    <button type="button" class="remove-slot-btn">&times;</button>
+                    <label>Preço:</label>
+                    <input type="number" class="price" placeholder="R$" required>
+                    <button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>
                 `;
                 timeSlotsContainer.appendChild(slotLi);
                 slotLi.querySelector('.remove-slot-btn').addEventListener('click', () => {
                     slotLi.remove();
                 });
             }
-            
+
             function closeModal() {
                 modal.style.display = 'none';
             }
 
-            if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-            if(addTimeSlotBtn) addTimeSlotBtn.addEventListener('click', addTimeSlot);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (addTimeSlotBtn) addTimeSlotBtn.addEventListener('click', addTimeSlot);
             if (saveScheduleBtn) {
                 saveScheduleBtn.addEventListener('click', async () => {
                     const slots = [];
@@ -314,15 +401,16 @@
                     slotElements.forEach(slot => {
                         const start = slot.querySelector('.start-time').value;
                         const end = slot.querySelector('.end-time').value;
-                        if (start && end && end > start) {
-                            slots.push({ start, end });
+                        const price = slot.querySelector('.price').value;
+                        if (start && end && end > start && price) {
+                            slots.push({ start, end, price });
                         } else {
                             allValid = false;
                         }
                     });
 
                     if (!allValid) {
-                        alert('Por favor, preencha todos os horários corretamente (o horário final deve ser depois do inicial).');
+                        alert('Por favor, preencha todos os campos corretamente (o horário final deve ser depois do inicial e o preço deve ser preenchido).');
                         return;
                     }
 
@@ -360,10 +448,11 @@
                     closeModal();
                 }
             });
-            
+
             const today = new Date();
             createCalendar(today.getFullYear(), today.getMonth());
         });
     </script>
 </body>
+
 </html>

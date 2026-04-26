@@ -183,12 +183,9 @@ svg {
 
 /* ---------- CONTAINER PRINCIPAL ---------- */
 .perfil-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  width: 100%;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
   animation: fadeIn 0.5s ease;
 }
 
@@ -329,14 +326,14 @@ textarea {
 
 /* ---------- BOTÕES ---------- */
 .btn-primary {
-  padding: 12px 15px;
+  padding: 5px 5px;
   background-color: var(--color-primary);
   color: var(--color-text-light);
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
+  width: 70%;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: background-color 0.3s ease, box-shadow 0.3s;
 }
@@ -538,6 +535,10 @@ textarea {
       padding-top: 0;
       border-top: none;
       margin-top: var(--spacing-md);
+  }
+
+  .btn-primary {
+    padding: 12px 15px;
   }
 }
 

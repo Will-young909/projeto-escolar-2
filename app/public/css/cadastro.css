@@ -90,7 +90,7 @@ label {
 }
 
 input,
-select#tipo {
+select#tipo, select#nivel_escolar {
   width: 95%;
   padding: 12px;
   margin-top: 4px;

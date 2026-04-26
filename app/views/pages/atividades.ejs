@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Atividade | RegiMath</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/css/atividades.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+</head>
+<body>
+
+<main class="atividades-container">
+  <!-- Barra de ações -->
+  <div class="actions-toolbar" aria-label="Ferramentas de atividade">
+    <button 
+      id="add-question" 
+      class="btn-icon" 
+      type="button" 
+      aria-label="Adicionar nova questão"
+      title="Adicionar Nova Questão">
+      <i class="fas fa-plus-circle"></i>
+    </button>
+
+    <button 
+      class="btn-icon" 
+      type="button" 
+      aria-label="Importar questões"
+      title="Importar Questões">
+      <i class="fas fa-file-import"></i>
+    </button>
+
+    <a href="/lista_atividades" class="btn-icon" aria-label="Ver atividades salvas">
+        <i class="fas fa-list-alt"></i>
+    </a>
+  </div>
+
+  <div class="ia-generator-container card">
+    <textarea id="ia-prompt" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea>
+    <button id="generate-with-ia" class="btn-primary">Gerar com IA</button>
+     <a href="/nivel_escolar" class="btn-secondary">Gerar por Nível Escolar</a>
+  </div>
+
+  <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="/atividades">
+    <header class="form-header">
+      <input 
+        type="text" 
+        id="activity-title" 
+        name="title"
+        placeholder="Título da Atividade" 
+        value="Atividade sem título"
+        required>
+      
+      <textarea 
+        id="activity-description" 
+        name="description"
+        placeholder="Descrição da atividade"></textarea>
+    </header>
+
+    <section id="questions-container" aria-label="Lista de questões">
+      <!-- As questões serão inseridas aqui -->
+    </section>
+
+    <button id="save-activity" class="btn-primary" type="submit">
+      Salvar Atividade
+    </button>
+  </form>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const questionsContainer = document.getElementById('questions-container');
+  const addQuestionBtn = document.getElementById('add-question');
+  const generateWithIaBtn = document.getElementById('generate-with-ia');
+  const iaPromptTextarea = document.getElementById('ia-prompt');
+  let questionCounter = 0;
+
+  const createQuestionBlock = () => {
+    questionCounter++;
+    const questionId = `question-${questionCounter}`;
+
+    const block = document.createElement('article');
+    block.classList.add('question-block');
+    block.id = questionId;
+    block.setAttribute('aria-label', `Questão ${questionCounter}`);
+
+    block.innerHTML = `
+      <div class="question-header">
+        <input 
+          type="text" 
+          placeholder="Pergunta" 
+          name="questions[${questionCounter}][title]"
+          required>
+        
+        <select 
+          class="question-type-selector" 
+          name="questions[${questionCounter}][type]"
+          aria-label="Tipo de questão">
+          <option value="multiple_choice">Múltipla escolha</option>
+          <option value="short_text">Resposta curta</option>
+          <option value="long_text">Parágrafo</option>
+        </select>
+      </div>
+
+      <div class="question-content"></div>
+
+      <div class="question-footer">
+        <button 
+          class="btn-icon btn-delete-question" 
+          type="button"
+          aria-label="Excluir questão"
+          title="Excluir Questão">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    `;
+
+    questionsContainer.appendChild(block);
+
+    const typeSelector = block.querySelector('.question-type-selector');
+    typeSelector.addEventListener('change', () => updateQuestionContent(typeSelector));
+
+    const deleteBtn = block.querySelector('.btn-delete-question');
+    deleteBtn.addEventListener('click', () => block.remove());
+
+    updateQuestionContent(typeSelector);
+
+    return block;
+  };
+
+  const updateQuestionContent = (selector) => {
+    const questionBlock = selector.closest('.question-block');
+    const contentDiv = questionBlock.querySelector('.question-content');
+    const type = selector.value;
+    const questionId = questionBlock.id.split('-')[1]; // Pega o contador da questão
+
+    contentDiv.innerHTML = '';
+
+    if (type === 'multiple_choice') {
+      contentDiv.innerHTML = `
+        <div class="options-container">
+          <div class="option-item">
+            <input type="radio" name="questions[${questionId}][correct]" value="1" aria-label="Alternativa correta 1">
+            <input type="text" name="questions[${questionId}][options][1]" placeholder="Opção 1">
+            <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+        <button class="btn-add-option" type="button">Adicionar opção</button>
+      `;
+    } else if (type === 'short_text' || type === 'long_text') {
+      contentDiv.innerHTML = `
+        <input 
+          type="text" 
+          name="questions[${questionId}][correctAnswer]" 
+          placeholder="Gabarito ou palavras-chave para a resposta..."
+          class="correct-answer-input">
+      `;
+    }
+  };
+
+  questionsContainer.addEventListener('click', (e) => {
+    const addOptionBtn = e.target.closest('.btn-add-option');
+    const removeOptionBtn = e.target.closest('.btn-remove-option');
+
+    if (addOptionBtn) {
+      e.preventDefault();
+      const questionBlock = addOptionBtn.closest('.question-block');
+      const optionsContainer = questionBlock.querySelector('.options-container');
+      const questionId = questionBlock.id.split('-')[1];
+      const optionCount = optionsContainer.querySelectorAll('.option-item').length + 1;
+
+      const newOption = document.createElement('div');
+      newOption.classList.add('option-item');
+      newOption.innerHTML = `
+        <input type="radio" name="questions[${questionId}][correct]" value="${optionCount}" aria-label="Alternativa correta ${optionCount}">
+        <input type="text" name="questions[${questionId}][options][${optionCount}]" placeholder="Opção ${optionCount}">
+        <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      optionsContainer.appendChild(newOption);
+    }
+
+    if (removeOptionBtn) {
+      e.preventDefault();
+      const optionItem = removeOptionBtn.closest('.option-item');
+      optionItem.remove();
+    }
+  });
+
+  addQuestionBtn.addEventListener('click', () => {
+    const newBlock = createQuestionBlock();
+    newBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Lógica da IA
+  generateWithIaBtn.addEventListener('click', async () => {
+    const prompt = iaPromptTextarea.value.trim();
+    if (!prompt) {
+      alert('Por favor, descreva o exercício que deseja criar.');
+      return;
+    }
+
+    generateWithIaBtn.disabled = true;
+    generateWithIaBtn.textContent = 'Gerando...';
+
+    try {
+      const response = await fetch('/ia/generate-exercise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('A resposta do servidor não foi OK.');
+      }
+
+      const data = await response.json();
+
+      // Limpa questões existentes e reseta o contador
+      questionsContainer.innerHTML = '';
+      questionCounter = 0;
+
+      document.getElementById('activity-title').value = data.title || 'Atividade Gerada por IA';
+      document.getElementById('activity-description').value = data.description || '';
+
+      if (data.questions && data.questions.length > 0) {
+        data.questions.forEach(q => {
+          const newQuestionBlock = createQuestionBlock();
+          const titleInput = newQuestionBlock.querySelector('input[placeholder="Pergunta"]');
+          const typeSelector = newQuestionBlock.querySelector('.question-type-selector');
+
+          if (titleInput) titleInput.value = q.title;
+          
+          if (typeSelector) {
+            typeSelector.value = q.type;
+            updateQuestionContent(typeSelector);
+
+            const contentDiv = newQuestionBlock.querySelector('.question-content');
+            const currentQuestionId = questionCounter;
+
+            if (q.type === 'multiple_choice') {
+              const optionsContainer = contentDiv.querySelector('.options-container');
+              optionsContainer.innerHTML = ''; // Limpa a opção padrão
+
+              Object.keys(q.options).forEach(key => {
+                const newOption = document.createElement('div');
+                newOption.classList.add('option-item');
+                newOption.innerHTML = `
+                  <input 
+                    type="radio" 
+                    name="questions[${currentQuestionId}][correct]" 
+                    value="${key}" 
+                    ${String(q.correct) === key ? 'checked' : ''}>
+                  <input 
+                    type="text" 
+                    name="questions[${currentQuestionId}][options][${key}]" 
+                    value="${q.options[key]}" 
+                    placeholder="Opção ${key}">
+                  <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
+                    <i class="fas fa-times"></i>
+                  </button>
+                `;
+                optionsContainer.appendChild(newOption);
+              });
+
+            } else if (q.type === 'short_text' || q.type === 'long_text') {
+              const answerInput = contentDiv.querySelector('.correct-answer-input');
+              if (answerInput) answerInput.value = q.correctAnswer || '';
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao gerar exercício com IA:', error);
+      alert('Não foi possível gerar o exercício. Verifique o console para mais detalhes.');
+    } finally {
+      generateWithIaBtn.disabled = false;
+      generateWithIaBtn.textContent = 'Gerar com IA';
+    }
+  });
+
+  // Cria uma questão inicial ao carregar a página
+  createQuestionBlock();
+});
+</script>
+
+</body>
+</html>

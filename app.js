@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // app.js
 const express = require("express");
 const session = require("express-session");
@@ -5,13 +7,12 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago');
-require('dotenv').config();
 
 const chatStore = require('./app/lib/chatStore');
 const paymentsStore = require('./app/lib/paymentsStore');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.APP_PORT;
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
@@ -52,6 +53,9 @@ app.use(express.static(path.join(__dirname, "app/public")));
 
 const rotaPrincipal = require("./app/routes/router");
 app.use("/", rotaPrincipal);
+
+const iaRouter = require("./app/routes/ia_router");
+app.use("/ia", iaRouter);
 
 const server = http.createServer(app);
 const io = new Server(server);

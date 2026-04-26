@@ -100,6 +100,25 @@
             <p id="err-tipo" class="error-feedback" aria-live="polite"><%= erros?.tipo?.msg || '' %></p>
         </section>
 
+        <section class="form-group" id="nivelEscolarSection" style="display: none;">
+            <label for="nivel_escolar"><i class="fas fa-layer-group"></i> Nível Escolar (Opcional)</label>
+            <select name="nivel_escolar" id="nivel_escolar">
+                <option value="">Selecione seu nível escolar</option>
+                <option value="fundamental1">1º ano - Ensino Fundamental</option>
+                <option value="fundamental2">2º ano - Ensino Fundamental</option>
+                <option value="fundamental3">3º ano - Ensino Fundamental</option>
+                <option value="fundamental4">4º ano - Ensino Fundamental</option>
+                <option value="fundamental5">5º ano - Ensino Fundamental</option>
+                <option value="fundamental6">6º ano - Ensino Fundamental</option>
+                <option value="fundamental7">7º ano - Ensino Fundamental</option>
+                <option value="fundamental8">8º ano - Ensino Fundamental</option>
+                <option value="fundamental9">9º ano - Ensino Fundamental</option>
+                <option value="medio1">1º ano - Ensino Médio</option>
+                <option value="medio2">2º ano - Ensino Médio</option>
+                <option value="medio3">3º ano - Ensino Médio</option>
+            </select>
+        </section>
+
         <button type="submit" class="btn-primary" id="btn-submit">
             <i class="fas fa-user-plus"></i> Criar Conta
         </button>
@@ -236,6 +255,22 @@
                 input.addEventListener('input', () => validateField(campos.senha));
             }
         });
+
+        const tipoSelect = document.getElementById('tipo');
+        const nivelEscolarSection = document.getElementById('nivelEscolarSection');
+
+        tipoSelect.addEventListener('change', function() {
+            if (this.value === 'aluno') {
+                nivelEscolarSection.style.display = 'block';
+            } else {
+                nivelEscolarSection.style.display = 'none';
+            }
+        });
+
+        // Initial check in case the form is re-rendered with a value
+        if (tipoSelect.value === 'aluno') {
+            nivelEscolarSection.style.display = 'block';
+        }
     })();
     </script>
 </body>

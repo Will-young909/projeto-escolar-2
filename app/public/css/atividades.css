@@ -1,0 +1,353 @@
+/* ============================
+VARIÁVEIS E ESTILOS GERAIS
+(Mobile first)
+============================ */
+:root {
+  --color-primary: #800020;
+  --color-secondary: #b22222;
+  --color-background: #f7f8fa;
+  --color-card-bg: #ffffff;
+  --color-text-dark: #222;
+  --color-text-secondary: #666;
+  --color-border: #ddd;
+  --color-light-gray: #f0f0f0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --border-radius: 12px;
+  --font-family: 'Poppins', sans-serif;
+
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  --container-width: 100%;
+  --container-max-width: 900px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-background);
+  font-family: var(--font-family);
+  color: var(--color-text-dark);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Container principal – mobile ocupa 100%, depois limita largura */
+.atividades-container {
+  width: var(--container-width);
+  max-width: var(--container-max-width);
+  margin: var(--spacing-lg) auto;
+  padding: var(--spacing-md);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================
+ESTRUTURA DO FORMULÁRIO
+============================ */
+.form-builder-card {
+  background-color: var(--color-card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: var(--spacing-lg);
+  border-top: 8px solid var(--color-primary);
+}
+
+/* Header empilhado no mobile */
+.form-header {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid #333;
+}
+
+.form-header input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--color-border);
+  padding: var(--spacing-sm) 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  transition: border-color 0.3s;
+}
+
+.form-header input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-header textarea {
+  width: 100%;
+  border: none;
+  margin-top: var(--spacing-sm);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  resize: vertical;
+  min-height: 50px;
+}
+
+.form-header textarea:focus {
+  outline: none;
+  border: 2px solid var(--color-light-gray);
+  border-radius: 8px;
+  padding: 5px;
+}
+
+/* ============================
+BLOCO DE QUESTÃO
+============================ */
+.question-block {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  margin-bottom: var(--spacing-md);
+  position: relative;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.question-block:focus-within {
+  box-shadow: 0 0 0 2px #ddd;
+  border-color: #ddd;
+}
+
+/* No mobile os itens da header empilham, depois viram linha */
+.question-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.question-header input,
+.correct-answer-input {
+  flex-grow: 1;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-xs) 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.question-header input:focus,
+.correct-answer-input:focus {
+  outline: none;
+}
+
+.question-type-selector {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background-color: #fff;
+}
+
+.question-content {
+  padding-top: var(--spacing-xs);
+}
+
+/* Respostas de texto */
+.text-answer-placeholder {
+  border-bottom: 1px dotted var(--color-text-secondary);
+  padding: var(--spacing-xs) 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+.correct-answer-input {
+  width: 100%;
+  border: none;
+}
+
+/* Opções de Múltipla Escolha */
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.option-item input[type="text"] {
+  flex-grow: 1;
+  border: none;
+  background-color: var(--color-light-gray);
+  padding: var(--spacing-sm);
+  border-radius: 6px;
+}
+
+.option-item input[type="text"]:focus {
+  outline: none;
+  background-color: #e0e0e0;
+}
+
+/* ============================
+BOTÕES ÍCONE
+============================ */
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 1.2rem;
+  padding: 5px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+.btn-icon:hover {
+  background-color: var(--color-light-gray);
+  color: var(--color-primary);
+}
+
+.btn-icon:active {
+  transform: scale(0.96);
+}
+
+.btn-add-option {
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+  padding: var(--spacing-xs) 0;
+  margin-top: var(--spacing-xs);
+}
+
+/* Rodapé da questão: empilhado no mobile, alinhado no desktop */
+.question-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+  border-top: 3px solid #333;
+}
+
+/* ============================
+BARRA DE AÇÕES FLUTUANTE
+============================ */
+/* Mobile: vira uma barra fixa no rodapé ou topo */
+.actions-toolbar {
+  position: fixed;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 20;
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-xs);
+  background-color: var(--color-card-bg);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  box-shadow: 0 0px 8px rgba(0, 0, 0, 0.5);
+}
+
+.actions-toolbar .btn-icon {
+  font-size: 1.4rem;
+}
+
+/* ============================
+BOTÃO PRINCIPAL
+============================ */
+.btn-primary {
+  display: inline-block;
+  width: 100%;
+  background-color: var(--color-primary);
+  color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-secondary);
+  box-shadow: 0 4px 10px rgba(128, 0, 32, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* ============================
+MEDIA QUERIES (MOBILE FIRST)
+============================ */
+
+/* ≥ 600px: pequenos tablets / celulares landscape */
+@media (min-width: 600px) {
+  .atividades-container {
+    padding: var(--spacing-lg);
+  }
+
+  .form-header input {
+    font-size: 1.6rem;
+  }
+
+  .question-header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .question-type-selector {
+    min-width: 150px;
+  }
+
+  .btn-primary {
+    width: auto;
+    align-self: flex-end;
+  }
+
+  /* Toolbar mais compacta */
+  .actions-toolbar {
+    bottom: var(--spacing-lg);
+    right: var(--spacing-lg);
+    box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* ≥ 900px: desktop */
+@media (min-width: 900px) {
+  .atividades-container {
+    margin: 30px auto;
+  }
+
+  .form-builder-card {
+    padding: var(--spacing-xl);
+  }
+
+  /* Toolbar volta a ser sticky lateral no desktop */
+  .actions-toolbar {
+    position: sticky;
+    top: 80px;
+    bottom: auto;
+    right: auto;
+    float: right;
+    margin-right: -90px;
+    flex-direction: column;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm);
+  }
+
+  .actions-toolbar .btn-icon {
+    font-size: 1.5rem;
+  }
+}
