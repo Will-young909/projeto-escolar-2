@@ -107,7 +107,8 @@ nav.active {
 }
 
 nav a,
-nav .dropdown-toggle {
+nav .dropdown-toggle,
+.a11y-fab {
   color: var(--color-text-light);
   text-decoration: none;
   padding: var(--spacing-sm) var(--spacing-lg);
@@ -118,6 +119,10 @@ nav .dropdown-toggle {
 
 nav a:hover,
 nav .dropdown-toggle:hover {
+  background: var(--color-secondary);
+}
+
+.a11y-fab:hover {
   background: var(--color-secondary);
 }
 

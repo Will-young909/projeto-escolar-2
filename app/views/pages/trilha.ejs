@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trilha de Exercícios - Regimath</title>
+    <link rel="stylesheet" href="/css/atividades.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2, h3 {
+            color: #8A2BE2;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(138, 43, 226, 0.75), rgba(0, 0, 0, 0));
+            margin: 2rem 0;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        button {
+            background-color: #8A2BE2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #7a1fb8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-tasks"></i> Trilha de Exercícios - Passo <%= item.passo %></h2>
+        
+        <h3>Exercício: <%= item.tipo %></h3>
+        <p><%= item.titulo %></p>
+
+        <form action="/trilha/responder" method="POST">
+            <input type="hidden" name="trilha_id" value="<%= item.trilha_id %>">
+            <input type="hidden" name="item_id" value="<%= item.id %>">
+            
+            <div>
+                <label for="resposta">Sua Resposta:</label>
+                <textarea name="resposta" id="resposta" rows="5" required></textarea>
+            </div>
+
+            <button type="submit">Enviar Resposta</button>
+        </form>
+    </div>
+    <a href="/">Home</a>
+</body>
+</html>

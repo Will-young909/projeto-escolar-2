@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const TrailController = require('../controllers/TrailController');
+const AlunoModel = require('../models/AlunoModel');
 
 require('dotenv').config();
 
@@ -54,7 +56,7 @@ router.post('/generate-exercise', async (req, res) => {
     }
 
     const fullPrompt = `
-Crie um exercício com base na seguinte descrição: "${prompt}".
+Crie um exercício com base na seguinte descrição: \"${prompt}\".
 
 RESPONDA SOMENTE COM JSON VÁLIDO.
 NÃO use markdown.
@@ -63,19 +65,19 @@ Se a resposta não for JSON válido, corrija antes de enviar.
 
 Formato:
 {
-  "title": "Título",
-  "description": "Descrição",
-  "questions": [
+  \"title\": \"Título\",
+  \"description\": \"Descrição\",
+  \"questions\": [
     {
-      "title": "Pergunta",
-      "type": "multiple_choice",
-      "options": {
-        "1": "Opção 1",
-        "2": "Opção 2",
-        "3": "Opção 3",
-        "4": "Opção 4"
+      \"title\": \"Pergunta\",
+      \"type\": \"multiple_choice\",
+      \"options\": {
+        \"1\": \"Opção 1\",
+        \"2\": \"Opção 2\",
+        \"3\": \"Opção 3\",
+        \"4\": \"Opção 4\"
       },
-      "correct": "1"
+      \"correct\": \"1\"
     }
   ]
 }
@@ -107,5 +109,35 @@ Formato:
     });
   }
 });
+
+router.post('/generate-trail', async (req, res) => {
+    try {
+      const { testResults, alunoId } = req.body;
+  
+      if (!testResults || !alunoId) {
+        return res.status(400).json({
+          error: 'testResults and alunoId are required'
+        });
+      }
+  
+      const aluno = await AlunoModel.findById(alunoId);
+      if (!aluno) {
+        return res.status(404).json({ error: 'Aluno not found' });
+      }
+  
+      const trailController = new TrailController(aluno);
+      const trail = await trailController.generateTrail(testResults);
+  
+      // Instead of returning JSON, we now render the trilha page
+      return res.render('pages/trilha', { trail });
+  
+    } catch (error) {
+      console.error('Error generating trail:', error.message);
+      return res.status(500).json({
+        error: 'Failed to generate trail',
+        details: error.message
+      });
+    }
+  });
 
 module.exports = router;

@@ -1,0 +1,340 @@
+/* === Accessibility FAB (Floating Action Button) === 
+.a11y-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: #800020; /* A strong, accessible blue 
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    z-index: 1001; /* Above other content, below modal 
+    transition: background-color 0.3s ease, transform 0.3s ease;
+} */
+
+.high-contrast .a11y-fab {
+    background-color: #0056b3;
+}
+
+/*.a11y-fab:hover {
+    background-color: #800000;
+    transform: scale(1.1);
+}*/
+
+.high-contrast .a11y-fab:hover {
+    background-color: #004494;
+}
+
+/* === Accessibility Modal === */
+.a11y-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1002; /* Highest z-index */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.a11y-modal--visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.a11y-modal-content {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.a11y-modal--visible .a11y-modal-content {
+    transform: scale(1);
+}
+
+.a11y-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 32px; /* Larger for easier clicking */
+    cursor: pointer;
+    color: #888;
+    z-index: 1003;
+    padding: 5px;
+    line-height: 1;
+}
+
+.a11y-close-btn:hover {
+    color: #333;
+}
+
+.high-contrast .a11y-close-btn:hover {
+    color: #ddd;
+}
+
+.a11y-title {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 22px;
+}
+
+/* === Control Groups & Grid === */
+.a11y-group {
+    margin-bottom: 20px;
+}
+
+.a11y-group h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.a11y-control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.a11y-control-grid button {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.a11y-control-grid button:hover {
+    background-color: #e9e9e9;
+    border-color: #ccc;
+}
+
+.high-contrast .a11y-control-grid button:hover {
+    background-color: #111;
+    color: #fff;
+    border-color: #fff;
+}
+
+.a11y-control-grid button i {
+    font-size: 16px;
+    width: 20px; /* Consistent icon width */
+    text-align: center;
+}
+
+/* Highlight do texto sendo lido */
+.a11y-reading {
+    background-color: yellow !important;
+    color: black !important;
+    transition: 0.2s;
+}
+
+/* TTS Specific Grid */
+.tts-grid {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+}
+.tts-grid p {
+    margin: 0;
+}
+#tts-controls {
+    display: flex;
+    gap: 8px;
+}
+#tts-controls button {
+    justify-content: center;
+    padding: 10px;
+}
+
+/* === Footer === */
+.a11y-footer {
+    margin-top: 25px;
+    text-align: center;
+}
+
+#a11y-close-modal{
+    border-radius: 10px;
+}
+
+#reduce-motion {
+    border-radius: 10px;
+    background-color: #800020;
+    color: white;
+    padding: 10px 20px;
+}
+
+.high-contrast #reduce-motion{
+    background: #004494;
+    color: #fff;
+}
+
+.high-contrast #reduce-motion:hover{
+    background: #111;
+}
+
+
+#reset-accessibility {
+    border-radius: 10px;
+    background-color: #800020;
+    color: white;
+    padding: 10px 20px;
+}
+#reset-accessibility:hover {
+    background-color: #800000;
+}
+
+/* === High Contrast Adjustments === */
+.high-contrast {
+    --color-primary: #8000b3;
+    --color-secondary: #0088cc;
+  
+    --color-background: #000;
+    --color-card-bg: #111;
+  
+    --color-text-dark: #fff;
+    --color-text-secondary: #ddd;
+    --color-text-light: #fff;
+  
+    --color-star: #ffff00;
+    --color-accent: #00ffff;
+}
+
+.high-contrast h2, .high-contrast h3{
+    color: #fff;
+}
+
+.high-contrast .menu-btn {
+    color: #000;
+    background: none;
+    border: none;
+}
+
+.high-contrast input {
+  background: #111;
+  color: #fff;
+  border: 1px solid #888;
+}
+
+.high-contrast button {
+    background: #004494;
+    color: #fff;
+    border: 1px solid #888;
+}
+
+.high-contrast img:not(.logo) {
+    filter: grayscale(100%) contrast(120%);
+}
+
+.hero {
+    position: relative;
+    overflow: hidden;
+}
+  
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35); /* camada de contraste */
+    z-index: 0;
+}
+  
+.hero * {
+    position: relative;
+    z-index: 1;
+}
+
+.high-contrast .hero {
+    background: #004494 !important;
+  }
+  
+.high-contrast .hero::before {
+    display: none;
+}
+
+.high-contrast .card {
+    background: #111;
+    border: 2px solid #00ffff;
+    box-shadow: none;
+}
+
+.high-contrast .limite,
+.high-contrast .descricao {
+  color: #ddd;
+}
+
+.high-contrast .avaliacao {
+    color: #ffff00;
+    font-weight: 700;
+}
+
+.high-contrast .btn-primary {
+    background: #00ffff;
+    color: #000;
+    border: 2px solid #fff;
+}
+  
+.high-contrast .btn-previa {
+    background: #00aaff;
+    color: #000;
+    border: 2px solid #fff;
+}
+
+.high-contrast .input-wrapper {
+    background: #000;
+    border: 2px solid #00ffff;
+}
+  
+.high-contrast input[type="search"] {
+    color: #fff;
+}
+  
+.high-contrast input::placeholder {
+    color: #aaa;
+}
+
+:focus {
+    outline: 3px solid #800020;
+    outline-offset: 2px;
+}
+
+.high-contrast :focus {
+    outline: 1px solid #ddd;
+}
+
+/* === Font & Other Adjustments (remain the same) === */
+.grayscale { filter: grayscale(100%); }
+.underline-links a { text-decoration: underline !important; }
+.reader-font { font-family: 'Open Sans', sans-serif !important; }
+.dyslexia-font { font-family: 'OpenDyslexic', sans-serif !important; }
+.reduce-motion * { transition: none !important; animation: none !important; }

@@ -9,6 +9,44 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
+    <style>
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pagination ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 10px;
+}
+
+.pagination li a,
+.pagination li span {
+    display: block;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    background-color: #fff;
+}
+
+.pagination li.active span {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+}
+
+.pagination li.disabled span {
+    color: #aaa;
+    pointer-events: none;
+}
+</style>
 </head>
 
 <body>
@@ -130,6 +168,32 @@
             <% } %>
 
             </section>
+
+            <% if (totalPages > 1) { %>
+                <section class="pagination" aria-label="Navegação de páginas">
+                    <ul>
+                        <% if (currentPage > 1) { %>
+                            <li><a href="<%= url %>?page=<%= currentPage - 1 %>&query=<%= query %>">Anterior</a></li>
+                        <% } else { %>
+                            <li class="disabled"><span>Anterior</span></li>
+                        <% } %>
+
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <% if (i === currentPage) { %>
+                                <li class="active"><span><%= i %></span></li>
+                            <% } else { %>
+                                <li><a href="<%= url %>?page=<%= i %>&query=<%= query %>"><%= i %></a></li>
+                            <% } %>
+                        <% } %>
+
+                        <% if (currentPage < totalPages) { %>
+                            <li><a href="<%= url %>?page=<%= currentPage + 1 %>&query=<%= query %>">Próxima</a></li>
+                        <% } else { %>
+                            <li class="disabled"><span>Próxima</span></li>
+                        <% } %>
+                    </ul>
+                </section>
+            <% } %>
     </main>
 
     <footer>

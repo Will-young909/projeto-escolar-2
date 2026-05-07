@@ -21,33 +21,34 @@
             <header class="form-header">
                 <h1><%= activity.title %></h1>
                 <p><%= activity.description %></p>
-                <p><strong>Professor:</strong> <%= activity.professorNome %></p>
+                <% if (activity.professorNome) { %>
+                    <p><strong>Professor:</strong> <%= activity.professorNome %></p>
+                <% } %>
             </header>
 
             <% if (activity && activity.questions && activity.questions.length > 0) { %>
-                <form id="activity-form">
+                <% const isTest = activity.isTest || false; %>
+                <form id="activity-form" <% if (isTest) { %>action="/submit-test/<%= activity.id %>" method="POST"<% } %>>
                     <% activity.questions.forEach((question, index) => { %>
                         <div class="question">
                             <p><strong>Questão <%= index + 1 %>:</strong> <%= question.title %></p>
-                            <% if (question.type === 'multiple_choice' && question.options) { %>
-                                <div class="options">
-                                    <% Object.values(question.options).forEach((option, optionIndex) => { %>
+                            <div class="options">
+                                <% if (question.options) { %>
+                                    <% Object.entries(question.options).forEach(([key, value]) => { %>
                                         <label>
-                                            <input type="radio" name="question-<%= index %>" value="<%= optionIndex + 1 %>">
-                                            <%= option %>
+                                            <input type="radio" name="answers[<%= index %>]" value="<%= key %>" required>
+                                            <%= value %>
                                         </label>
                                     <% }); %>
-                                </div>
-                            <% } else if (question.type === 'short_text') { %>
-                                <input type="text" name="question-<%= index %>" class="form-control">
-                            <% } else if (question.type === 'long_text') { %>
-                                <textarea name="question-<%= index %>" class="form-control"></textarea>
-                            <% } else { %>
-                                <p><em>Questão sem formato definido ou opções ausentes.</em></p>
-                            <% } %>
+                                <% } else { %>
+                                    <p>Esta é uma questão dissertativa. Responda abaixo:</p>
+                                    <textarea name="answers[<%= index %>]" class="form-control" rows="4"></textarea>
+                                <% } %>
+                            </div>
                         </div>
                     <% }); %>
                     <button type="submit" class="btn-primary">Finalizar Atividade</button>
+                     <a href="javascript:history.back()" class="btn-primary" style="text-decoration: none; color: #fff; text-align: center;">Voltar</a>
                 </form>
             <% } else { %>
                 <p>Esta atividade ainda não possui questões.</p>
@@ -62,51 +63,59 @@
     </main>
 
     <script>
-        document.getElementById('activity-form')?.addEventListener('submit', function(event) {
-            event.preventDefault();
+        const isTest = <%- JSON.stringify(activity.isTest || false) %>;
 
-            const activity = <%- JSON.stringify(activity) %>;
-            if (!activity || !activity.questions) return;
+        if (!isTest) {
+            document.getElementById('activity-form')?.addEventListener('submit', function(event) {
+                event.preventDefault();
 
-            let score = 0;
-            const feedbackContainer = document.getElementById('feedback');
-            feedbackContainer.innerHTML = '';
+                const activity = <%- JSON.stringify(activity) %>;
+                if (!activity || !activity.questions) return;
 
-            activity.questions.forEach((question, index) => {
-                const feedbackElement = document.createElement('p');
-                let isCorrect = false;
+                let score = 0;
+                const feedbackContainer = document.getElementById('feedback');
+                feedbackContainer.innerHTML = '';
 
-                if (question.type === 'multiple_choice') {
-                    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
-                    if (selectedOption) {
-                        isCorrect = selectedOption.value === question.correct;
-                        if (isCorrect) score++;
-                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${question.options[question.correct]}`}</span>`;
-                    } else {
-                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                activity.questions.forEach((question, index) => {
+                    const feedbackElement = document.createElement('p');
+                    let isCorrect = false;
+                    const questionName = `answers[${index}]`;
+
+                    if (question.options) { // Múltipla escolha
+                        const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+                        if (selectedOption) {
+                            isCorrect = selectedOption.value.toLowerCase() === (question.correct || '').toLowerCase();
+                            if (isCorrect) score++;
+                            
+                            const correctOptionText = question.options[question.correct];
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${correctOptionText}`}</span>`;
+                        } else {
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                        }
+                    } else { // Texto dissertativo
+                        const userInput = document.querySelector(`[name="${questionName}"]`).value.trim();
+                        if (userInput) {
+                            isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
+                            if (isCorrect) score++;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</span>`;
+                        } else {
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                        }
                     }
-                } else {
-                    const userInput = document.querySelector(`[name="question-${index}"]`).value.trim();
-                    if (userInput) {
-                        isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
-                        if (isCorrect) score++;
-                        feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</span>`;
-                    } else {
-                         feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
-                    }
+                    feedbackContainer.appendChild(feedbackElement);
+                });
+
+                const totalQuestions = activity.questions.length;
+                document.getElementById('score').innerText = `Você acertou ${score} de ${totalQuestions} questões.`;
+                document.getElementById('result-container').style.display = 'block';
+
+                // Desabilita o formulário após a submissão
+                const formElements = document.getElementById('activity-form').elements;
+                for (let i = 0; i < formElements.length; i++) {
+                    formElements[i].disabled = true;
                 }
-                feedbackContainer.appendChild(feedbackElement);
             });
-
-            const totalQuestions = activity.questions.length;
-            document.getElementById('score').innerText = `Você acertou ${score} de ${totalQuestions} questões.`;
-            document.getElementById('result-container').style.display = 'block';
-
-            const formElements = document.getElementById('activity-form').elements;
-            for (let i = 0; i < formElements.length; i++) {
-                formElements[i].disabled = true;
-            }
-        });
+        }
     </script>
 </body>
 </html>
