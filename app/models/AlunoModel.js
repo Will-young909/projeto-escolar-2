@@ -17,12 +17,12 @@ const AlunoModel = {
     return rows[0] || null;
   },
 
-  async create({ nome, email, senha }) {
+  async create({ id, nome, email, senha }) {
     const [result] = await pool.query(
-      'INSERT INTO alunos (nome, email, senha) VALUES (?, ?, ?)',
-      [nome, email, senha]
+      'INSERT INTO alunos (id, nome, email, senha) VALUES (?, ?, ?, ?)',
+      [id, nome, email, senha]
     );
-    return { id: result.insertId, nome, email };
+    return { id, nome, email };
   },
 
   async update(id, dados) {

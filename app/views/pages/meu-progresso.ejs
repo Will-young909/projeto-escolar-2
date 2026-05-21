@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Progresso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    :root {
+      --bordo: #800020;
+      --bordo-escuro: #520d23;
+      --bordo-claro: #a83244;
+      --dourado: #f4c542;
+      --verde: #16a34a;
+      --vermelho: #dc2626;
+      --texto: #1f2937;
+      --texto-claro: #6b7280;
+      --fundo: #f6f8fb;
+      --card: rgba(255, 255, 255, 0.92);
+      --borda: rgba(128, 0, 32, 0.08);
+      --sombra: 0 12px 30px rgba(15, 23, 42, 0.10);
+      --sombra-hover: 0 18px 40px rgba(15, 23, 42, 0.14);
+      --raio: 18px;
+      --raio-sm: 12px;
+      --transicao: 0.25s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(16px);
+      border-bottom: 2px solid var(--bordo);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+
+    .navbar-brand {
+      color: var(--bordo) !important;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .nav-link {
+      color: var(--texto) !important;
+      font-weight: 500;
+      transition: var(--transicao);
+    }
+
+    .nav-link:hover {
+      color: var(--bordo) !important;
+    }
+
+    main.container {
+      padding-top: 1rem;
+      padding-bottom: 2rem;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--bordo) 0%, var(--bordo-claro) 100%);
+      color: white;
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 35%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      font-size: 0.98rem;
+      max-width: 700px;
+      opacity: 0.95;
+      margin: 0;
+    }
+
+    .card {
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      background: var(--card);
+      box-shadow: var(--sombra);
+      transition: transform var(--transicao), box-shadow var(--transicao);
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+
+    .card-title {
+      font-weight: 700;
+      color: var(--bordo);
+      margin-bottom: 1rem;
+      font-size: 1.05rem;
+    }
+
+    .info-box {
+      background: linear-gradient(180deg, #fff, #fafafa);
+      border: 1px solid rgba(128, 0, 32, 0.08);
+      border-radius: var(--raio-sm);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.92rem;
+      color: var(--texto-claro);
+    }
+
+    .progress-label strong {
+      color: var(--texto);
+      font-size: 1rem;
+    }
+
+    .progress {
+      height: 14px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      background: linear-gradient(90deg, var(--bordo), var(--bordo-claro), var(--dourado));
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: white;
+      text-align: center;
+      transition: width 0.6s ease;
+    }
+
+    .xp-text {
+      margin-top: 0.65rem;
+      font-size: 0.9rem;
+      color: var(--texto-claro);
+    }
+
+    .streak-box {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      background: linear-gradient(135deg, rgba(255, 243, 205, 0.5), rgba(255, 255, 255, 0.95));
+      border: 1px solid rgba(244, 197, 66, 0.25);
+      border-radius: var(--raio-sm);
+      padding: 1rem;
+    }
+
+    .streak-emoji {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: rgba(244, 197, 66, 0.18);
+      font-size: 1.4rem;
+      flex: 0 0 auto;
+    }
+
+    .streak-box p {
+      margin: 0;
+    }
+
+    .streak-box strong {
+      color: var(--bordo);
+    }
+
+    .skills-card {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      box-shadow: var(--sombra);
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .skill-column {
+      background: linear-gradient(180deg, #fff, #fcfcfd);
+      border: 1px solid rgba(128, 0, 32, 0.08);
+      border-radius: var(--raio-sm);
+      padding: 1rem;
+    }
+
+    .skill-column h6 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .skill-column.strong h6 {
+      color: var(--verde);
+    }
+
+    .skill-column.weak h6 {
+      color: var(--vermelho);
+    }
+
+    .skill-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.65rem;
+    }
+
+    .skill-item {
+      padding: 0.8rem 0.9rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .skill-item strong {
+      font-weight: 600;
+    }
+
+    .skill-item.strong {
+      color: var(--verde);
+      border-left: 4px solid var(--verde);
+    }
+
+    .skill-item.weak {
+      color: var(--vermelho);
+      border-left: 4px solid var(--vermelho);
+    }
+
+    .empty-state {
+      padding: 1rem;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: var(--texto-claro);
+      font-size: 0.92rem;
+      text-align: center;
+      border: 1px dashed rgba(128, 0, 32, 0.15);
+    }
+
+    footer {
+      color: var(--texto-claro);
+      font-size: 0.9rem;
+    }
+
+    @media (min-width: 768px) {
+      main.container {
+        padding-top: 1.5rem;
+      }
+
+      .hero {
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+      }
+
+      .skills-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .streak-box {
+        padding: 1.1rem 1.2rem;
+      }
+    }
+
+    @media (min-width: 992px) {
+      .hero {
+        padding: 2.3rem;
+      }
+
+      .card-body {
+        padding: 1.7rem;
+      }
+
+      .skills-grid {
+        gap: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+      <a class="navbar-brand" href="/">Projeto Escolar</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard_aluno">Painel</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="/meu-progresso">Meu Progresso <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/logout">Sair</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Meu Progresso</h1>
+      <p>Acompanhe sua evolução, seus pontos fortes e as áreas para focar seus estudos.</p>
+    </section>
+
+    <div class="row">
+      <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">Nível e Experiência</h5>
+
+            <div class="info-box">
+              <div class="progress-label">
+                <span>Nível atual</span>
+                <strong><%= dashboard.aluno.nivel %></strong>
+              </div>
+
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: <%= dashboard.progressoNivel.percentual %>%"
+                  aria-valuenow="<%= dashboard.progressoNivel.percentual %>"
+                  aria-valuemin="0"
+                  aria-valuemax="100">
+                  <%= dashboard.progressoNivel.percentual %>%
+                </div>
+              </div>
+
+              <div class="xp-text">
+                <%= dashboard.progressoNivel.xpAtual %> / <%= dashboard.progressoNivel.xpProximoNivel %> XP para o próximo nível
+              </div>
+            </div>
+
+            <div class="streak-box">
+              <div class="streak-emoji">🔥</div>
+              <div>
+                <p><strong>Streak de estudo:</strong> <%= dashboard.aluno.streak %> dias</p>
+                <small class="text-muted">Continue estudando todos os dias para não perder sua sequência!</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8 mb-4">
+        <div class="card skills-card">
+          <div class="card-body">
+            <h5 class="card-title">Resumo de Habilidades</h5>
+
+            <div class="skills-grid">
+              <div class="skill-column strong">
+                <h6>✅ Pontos Fortes</h6>
+
+                <% if (dashboard.resumoHabilidades.pontosFortes.length > 0) { %>
+                  <ul class="skill-list">
+                    <% dashboard.resumoHabilidades.pontosFortes.forEach(h => { %>
+                      <li class="skill-item strong">
+                        <span><%= h.habilidade %></span>
+                      </li>
+                    <% }); %>
+                  </ul>
+                <% } else { %>
+                  <div class="empty-state">
+                    Continue praticando para descobrirmos seus pontos fortes!
+                  </div>
+                <% } %>
+              </div>
+
+              <div class="skill-column weak">
+                <h6>⚠️ Pontos a Melhorar</h6>
+
+                <% if (dashboard.resumoHabilidades.pontosAMelhorar.length > 0) { %>
+                  <ul class="skill-list">
+                    <% dashboard.resumoHabilidades.pontosAMelhorar.forEach(h => { %>
+                      <li class="skill-item weak">
+                        <span><%= h.habilidade %></span>
+                      </li>
+                    <% }); %>
+                  </ul>
+                <% } else { %>
+                  <div class="empty-state">
+                    Nenhum ponto de melhoria específico no momento. Ótimo trabalho!
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pt-3 mt-4 text-center">
+    <p>&copy; 2024 Projeto Escolar</p>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

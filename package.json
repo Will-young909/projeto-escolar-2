@@ -12,17 +12,22 @@
   "dependencies": {
     "@google/genai": "^1.50.1",
     "@mistralai/mistralai": "^2.2.0",
+    "@tensorflow/tfjs-node": "^0.1.11",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.76.6",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.4.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
+    "ioredis": "^5.10.1",
     "jest": "^30.3.0",
-    "mercadopago": "^2.9.0",
+    "mercadopago": "^0.5.0",
     "multer": "^2.0.2",
     "mysql2": "^3.22.1",
     "node-fetch": "^3.3.2",
+    "redis": "^5.12.1",
     "socket.io": "^4.8.1",
     "supertest": "^7.2.2"
   }

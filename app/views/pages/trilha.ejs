@@ -1,76 +1,302 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trilha de Exercícios - Regimath</title>
-    <link rel="stylesheet" href="/css/atividades.css">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h2, h3 {
-            color: #8A2BE2;
-        }
-        hr {
-            border: 0;
-            height: 1px;
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(138, 43, 226, 0.75), rgba(0, 0, 0, 0));
-            margin: 2rem 0;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-        }
-        button {
-            background-color: #8A2BE2;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #7a1fb8;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trilha Adaptativa - Regimath</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --roxo: #800020;
+      --roxo-escuro: #800000;
+      --roxo-claro: #a83244;
+      --amarelo: #f59e0b;
+      --amarelo-claro: #fef3c7;
+      --azul: #3b82f6;
+      --verde: #10b981;
+      --vermelho: #ef4444;
+      --texto: #1f2937;
+      --texto-claro: #6b7280;
+      --fundo: #f8fafc;
+      --card: rgba(255, 255, 255, 0.95);
+      --borda: rgba(124, 58, 237, 0.10);
+      --sombra: 0 12px 30px rgba(15, 23, 42, 0.10);
+      --sombra-hover: 0 18px 40px rgba(15, 23, 42, 0.14);
+      --raio: 18px;
+      --raio-sm: 12px;
+      --transicao: 0.25s ease;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      color: var(--texto);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .page-shell { width: 100%; max-width: 840px; margin: 0 auto; }
+    .container { background: var(--card); backdrop-filter: blur(18px); border: 1px solid var(--borda); border-radius: var(--raio); box-shadow: var(--sombra); padding: 1.25rem; overflow: hidden; }
+    .page-header { margin-bottom: 1.25rem; }
+    .page-title { display: flex; align-items: center; gap: 0.75rem; font-size: clamp(1.35rem, 4vw, 1.9rem); font-weight: 800; color: var(--roxo-escuro); margin-bottom: 0.35rem; }
+    .page-title i { color: var(--roxo); }
+    .page-subtitle { color: var(--texto-claro); font-size: 0.95rem; line-height: 1.6; }
+    
+    .content-box { padding: 1rem; border-radius: var(--raio-sm); margin-bottom: 1.25rem; }
+    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--raio-sm); box-shadow: var(--sombra); background-color: #eee; }
+    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .article-content { line-height: 1.8; font-size: 1rem; } .article-content h2 { margin-bottom: 1rem; color: var(--roxo-escuro); } .article-content p { margin-bottom: 1rem; }
+    .content-badge { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(59, 130, 246, 0.1); color: var(--azul); border: 1px solid rgba(59, 130, 246, 0.2); padding: 0.55rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin-bottom: 1rem; }
+
+    .revisao-indicator { display: inline-flex; align-items: center; gap: 0.55rem; background: linear-gradient(135deg, #fff7ed, var(--amarelo-claro)); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.25); padding: 0.75rem 0.95rem; border-radius: 999px; font-size: 0.9rem; font-weight: 700; margin: 1rem 0 1.25rem; box-shadow: 0 8px 18px rgba(245, 158, 11, 0.10); }
+    .skill-badge { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(124, 58, 237, 0.08); color: var(--roxo-escuro); border: 1px solid rgba(124, 58, 237, 0.12); padding: 0.55rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin-bottom: 1rem; }
+    .question-box { background: linear-gradient(180deg, #ffffff, #fcfcff); border: 1px solid rgba(124, 58, 237, 0.08); border-radius: var(--raio-sm); padding: 1rem; margin-bottom: 1.25rem; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }
+    .question-box p { font-size: 1rem; line-height: 1.75; color: var(--texto); }
+    .options-group { display: grid; gap: 0.85rem; margin-top: 1rem; }
+    .option-card { position: relative; }
+    .option-card input { position: absolute; opacity: 0; pointer-events: none; }
+    .option-card label { display: flex; align-items: flex-start; gap: 0.85rem; background: #f8fafc; border: 1px solid #e5e7eb; padding: 0.95rem 1rem; border-radius: 14px; cursor: pointer; transition: all var(--transicao); line-height: 1.5; font-size: 0.96rem; }
+    .option-card label:hover { transform: translateY(-2px); border-color: rgba(124, 58, 237, 0.30); box-shadow: var(--sombra-hover); background: #fff; }
+    .option-card input:checked + label { border-color: var(--roxo); background: rgba(124, 58, 237, 0.08); box-shadow: 0 10px 20px rgba(124, 58, 237, 0.10); }
+    .option-card label.correta { border-color: var(--verde); background: #f0fdf4; }
+    .option-card label.incorreta { border-color: var(--vermelho); background: #fef2f2; }
+    .option-letter { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: white; color: var(--roxo-escuro); font-weight: 800; flex: 0 0 auto; border: 1px solid rgba(124, 58, 237, 0.15); margin-top: 1px; }
+    .actions { margin-top: 1.25rem; display: grid; gap: 0.75rem; }
+    .submit-btn { width: 100%; border: none; border-radius: 14px; padding: 0.95rem 1.1rem; background: linear-gradient(135deg, var(--roxo), var(--roxo-claro)); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25); transition: all var(--transicao); }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-hover); filter: brightness(1.02); }
+    .submit-btn.continuar { background: linear-gradient(135deg, var(--amarelo), #f59e0b); }
+
+    .home-link { display: inline-flex; justify-content: center; align-items: center; width: 100%; margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 14px; text-decoration: none; color: var(--roxo-escuro); background: rgba(124, 58, 237, 0.06); border: 1px solid rgba(124, 58, 237, 0.12); font-weight: 700; transition: var(--transicao); }
+    
+    .feedback-box { margin-top: 1.5rem; padding: 1rem; border-radius: var(--raio-sm); background: #f7f7f8; border: 1px solid #e2e8f0; animation: fadeIn 0.5s ease-out; }
+    .feedback-box h3 { font-size: 1.1rem; color: var(--roxo-escuro); margin-bottom: 0.5rem; }
+    .feedback-box p { line-height: 1.7; color: var(--texto-claro); }
+    .gamification-feedback { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+    .gamification-pill { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; padding: 0.25rem 0.75rem; border-radius: 999px; animation: popIn 0.5s ease-out backwards; }
+    .gamification-pill.xp { color: #059669; background-color: #d1fae5; }
+    .gamification-pill.streak { color: #d97706; background-color: #fef3c7; animation-delay: 0.2s; }
+    .gamification-pill i { font-size: 0.8rem; }
+
+    .finish-state { text-align: center; padding: 1.5rem 1rem; }
+    .finish-icon { width: 68px; height: 68px; margin: 0 auto 1rem; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(168, 85, 247, 0.18)); color: var(--roxo-escuro); font-size: 1.7rem; }
+    .finish-state h2 { font-size: 1.4rem; color: var(--roxo-escuro); margin-bottom: 0.5rem; }
+    .finish-state p { color: var(--texto-claro); line-height: 1.7; font-size: 0.98rem; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+  </style>
 </head>
 <body>
+  <div class="page-shell">
     <div class="container">
-        <h2><i class="fas fa-tasks"></i> Trilha de Exercícios - Passo <%= item.passo %></h2>
+
+      <% if (tarefa && tarefa.tarefaTipo !== 'CONCLUIDO') { %>
         
-        <h3>Exercício: <%= item.tipo %></h3>
-        <p><%= item.titulo %></p>
+        <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO'].includes(tarefa.tarefaTipo)) { %>
+          <% const questao = tarefa.proximaQuestao; %>
+          <header class="page-header">
+            <h1 class="page-title"><i class="fas fa-shoe-prints"></i> Trilha de Aprendizagem</h1>
+            <p class="page-subtitle">Resolva a questão para avançar ou revise um conceito importante.</p>
+          </header>
 
-        <form action="/trilha/responder" method="POST">
-            <input type="hidden" name="trilha_id" value="<%= item.trilha_id %>">
-            <input type="hidden" name="item_id" value="<%= item.id %>">
-            
-            <div>
-                <label for="resposta">Sua Resposta:</label>
-                <textarea name="resposta" id="resposta" rows="5" required></textarea>
+          <% if (tarefa.tarefaTipo === 'REVISAO') { %><div class="revisao-indicator"> <i class="fas fa-history"></i> Hora da revisão! </div><% } %>
+          <% if (questao.habilidade_nome) { %><span class="skill-badge"> <i class="fas fa-bolt"></i> Habilidade: <%= questao.habilidade_nome %> </span><% } %>
+          
+          <section class="question-box"> <p><%- questao.titulo || questao.enunciado %></p> </section>
+
+          <form id="trilha-form">
+            <input type="hidden" name="item_id" value="<%= tarefa.tarefaTipo === 'DIAGNOSTICO' ? questao.item_id : questao.id %>">
+            <div class="options-group" id="options-group">
+              <% if(questao.alternativa_a){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-a" value="A" required><label for="opcao-a"><span class="option-letter">A</span><span><%- questao.alternativa_a %></span></label></div> <% } %>
+              <% if(questao.alternativa_b){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-b" value="B" required><label for="opcao-b"><span class="option-letter">B</span><span><%- questao.alternativa_b %></span></label></div> <% } %>
+              <% if(questao.alternativa_c){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-c" value="C" required><label for="opcao-c"><span class="option-letter">C</span><span><%- questao.alternativa_c %></span></label></div> <% } %>
+              <% if(questao.alternativa_d){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-d" value="D" required><label for="opcao-d"><span class="option-letter">D</span><span><%- questao.alternativa_d %></span></label></div> <% } %>
             </div>
+            <div class="actions">
+              <button type="submit" class="submit-btn" id="submit-btn"> <i class="fas fa-paper-plane"></i> Enviar resposta </button>
+            </div>
+          </form>
+          <div id="feedback-container"></div>
+        <% } %>
 
-            <button type="submit">Enviar Resposta</button>
-        </form>
+        <% if (tarefa.tarefaTipo === 'VIDEO_APOIO') { %>
+          <% const conteudo = tarefa.proximoConteudo; %>
+          <header class="page-header">
+            <h1 class="page-title"><i class="fas fa-video"></i> Pausa para o Reforço</h1>
+            <p class="page-subtitle">Detectamos uma oportunidade de reforçar um conceito. Assista ao vídeo abaixo.</p>
+          </header>
+          <span class="content-badge"> <i class="fas fa-film"></i> Vídeo de Apoio </span>
+          <div class="content-box">
+            <h2><%= conteudo.titulo %></h2>
+            <div class="video-wrapper">
+              <iframe src="<%= conteudo.url_ou_conteudo.replace('watch?v=', 'embed/') %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+          </div>
+          <div class="actions">
+             <button id="conteudo-consumido-btn" data-conteudo-id="<%= conteudo.id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
+          </div>
+        <% } %>
+
+        <% if (tarefa.tarefaTipo === 'ARTIGO_APOIO') { %>
+            <% const conteudo = tarefa.proximoConteudo; %>
+            <header class="page-header">
+                <h1 class="page-title"><i class="fas fa-newspaper"></i> Leitura Rápida</h1>
+                <p class="page-subtitle">Um artigo para solidificar seu conhecimento antes de prosseguir.</p>
+            </header>
+            <span class="content-badge"> <i class="fas fa-book-open"></i> Artigo de Apoio </span>
+            <div class="content-box article-content">
+                <h2><%= conteudo.titulo %></h2>
+                <div><%- conteudo.url_ou_conteudo %></div>
+            </div>
+            <div class="actions">
+                <button id="conteudo-consumido-btn" data-conteudo-id="<%= conteudo.id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
+            </div>
+        <% } %>
+
+      <% } else { %>
+        <div class="finish-state">
+          <div class="finish-icon"> <i class="fas fa-flag-checkered"></i> </div>
+          <h2>Trilha concluída!</h2>
+          <p> Parabéns, você completou todos os exercícios. Volte mais tarde para novas atividades. </p>
+        </div>
+      <% } %>
+
+      <a href="/dashboard_aluno" class="home-link"> <i class="fas fa-house"></i> Voltar para o Painel </a>
     </div>
-    <a href="/">Home</a>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const userId = '<%= user.id %>'; // Injeta o ID do usuário no script
+
+  // Lógica para marcar conteúdo de apoio como consumido
+  const btnConteudoConsumido = document.getElementById('conteudo-consumido-btn');
+  if (btnConteudoConsumido) {
+    btnConteudoConsumido.addEventListener('click', async () => {
+      const conteudoId = btnConteudoConsumido.dataset.conteudoId;
+      btnConteudoConsumido.disabled = true;
+      btnConteudoConsumido.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
+
+      try {
+        await fetch('/api/trilha-adaptativa/marcar-consumido', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alunoId: userId, conteudoId: conteudoId })
+        });
+        window.location.href = '/trilha'; // Recarrega para obter a próxima tarefa
+      } catch (error) {
+        console.error('Falha ao marcar conteúdo como consumido', error);
+        btnConteudoConsumido.disabled = false;
+        btnConteudoConsumido.innerHTML = 'Tentar Novamente <i class="fas fa-redo"></i>';
+      }
+    });
+  }
+
+  // Lógica para submissão de questões via API
+  const form = document.getElementById('trilha-form');
+  if (form) {
+      const submitBtn = document.getElementById('submit-btn');
+      const optionsGroup = document.getElementById('options-group');
+      const feedbackContainer = document.getElementById('feedback-container');
+      
+      const handleSubmit = async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const respostaDada = formData.get('resposta');
+        const itemId = formData.get('item_id');
+
+        if (!respostaDada) {
+          alert('Por favor, selecione uma resposta.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+
+        try {
+          const response = await fetch('/api/trilha-adaptativa/responder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              alunoId: userId,
+              submittedId: itemId,
+              respostaDada: respostaDada
+            }),
+          });
+
+          if (!response.ok) {
+            const errorBody = await response.json();
+            throw new Error(errorBody.message || 'Erro no servidor');
+          }
+          
+          const result = await response.json();
+          displayFeedback(result, respostaDada);
+
+        } catch (error) {
+          console.error('Erro no fetch:', error);
+          feedbackContainer.innerHTML = `<div class="feedback-box"><p>Houve um problema. Tente recarregar a página.</p></div>`;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar resposta';
+        }
+      };
+
+      form.addEventListener('submit', handleSubmit);
+
+      function displayFeedback(result, respostaDada) {
+        const { feedback } = result;
+        if (!feedback) {
+            feedbackContainer.innerHTML = `<div class="feedback-box"><p>Ocorreu um erro ao processar o feedback.</p></div>`;
+            return;
+        }
+        const { acertou, gabarito, explicacao, xpGanho, novoStreak } = feedback;
+        
+        optionsGroup.querySelectorAll('input[type="radio"]').forEach(radio => radio.disabled = true);
+
+        optionsGroup.querySelectorAll('.option-card label').forEach(label => {
+            const radioInput = document.getElementById(label.getAttribute('for'));
+            if (radioInput && radioInput.value === gabarito) label.classList.add('correta');
+            if (radioInput && radioInput.value === respostaDada && !acertou) label.classList.add('incorreta');
+        });
+
+        let gamificationHTML = '';
+        if (acertou && xpGanho > 0) {
+          gamificationHTML = `
+            <div class="gamification-feedback">
+              <span class="gamification-pill xp">
+                <i class="fas fa-star"></i>
+                <strong>+${xpGanho} XP</strong>
+              </span>
+              ${novoStreak > 1 ? `
+                <span class="gamification-pill streak">
+                  <i class="fas fa-fire"></i>
+                  <strong>${novoStreak} acertos seguidos!</strong>
+                </span>
+              ` : ''}
+            </div>`;
+        }
+
+        const feedbackHTML = `
+          <div class="feedback-box">
+            <h3>${acertou ? 'Resposta Correta!' : 'Quase lá!'}</h3>
+            <p>${explicacao || "Nenhuma explicação fornecida."}</p>
+            ${gamificationHTML}
+          </div>`;
+        feedbackContainer.innerHTML = feedbackHTML;
+
+        submitBtn.innerHTML = 'Próxima Tarefa <i class="fas fa-arrow-right"></i>';
+        submitBtn.classList.add('continuar');
+        submitBtn.disabled = false;
+        
+        form.removeEventListener('submit', handleSubmit);
+        submitBtn.onclick = (e) => {
+          e.preventDefault();
+          window.location.href = '/trilha'; // Ação de continuar para a próxima tarefa
+        };
+      }
+  }
+});
+</script>
+
 </body>
 </html>

@@ -5,49 +5,14 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const pool = require('../../config/pool');
 const paymentsStore = require('../lib/paymentsStore');
-const chatStore = require('../lib/chatStore'); // Importa o chatStore
+const chatStore = require('../lib/chatStore'); 
 const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
 const trilhaService = require('../services/trilhaService');
+const GamificationService = require('../services/GamificationService');
+const AnalyticsService = require('../services/AnalyticsService');
 
-// Armazenamento em memória para alunos e professores (simulando um banco de dados)
-let alunos = [
-    {
-        id: '1',
-        nome: "Maria",
-        email: "maria@exemplo.com",
-        agenda: [],
-        notificacoes: []
-    }
-];
-
-const professores = [
-    {
-        id: '2',
-        nome: "Mateus",
-        email: "mateus@exemplo.com",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 7 doutorados na USP, dei aula pra Einstein...",
-        link_previa: "#",
-        status: "disponivel",
-        horariosDisponiveis: [],
-        disciplinas: ["Cálculo I", "Álgebra Linear"]
-    },
-    {
-        id: '3',
-        nome: "Jonas",
-        email: "jonas@exemplo.com",
-        foto: "/imagens/imagem_perfil.jpg",
-        descricao: "Professor com 5 doutorados na usp, dei aula pra Newton...",
-        link_previa: "#",
-        status: "disponivel",
-        horariosDisponiveis: [],
-        disciplinas: ["Física I"]
-    }
-];
-
-// --- Configuração do Multer para Upload de Imagem ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'app/public/imagens/uploads/');
@@ -72,12 +37,47 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 } // Limite de 5MB
+    limits: { fileSize: 5 * 1024 * 1024 } 
 }).single('foto');
 
+async function getUserByEmail(email, tipo) {
+    const searchEmail = email.toLowerCase();
+    const table = tipo === 'aluno' ? 'alunos' : 'professores';
+    try {
+        const [rows] = await pool.query(`SELECT * FROM ${table} WHERE email = ?`, [searchEmail]);
+        return rows[0]; 
+    } catch (error) {
+        console.error(`Erro ao buscar usuário por e-mail (${tipo}):`, error);
+        return null;
+    }
+}
 
-// --- NOVAS FUNÇÕES AUXILIARES ---
-// Rota para iniciar um chat ou redirecionar para uma sala existente
+async function getUserById(id) {
+    try {
+        let [profRows] = await pool.query("SELECT *, 'professor' as tipo FROM professores WHERE id = ?", [id]);
+        if (profRows.length > 0) {
+            const professor = profRows[0];
+            const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ?', [professor.id]);
+            professor.disciplinas = disciplinas.map(d => d.nome);
+            professor.horariosDisponiveis = [];
+            return professor;
+        }
+
+        let [alunoRows] = await pool.query("SELECT *, 'aluno' as tipo FROM alunos WHERE id = ?", [id]);
+        if (alunoRows.length > 0) {
+            const aluno = alunoRows[0];
+            aluno.agenda = [];
+            aluno.notificacoes = [];
+            return aluno;
+        }
+
+        return { id, nome: `Usuário ${id}`, tipo: 'desconhecido' };
+    } catch (error) {
+        console.error(`Erro ao buscar usuário por ID (${id}):`, error);
+        return { id, nome: `Usuário ${id}`, tipo: 'desconhecido', error: 'Erro no banco de dados' };
+    }
+}
+
 router.get('/chat/with/:userId', (req, res) => {
     const currentUser = req.session.user_aluno || req.session.user_prof;
     if (!currentUser) {
@@ -89,43 +89,27 @@ router.get('/chat/with/:userId', (req, res) => {
         return res.redirect('/historico_chats');
     }
 
-    // Garante uma ordem consistente para o ID da sala
     const roomIds = [currentUser.id, partnerId].sort();
     const roomId = `chat_${roomIds[0]}-${roomIds[1]}`;
 
     res.redirect(`/chat/${roomId}`);
 });
-// Função para obter o nome de um usuário pelo ID (simulação)
-function getUserById(id) {
-    const professor = professores.find(p => p.id === id);
-    if (professor) return { ...professor, tipo: 'professor' };
 
-    const aluno = alunos.find(a => a.id === id);
-    if (aluno) return { ...aluno, tipo: 'aluno' };
-
-    return { id, nome: `Usuário ${id}`, tipo: 'desconhecido' };
-}
-
-// Função para obter usuário por e-mail
-function getUserByEmail(email, tipo) {
-    const searchEmail = email.toLowerCase();
-    if (tipo === 'aluno') {
-        return alunos.find(a => a.email && a.email.toLowerCase() === searchEmail);
+router.get('/', async (req, res) => {
+    try {
+        const [professores] = await pool.query('SELECT id, nome, foto, descricao, status FROM professores WHERE status = ? LIMIT 10', ['disponivel']);
+        for (let prof of professores) {
+            const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ?', [prof.id]);
+            prof.disciplinas = disciplinas.map(d => d.nome);
+        }
+        res.render('pages/home', { professores });
+    } catch (error) {
+        console.error("Erro ao carregar a home page:", error);
+        res.render('pages/home', { professores: [] });
     }
-    if (tipo === 'professor') {
-        return professores.find(p => p.email && p.email.toLowerCase() === searchEmail);
-    }
-    return null;
-}
-
-// --- FIM DAS FUNÇÕES AUXILIARES ---
-
-router.get('/', (req, res) => {
-    res.render('pages/home', { professores });
 });
 
-// Rota para salvar/atualizar horários do professor
-router.post('/professor/horarios', (req, res) => {
+router.post('/professor/horarios', async (req, res) => {
     if (!req.session.user_prof) {
         return res.status(401).json({ success: false, message: 'Não autenticado' });
     }
@@ -135,47 +119,40 @@ router.post('/professor/horarios', (req, res) => {
         return res.status(400).json({ success: false, message: 'Dados incompletos ou em formato inválido.' });
     }
 
-    const sessionUser = req.session.user_prof;
-    const profIndex = professores.findIndex(p => p.id === sessionUser.id);
+    const professorId = req.session.user_prof.id;
 
-    if (profIndex === -1) {
-        return res.status(404).json({ success: false, message: 'Professor não encontrado.' });
-    }
-    const professor = professores[profIndex];
-    if (!professor.horariosDisponiveis) {
-        professor.horariosDisponiveis = [];
-    }
-    professor.horariosDisponiveis = professor.horariosDisponiveis.filter(h => h.data !== date);
+    try {
+        await pool.query('START TRANSACTION');
+        await pool.query('DELETE FROM horarios_disponiveis WHERE professor_id = ? AND data = ?', [professorId, date]);
 
-    slots.forEach(slot => {
-        if (slot.start && slot.end && slot.price) {
-            professor.horariosDisponiveis.push({
-                data: date,
-                horaInicio: slot.start,
-                horaFim: slot.end,
-                price: slot.price,
-                status: 'disponivel',
-                alunoId: null,
-                horarioId: crypto.randomBytes(8).toString('hex')
-            });
-        }
-    });
-
-    req.session.user_prof.horariosDisponiveis = professor.horariosDisponiveis;
-
-    req.session.save(err => {
-        if (err) {
-            console.error('Erro ao salvar sessão:', err);
-            return res.status(500).json({ success: false, message: 'Erro interno ao salvar os horários.' });
+        for (const slot of slots) {
+            if (slot.start && slot.end && slot.price) {
+                await pool.query(
+                    'INSERT INTO horarios_disponiveis (professor_id, data, hora_inicio, hora_fim, preco, status) VALUES (?, ?, ?, ?, ?, ?)',
+                    [professorId, date, slot.start, slot.end, slot.price, 'disponivel']
+                );
+            }
         }
 
-        console.log(`Horários atualizados para ${professor.nome}:`, professor.horariosDisponiveis);
-        res.json({ success: true, message: 'Horários salvos com sucesso!' });
-    });
+        await pool.query('COMMIT'); 
+
+        const [horariosAtualizados] = await pool.query('SELECT * FROM horarios_disponiveis WHERE professor_id = ?', [professorId]);
+        req.session.user_prof.horariosDisponiveis = horariosAtualizados;
+
+        req.session.save(err => {
+            if (err) {
+                console.error('Erro ao salvar sessão:', err);
+                return res.status(500).json({ success: false, message: 'Erro interno ao salvar os horários.' });
+            }
+            res.json({ success: true, message: 'Horários salvos com sucesso!' });
+        });
+    } catch (error) {
+        await pool.query('ROLLBACK'); 
+        console.error('Erro ao salvar horários no banco de dados:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor ao salvar horários.' });
+    }
 });
 
-
-// Rota para iniciar o agendamento de horário (cria preferência de pagamento)
 router.post('/agendar-horario', async (req, res) => {
     if (!req.session.user_aluno) {
         return res.redirect('/login');
@@ -184,24 +161,20 @@ router.post('/agendar-horario', async (req, res) => {
     const { profId, horarioId } = req.body;
     const alunoId = req.session.user_aluno.id;
 
-    const profIndex = professores.findIndex(p => p.id == profId);
-    if (profIndex === -1) {
-        return res.status(404).send('Professor não encontrado.');
-    }
-
-    const professor = professores[profIndex];
-    if (!professor.horariosDisponiveis) {
-        return res.status(404).send('Professor não tem horários.');
-    }
-
-    const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId && h.status === 'disponivel');
-    if (horarioIndex === -1) {
-        return res.status(404).send('Horário não disponível.');
-    }
-
-    const horario = professor.horariosDisponiveis[horarioIndex];
-
     try {
+        const [professorRows] = await pool.query('SELECT * FROM professores WHERE id = ?', [profId]);
+        if (professorRows.length === 0) {
+            return res.status(404).send('Professor não encontrado.');
+        }
+        const professor = professorRows[0];
+
+        const [horarioRows] = await pool.query('SELECT * FROM horarios_disponiveis WHERE id = ? AND professor_id = ? AND status = ?', [horarioId, profId, 'disponivel']);
+        if (horarioRows.length === 0) {
+            return res.status(404).send('Horário não disponível.');
+        }
+        const horario = horarioRows[0];
+        const horarioIdBanco = horario.id;
+
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
         if (!mpPreferenceClient) {
             return res.status(500).send('Serviço de pagamento não está configurado.');
@@ -210,10 +183,10 @@ router.post('/agendar-horario', async (req, res) => {
         const preference = {
             items: [{
                 title: `Aula com ${professor.nome}`,
-                description: `Agendamento para ${horario.data} às ${horario.horaInicio}`,
+                description: `Agendamento para ${horario.data} às ${horario.hora_inicio}`,
                 quantity: 1,
                 currency_id: 'BRL',
-                unit_price: horario.price
+                unit_price: parseFloat(horario.preco)
             }],
             back_urls: {
                 success: "http://localhost:3000/pagamento/sucesso",
@@ -221,14 +194,12 @@ router.post('/agendar-horario', async (req, res) => {
                 pending: "http://localhost:3000/pagamento/pendente"
             },
             auto_return: "approved",
-            // Passa os IDs como referência externa para reconciliação
-            external_reference: JSON.stringify({ profId, horarioId, alunoId: req.session.user_aluno.id }),
+            external_reference: JSON.stringify({ profId, horarioId: horarioIdBanco, alunoId }),
         };
 
         const response = await mpPreferenceClient.create({ body: preference });
         const body = response.body || response;
 
-        // Redireciona o usuário para o checkout do Mercado Pago
         res.redirect(body.init_point || body.sandbox_init_point);
 
     } catch (error) {
@@ -237,67 +208,66 @@ router.post('/agendar-horario', async (req, res) => {
     }
 });
 
-// --- ROTAS DE AUTENTICAÇÃO ATUALIZADAS ---
 router.get('/cadastro', (req, res) => {
     res.render('pages/cadastro', { erros: {}, dados: {} });
 });
 
 router.post('/cadastro', [
-    body('email')
-        .isEmail().withMessage('Por favor, insira um email válido.')
-        .normalizeEmail(),
+    body('email').isEmail().withMessage('Por favor, insira um email válido.').normalizeEmail(),
     body('nome').notEmpty().withMessage('O nome é obrigatório.'),
-    body('senha')
-        .isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
-    body('confirmar')
-        .custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
+    body('senha').isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
+    body('confirmar').custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], (req, res) => {
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.render('pages/cadastro', { erros: erros.mapped(), dados: req.body });
     }
 
-    const existingUser = getUserByEmail(req.body.email, req.body.tipo);
-    if (existingUser) {
-        return res.render('pages/cadastro', {
-            erros: { email: { msg: 'Este e-mail já está em uso.' } },
-            dados: req.body
-        });
-    }
+    try {
+        const existingUser = await getUserByEmail(req.body.email, req.body.tipo);
+        if (existingUser) {
+            return res.render('pages/cadastro', {
+                erros: { email: { msg: 'Este e-mail já está em uso.' } },
+                dados: req.body
+            });
+        }
 
-    const newUser = {
-        id: crypto.randomBytes(4).toString('hex'),
-        nome: req.body.nome,
-        email: req.body.email,
-        tipo: req.body.tipo,
-        password: bcrypt.hashSync(req.body.senha, 10),
-        agenda: [],
-        notificacoes: [],
-    };
+        const hashedPassword = bcrypt.hashSync(req.body.senha, 10);
+        const userId = crypto.randomBytes(8).toString('hex');
 
-    if (req.body.tipo === "aluno") {
-        alunos.push(newUser);
-        req.session.user_aluno = newUser;
-        if (req.body.nivel_escolar) {
-            // Salva a sessão antes de redirecionar
+        let userForSession;
+        const { nome, email, tipo } = req.body;
+
+        if (tipo === "aluno") {
+            await pool.query('INSERT INTO alunos (id, nome, email, senha) VALUES (?, ?, ?, ?)', [userId, nome, email, hashedPassword]);
+            userForSession = { id: userId, nome, email, tipo: 'aluno', password: hashedPassword, agenda: [], notificacoes: [] };
+            req.session.user_aluno = userForSession;
+        } else {
+            await pool.query('INSERT INTO professores (id, nome, email, senha) VALUES (?, ?, ?, ?)', [userId, nome, email, hashedPassword]);
+            userForSession = { id: userId, nome, email, tipo: 'professor', password: hashedPassword, horariosDisponiveis: [], link_previa: '', disciplinas: [], foto: '/imagens/imagem_perfil.jpg', descricao: '', status: 'disponivel' };
+            req.session.user_prof = userForSession;
+        }
+
+        if (tipo === "aluno" && req.body.nivel_escolar) {
             return req.session.save(err => {
                 if (err) {
-                    console.error('Erro ao salvar sessão antes de redirecionar:', err);
+                    console.error('Erro ao salvar sessão:', err);
                     return res.redirect('/');
                 }
                 res.redirect(`/gerar_atividade?level=${req.body.nivel_escolar}`);
             });
         }
-    } else {
-        newUser.horariosDisponiveis = []; // Adicionar para professores
-        newUser.link_previa = '';
-        newUser.disciplinas = [];
-        professores.push(newUser);
-        req.session.user_prof = newUser;
-    }
 
-    req.session.save(() => res.redirect('/'));
+        req.session.save(() => res.redirect('/'));
+
+    } catch (error) {
+        console.error("Erro no cadastro:", error);
+        res.status(500).render('pages/cadastro', {
+            erros: { general: { msg: 'Ocorreu um erro ao criar a conta. Tente novamente.' } },
+            dados: req.body
+        });
+    }
 });
 
 router.get('/login', (req, res) => {
@@ -305,63 +275,100 @@ router.get('/login', (req, res) => {
 });
 
 router.post('/login', [
-    body('email')
-        .isEmail().withMessage('Por favor, insira um email válido.')
-        .normalizeEmail(),
+    body('email').isEmail().withMessage('Por favor, insira um email válido.').normalizeEmail(),
     body('senha').notEmpty().withMessage('A senha é obrigatória.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], (req, res) => {
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.render('pages/login', { erros: erros.mapped(), dados: req.body });
     }
 
-    const { email, senha, tipo } = req.body;
-    const user = getUserByEmail(email, tipo);
+    try {
+        const { email, senha, tipo } = req.body;
+        const user = await getUserByEmail(email, tipo);
 
-    const isValidPassword = user && user.password && bcrypt.compareSync(senha, user.password);
+        const isValidPassword = user && bcrypt.compareSync(senha, user.senha);
 
-    if (!user || !isValidPassword) {
-        return res.render('pages/login', {
-            erros: { general: { msg: 'E-mail ou senha incorretos.' } },
+        if (!user || !isValidPassword) {
+            return res.render('pages/login', {
+                erros: { general: { msg: 'E-mail ou senha incorretos.' } },
+                dados: req.body
+            });
+        }
+
+        let sessionUser = {
+            id: user.id,
+            nome: user.nome,
+            email: user.email,
+            password: user.senha, 
+            tipo: tipo
+        };
+
+        if (tipo === "aluno") {
+            sessionUser.agenda = [];
+            sessionUser.notificacoes = [];
+            req.session.user_aluno = sessionUser;
+        } else { 
+            const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ?', [user.id]);
+            const [horarios] = await pool.query('SELECT *, id as horarioId FROM horarios_disponiveis WHERE professor_id = ?', [user.id]);
+
+            sessionUser = { ...sessionUser, ...user, disciplinas: disciplinas.map(d => d.nome), horariosDisponiveis: horarios, agenda: [], notificacoes: [] };
+            req.session.user_prof = sessionUser;
+        }
+
+        req.session.save(() => res.redirect('/'));
+
+    } catch (error) {
+        console.error("Erro no login:", error);
+        res.status(500).render('pages/login', {
+            erros: { general: { msg: 'Ocorreu um erro interno. Tente novamente.' } },
             dados: req.body
         });
     }
-
-    if (tipo === "aluno") {
-        req.session.user_aluno = user;
-    } else {
-        req.session.user_prof = user;
-    }
-
-    req.session.save(() => res.redirect('/'));
 });
-
-// --- FIM DAS ROTAS DE AUTENTICAÇÃO ---
 
 router.get('/forgot', (req, res) => {
     res.render('pages/forgot_password', { erros: {}, dados: {} });
 });
 
 router.post('/forgot', [
-    body('email')
-        .isEmail().withMessage('Por favor, insira um email válido.')
-        .normalizeEmail(),
-    body('senha')
-        .isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
-    body('confirmar')
-        .custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
+    body('email').isEmail().withMessage('Por favor, insira um email válido.').normalizeEmail(),
+    body('senha').isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
+    body('confirmar').custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], (req, res) => {
+], async (req, res) => { 
     const erros = validationResult(req);
-
     if (!erros.isEmpty()) {
         return res.render('pages/forgot_password', { erros: erros.mapped(), dados: req.body });
     }
 
-    // Implementação de recuperação de senha deve ser adicionada aqui
-    res.redirect('/login');
+    try {
+        const { email, senha, tipo } = req.body;
+        const user = await getUserByEmail(email, tipo);
+
+        if (!user) {
+            return res.render('pages/forgot_password', {
+                erros: { email: { msg: 'Nenhum usuário encontrado com este e-mail e tipo.' } },
+                dados: req.body
+            });
+        }
+
+        const hashedPassword = bcrypt.hashSync(senha, 10);
+        const table = tipo === 'aluno' ? 'alunos' : 'professores';
+        await pool.query(`UPDATE ${table} SET senha = ? WHERE id = ?`, [hashedPassword, user.id]);
+
+        res.redirect('/login');
+
+    } catch (error) {
+        console.error('Erro na recuperação de senha:', error);
+        res.status(500).render('pages/forgot_password', {
+            erros: { general: { msg: 'Ocorreu um erro ao redefinir a senha.' } },
+            dados: req.body
+        });
+    }
 });
+
 
 router.get('/perfil_aluno', (req, res) => {
     if (!req.session.user_aluno) {
@@ -370,161 +377,157 @@ router.get('/perfil_aluno', (req, res) => {
     res.render('pages/perfil_aluno', { user: req.session.user_aluno, session: req.session });
 });
 
-router.get('/perfil_prof', (req, res) => {
+
+router.get('/perfil_prof', async (req, res) => {
     if (!req.session.user_prof) {
         return res.redirect('/login');
     }
 
-    const professorCompleto = professores.find(p => p.id === req.session.user_prof.id);
-    if (!professorCompleto) {
-        return res.redirect('/login');
-    }
+    try {
+        const professor = await getUserById(req.session.user_prof.id);
+        if (!professor || professor.tipo !== 'professor') {
+            return res.redirect('/logout');
+        }
 
-    let historicoAlunos = [];
-    if (professorCompleto.horariosDisponiveis) {
-        const aulasAgendadas = professorCompleto.horariosDisponiveis.filter(
-            h => h.status === 'agendado' && h.alunoId
+        const [agendamentos] = await pool.query(
+            `SELECT DISTINCT a.id, a.nome, a.email
+             FROM agendamentos ag
+             JOIN alunos a ON ag.aluno_id = a.id
+             WHERE ag.professor_id = ? AND ag.status IN ('ativo', 'concluido')`,
+            [professor.id]
         );
 
-        const alunoIds = [...new Set(aulasAgendadas.map(h => h.alunoId))];
+        const userParaRender = {
+            ...professor,
+            historicoAlunos: agendamentos
+        };
 
-        historicoAlunos = alunoIds.map(id => getUserById(id)).filter(aluno => aluno.tipo === 'aluno');
+        res.render('pages/perfil_prof', { user: userParaRender, session: req.session });
+
+    } catch (error) {
+        console.error('Erro ao carregar perfil do professor:', error);
+        res.redirect('/logout');
     }
-
-    const userParaRender = {
-        ...req.session.user_prof,
-        historicoAlunos: historicoAlunos
-    };
-
-    res.render('pages/perfil_prof', { user: userParaRender, session: req.session });
 });
 
 
-router.get('/exibir_prof/:id', (req, res) => {
+router.get('/exibir_prof/:id', async (req, res) => {
     const professorId = req.params.id;
-    const professorData = professores.find(p => p.id === professorId);
+    try {
+        const professor = await getUserById(professorId);
 
-    if (!professorData) return res.redirect('/');
+        if (!professor || professor.tipo !== 'professor') {
+            return res.redirect('/');
+        }
 
-    const professor = JSON.parse(JSON.stringify(professorData));
+        const [horarios] = await pool.query(
+          'SELECT *, id as horarioId FROM horarios_disponiveis WHERE professor_id = ? AND data >= CURDATE() ORDER BY data, hora_inicio',
+          [professorId]
+        );
 
-    if (professor.horariosDisponiveis) {
-        professor.horariosDisponiveis.forEach(horario => {
-            if (horario.status === 'agendado' && horario.alunoId) {
-                const aluno = getUserById(horario.alunoId);
-                if (aluno) {
-                    horario.alunoNome = aluno.nome;
-                }
-            }
-        });
+        const [comentarios] = await pool.query(
+            'SELECT usuario_nome, texto, nota, criado_em FROM comentarios WHERE professor_id = ? ORDER BY criado_em DESC',
+            [professorId]
+        );
+
+        professor.horariosDisponiveis = horarios;
+        professor.comentarios = comentarios;
+
+        const user = req.session.user_aluno || req.session.user_prof;
+        res.render('pages/exibir_prof', { professor, session: req.session, user });
+
+    } catch (error) {
+        console.error(`Erro ao exibir perfil do professor ${professorId}:`, error);
+        res.redirect('/');
     }
-
-    if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
-    professor.comentarios = req.session.prof_comentarios[professorId] || [];
-
-    const user = req.session.user_aluno || req.session.user_prof;
-
-    res.render('pages/exibir_prof', { professor, session: req.session, user });
 });
 
-// Rota para o PROFESSOR cancelar uma aula
-router.post('/cancelar-aula-prof', (req, res) => {
+router.post('/cancelar-aula-prof', async (req, res) => {
     if (!req.session.user_prof) {
         return res.status(401).json({ success: false, message: 'Professor não autenticado.' });
     }
 
-    const { alunoId, data, hora, motivo } = req.body;
-    const aluno = alunos.find(a => a.id == alunoId);
+    const { agendamentoId, motivo } = req.body; 
+    const professorId = req.session.user_prof.id;
 
-    if (aluno && aluno.agenda) {
-        const aulaIndex = aluno.agenda.findIndex(aula => aula.data === data && aula.hora === hora);
-        if (aulaIndex > -1) {
-            aluno.agenda.splice(aulaIndex, 1);
+    try {
+        const [agendamentoRows] = await pool.query(
+            'SELECT * FROM agendamentos WHERE id = ? AND professor_id = ? AND status = ?',
+            [agendamentoId, professorId, 'ativo']
+        );
 
-            if (!aluno.notificacoes) aluno.notificacoes = [];
-            aluno.notificacoes.push({
-                tipo: 'cancelamento_prof',
-                professor: req.session.user_prof.nome,
-                aula: { data, hora },
-                motivo: motivo || 'Não especificado',
-                data: new Date().toISOString()
-            });
+        if (agendamentoRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Agendamento não encontrado ou já cancelado.' });
         }
-    }
+        const agendamento = agendamentoRows[0];
 
-    const professor = professores.find(p => p.id === req.session.user_prof.id);
-    if (professor) {
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === alunoId);
+        await pool.query('START TRANSACTION');
 
-        if (horarioIndex > -1) {
-            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
-            professor.horariosDisponiveis[horarioIndex].alunoId = null;
-        }
+        await pool.query('UPDATE agendamentos SET status = ? WHERE id = ?', ['cancelado', agendamentoId]);
 
-        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === alunoId);
-        if (profAgendaIndex > -1) {
-            professor.agenda.splice(profAgendaIndex, 1);
-        }
-    }
+        await pool.query('UPDATE horarios_disponiveis SET status = ?, aluno_id = NULL WHERE id = ?', ['disponivel', agendamento.horario_id]);
 
-    req.session.save(err => {
-        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar sessão.' });
+        const mensagem = `Sua aula com ${req.session.user_prof.nome} no dia ${agendamento.data} às ${agendamento.hora} foi cancelada. Motivo: ${motivo || 'Não especificado'}`;
+        await pool.query(
+            'INSERT INTO notificacoes (usuario_id, usuario_tipo, tipo, mensagem) VALUES (?, ?, ?, ?)',
+            [agendamento.aluno_id, 'aluno', 'cancelamento_prof', mensagem]
+        );
+
+        await pool.query('COMMIT');
+
         res.json({ success: true, message: 'Aula cancelada e aluno notificado.' });
-    });
+
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        console.error('Erro ao cancelar aula (prof):', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor ao cancelar a aula.' });
+    }
 });
 
-
-// Rota para o ALUNO cancelar uma aula
-router.post('/cancelar-aula', (req, res) => {
-    if (!req.session.user_aluno || !req.session.user_aluno.agenda) {
+router.post('/cancelar-aula', async (req, res) => {
+    if (!req.session.user_aluno) {
         return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
     }
 
-    const { profId, data, hora, reason } = req.body;
-    const agenda = req.session.user_aluno.agenda;
-    const aulaIndex = agenda.findIndex(a => a.professor.id == profId && a.data === data && a.hora === hora);
+    const { agendamentoId, reason } = req.body;
+    const alunoId = req.session.user_aluno.id;
 
-    if (aulaIndex === -1) {
-        return res.status(404).json({ success: false, message: 'Aula não encontrada.' });
-    }
+    try {
+        const [agendamentoRows] = await pool.query(
+            'SELECT * FROM agendamentos WHERE id = ? AND aluno_id = ? AND status = ?',
+            [agendamentoId, alunoId, 'ativo']
+        );
 
-    const aulaCancelada = agenda.splice(aulaIndex, 1)[0];
-    const professor = professores.find(p => p.id == profId);
-
-    if (professor) {
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.data === data && h.horaInicio === hora && h.alunoId === req.session.user_aluno.id);
-
-        if (horarioIndex > -1) {
-            professor.horariosDisponiveis[horarioIndex].status = 'disponivel';
-            professor.horariosDisponiveis[horarioIndex].alunoId = null;
+        if (agendamentoRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Agendamento não encontrado ou já foi cancelado.' });
         }
+        const agendamento = agendamentoRows[0];
 
-        if (!professor.notificacoes) professor.notificacoes = [];
-        professor.notificacoes.push({
-            tipo: 'cancelamento',
-            aluno: req.session.user_aluno.nome,
-            aula: aulaCancelada,
-            motivo: reason || 'Não especificado',
-            data: new Date().toISOString()
-        });
+        await pool.query('START TRANSACTION');
 
-        const profAgendaIndex = professor.agenda.findIndex(a => a.data === data && a.hora === hora && a.aluno.id === req.session.user_aluno.id);
-        if (profAgendaIndex > -1) {
-            professor.agenda.splice(profAgendaIndex, 1);
-        }
-    }
+        await pool.query('UPDATE agendamentos SET status = ? WHERE id = ?', ['cancelado', agendamentoId]);
+        await pool.query('UPDATE horarios_disponiveis SET status = ?, aluno_id = NULL WHERE id = ?', ['disponivel', agendamento.horario_id]);
 
-    req.session.save(err => {
-        if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar a sessão.' });
+        const mensagem = `O aluno ${req.session.user_aluno.nome} cancelou a aula do dia ${agendamento.data} às ${agendamento.hora}. Motivo: ${reason || 'Não especificado'}`;
+        await pool.query(
+            'INSERT INTO notificacoes (usuario_id, usuario_tipo, tipo, mensagem) VALUES (?, ?, ?, ?)',
+            [agendamento.professor_id, 'professor', 'cancelamento_aluno', mensagem]
+        );
+
+        await pool.query('COMMIT');
         res.json({ success: true, message: 'Aula cancelada com sucesso.' });
-    });
+
+    } catch (error) {
+        await pool.query('ROLLBACK');
+        console.error('Erro ao cancelar aula (aluno):', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor.' });
+    }
 });
 
-// POST: alterar senha (suporta professor e aluno)
 router.post('/alterar-senha', [
     body('current_password').notEmpty().withMessage('Informe sua senha atual.'),
     body('new_password').isLength({ min: 6 }).withMessage('A nova senha precisa ter ao menos 6 caracteres.'),
-], (req, res) => {
+], async (req, res) => {
     const isProf = !!req.session.user_prof;
     const isAluno = !!req.session.user_aluno;
     if (!isProf && !isAluno) return res.redirect('/login');
@@ -538,32 +541,40 @@ router.post('/alterar-senha', [
     }
 
     const { current_password, new_password } = req.body;
-    const sessionUser = user;
 
-    if (!bcrypt.compareSync(current_password, sessionUser.password)) {
+    if (!bcrypt.compareSync(current_password, user.password)) {
         return res.render(renderPage, {
-            user: sessionUser,
+            user,
             erros: { current_password: { msg: 'Senha atual incorreta.' } },
             dados: req.body
         });
     }
 
-    sessionUser.password = bcrypt.hashSync(new_password, 10);
+    try {
+        const newHashedPassword = bcrypt.hashSync(new_password, 10);
+        const table = isProf ? 'professores' : 'alunos';
 
-    req.session.save(err => {
-        if (err) {
-            return res.render(renderPage, {
-                user: sessionUser,
-                erros: { general: { msg: 'Erro ao alterar senha. Tente novamente.' } },
-                dados: req.body
-            });
-        }
-        res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
-    });
+        await pool.query(`UPDATE ${table} SET senha = ? WHERE id = ?`, [newHashedPassword, user.id]);
+
+        user.password = newHashedPassword;
+
+        req.session.save(err => {
+            if (err) {
+              console.error("Erro ao salvar sessão após mudar senha:", err);
+            }
+            res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
+        });
+
+    } catch (error) {
+        console.error("Erro ao alterar senha no DB:", error);
+        return res.render(renderPage, {
+            user,
+            erros: { general: { msg: 'Erro ao alterar senha. Tente novamente.' } },
+            dados: req.body
+        });
+    }
 });
 
-
-// API: verifica senha atual via AJAX (retorna JSON)
 router.post('/api/verify-current-password', [
     body('current_password').notEmpty().withMessage('Informe sua senha atual.'),
 ], (req, res) => {
@@ -583,52 +594,40 @@ router.post('/api/verify-current-password', [
     return res.status(400).json({ valid: false, msg: 'Senha atual incorreta.' });
 });
 
-// Rota para adicionar comentário a um professor
-router.post('/exibir_prof/:id/comentar', (req, res) => {
+router.post('/exibir_prof/:id/comentar', async (req, res) => {
     const professorId = req.params.id;
-    const texto = (req.body.texto || '').trim();
-    const nota = req.body.nota;
+    const { texto, nota } = req.body;
 
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
-    if (!texto) return res.redirect(`/exibir_prof/${professorId}`);
+    if (!texto || texto.trim() === '') return res.redirect(`/exibir_prof/${professorId}`);
 
-    if (!req.session.prof_comentarios) req.session.prof_comentarios = {};
-    if (!req.session.prof_comentarios[professorId]) req.session.prof_comentarios[professorId] = [];
-
-    const newComment = {
-        usuario: user.nome,
-        texto,
-        data: new Date().toISOString(),
-    };
-
-    if (nota) {
-        const notaInt = parseInt(nota, 10);
-        if (notaInt >= 1 && notaInt <= 5) {
-            newComment.nota = notaInt;
+    try {
+        const notaInt = nota ? parseInt(nota, 10) : null;
+        if (notaInt !== null && (notaInt < 1 || notaInt > 5)) {
+           return res.redirect(`/exibir_prof/${professorId}`);
         }
+
+        await pool.query(
+            'INSERT INTO comentarios (professor_id, usuario_nome, texto, nota) VALUES (?, ?, ?, ?)',
+            [professorId, user.nome, texto.trim(), notaInt]
+        );
+
+        res.redirect(`/exibir_prof/${professorId}`);
+    } catch (error) {
+        console.error('Erro ao salvar comentário:', error);
+        res.redirect(`/exibir_prof/${professorId}`);
     }
-
-    req.session.prof_comentarios[professorId].push(newComment);
-
-    req.session.save(err => {
-        if (err) {
-            console.error('Erro ao salvar o comentário na sessão:', err);
-        }
-        return res.redirect(`/exibir_prof/${professorId}`);
-    });
 });
 
-
-// --- ROTAS DE CHAT ATUALIZADAS ---
-router.get('/chat/:roomId', (req, res) => {
+router.get('/chat/:roomId', async (req, res) => {
     const { roomId } = req.params;
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
 
     const roomParts = roomId.replace('chat_', '').split('-');
     const partnerId = roomParts.find(id => id !== user.id);
-    const partner = getUserById(partnerId);
+    const partner = await getUserById(partnerId);
 
     res.render('pages/chat', {
         user,
@@ -641,15 +640,12 @@ router.get('/chat', (req, res) => {
     res.redirect('/historico_chats');
 });
 
-// Rota para a página de videochamada
 router.get("/video/:room", (req, res) => {
     const { room } = req.params;
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
     res.render("pages/video_call", { room, user });
 });
-// --- FIM DAS ROTAS DE CHAT --
-
 
 router.get('/politica', (req, res) => {
     res.render('pages/politica');
@@ -659,39 +655,41 @@ router.get('/termos', (req, res) => {
     res.render('pages/termos');
 });
 
-router.get('/aulas', (req, res) => {
+router.get('/aulas', async (req, res) => {
     const sessionUser = req.session.user_prof;
     if (!sessionUser) {
         return res.redirect('/login');
     }
 
-    // Busca os dados mais recentes do professor diretamente da "base de dados"
-    const professor = professores.find(p => p.id === sessionUser.id);
-    if (!professor) {
-        // Caso o professor não seja encontrado (improvável se a sessão existe), desloga.
-        return res.redirect('/logout');
-    }
+    try {
+        const professor = await getUserById(sessionUser.id);
+        if (!professor) {
+            return res.redirect('/logout');
+        }
 
-    // Para cada horário agendado, busca o nome do aluno para exibição
-    if (professor.horariosDisponiveis) {
-        professor.horariosDisponiveis.forEach(horario => {
-            if (horario.status === 'agendado' && horario.alunoId) {
-                const aluno = getUserById(horario.alunoId);
-                horario.alunoNome = aluno ? aluno.nome : 'Aluno desconhecido';
-            }
-        });
-    }
+        const [agendamentos] = await pool.query(
+            `SELECT ag.*, a.nome as alunoNome
+             FROM agendamentos ag
+             JOIN alunos a ON ag.aluno_id = a.id
+             WHERE ag.professor_id = ? AND ag.status = 'ativo'
+             ORDER BY ag.data, ag.hora`,
+            [professor.id]
+        );
 
-    // Renderiza a página com os dados atualizados do professor
-    res.render('pages/aulas', { user: professor, session: req.session });
+        professor.agendamentos = agendamentos;
+
+        res.render('pages/aulas', { user: professor, session: req.session });
+
+    } catch (error) {
+        console.error('Erro ao carregar a página de aulas:', error);
+        res.redirect('/dashboard_prof');
+    }
 });
 
-// GET exibe formulário (dados e erros são opcionais) — padronizado como nas outras rotas
 router.get('/denuncia', (req, res) => {
     res.render('pages/denuncia', { erros: {}, dados: {} });
 });
 
-// POST valida e processa
 router.post('/denuncia',
   [
     body('tipo').notEmpty().withMessage('O tipo de denúncia é obrigatório.'),
@@ -701,25 +699,31 @@ router.post('/denuncia',
     body('evidencia').optional({ checkFalsy: true }).isURL().withMessage('Link de evidência inválido.'),
     body('anonimo').optional().toBoolean()
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
-    const dados = req.body;
-
     if (!errors.isEmpty()) {
-        return res.status(422).render('pages/denuncia', { erros: errors.mapped(), dados });
+        return res.status(422).render('pages/denuncia', { erros: errors.mapped(), dados: req.body });
     }
 
-    console.log('Nova denúncia:', dados);
-    req.session.dados = dados;
-    return res.redirect('/denuncia_sucesso');
+    try {
+        const { tipo, titulo, descricao, email, evidencia, anonimo } = req.body;
+        await pool.query(
+            'INSERT INTO denuncias (tipo, titulo, descricao, email, evidencia, anonimo) VALUES (?, ?, ?, ?, ?, ?)',
+            [tipo, titulo, descricao, anonimo ? null : email, evidencia, anonimo ? 1 : 0]
+        );
+        return res.redirect('/denuncia_sucesso');
+    } catch (error) {
+        console.error('Erro ao salvar denúncia:', error);
+        const dados = req.body;
+        const erros = { general: { msg: "Não foi possível registrar a denúncia. Tente novamente." } };
+        return res.status(500).render('pages/denuncia', { erros, dados });
+    }
   }
 );
 
-// Página simples de sucesso (crie views/denuncia_sucesso.ejs)
 router.get('/denuncia_sucesso', (req,res)=> {
-  res.render('pages/denuncia_sucesso', { dados: req.session.dados });
+  res.render('pages/denuncia_sucesso');
 });
-
 
 router.get('/logout', (req, res) => {
     req.session.destroy(() => {
@@ -727,28 +731,24 @@ router.get('/logout', (req, res) => {
     });
 });
 
-// ROTAS DE PAGAMENTO
 router.get('/pagamento', (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof || { nome: 'Visitante', tipo: 'visitante' };
     res.render('pages/pagamento', { user });
 });
 
-// Criar preferência de pagamento
 router.get('/create_preference', async (req, res) => {
     try {
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
         if (!mpPreferenceClient) return res.status(500).json({ error: 'Mercado Pago não configurado no servidor.' });
 
         const preference = {
-            items: [
-                {
-                    title: 'Mensalidade Regimath',
-                    description: 'Acesso a plataforma por 30 dias',
-                    quantity: 1,
-                    currency_id: 'BRL',
-                    unit_price: 100
-                }
-            ],
+            items: [{
+                title: 'Mensalidade Regimath',
+                description: 'Acesso a plataforma por 30 dias',
+                quantity: 1,
+                currency_id: 'BRL',
+                unit_price: 100
+            }],
             back_urls: {
                 success: "http://localhost:3000/pagamento/sucesso",
                 failure: "http://localhost:3000/pagamento/erro",
@@ -775,155 +775,128 @@ router.get('/create_preference', async (req, res) => {
     }
 });
 
-// Rota de sucesso do pagamento (onde o agendamento é efetivado)
-router.get('/pagamento/sucesso', (req, res) => {
-    const { external_reference } = req.query;
+router.get('/pagamento/sucesso', async (req, res) => {
+    const { external_reference, payment_id, status } = req.query;
 
     if (!external_reference) {
         return res.render('pages/pagamento_sucesso', {
-            paymentId: req.query.payment_id,
-            status: req.query.status,
+            paymentId: payment_id,
+            status: status,
             message: "Pagamento da assinatura concluído com sucesso!"
         });
     }
 
     try {
         const { profId, horarioId, alunoId } = JSON.parse(external_reference);
-        const professor = professores.find(p => p.id == profId);
 
-        if (!professor || !professor.horariosDisponiveis) {
-            return res.status(404).render('pages/pagamento_erro', { error: 'O professor não foi encontrado.' });
+        await pool.query('START TRANSACTION');
+
+        const [horarioRows] = await pool.query('SELECT * FROM horarios_disponiveis WHERE id = ? FOR UPDATE', [horarioId]);
+
+        if (horarioRows.length === 0 || horarioRows[0].status !== 'disponivel') {
+            await pool.query('ROLLBACK');
+            return res.status(404).render('pages/pagamento_erro', { error: 'O horário selecionado não está mais disponível.' });
         }
+        const horario = horarioRows[0];
 
-        const horarioIndex = professor.horariosDisponiveis.findIndex(h => h.horarioId === horarioId);
-        if (horarioIndex === -1) {
-            return res.status(404).render('pages/pagamento_erro', { error: 'O horário não existe mais.' });
-        }
+        await pool.query('UPDATE horarios_disponiveis SET status = ?, aluno_id = ? WHERE id = ?', ['agendado', alunoId, horarioId]);
 
-        const horario = professor.horariosDisponiveis[horarioIndex];
-        horario.status = 'agendado';
-        horario.alunoId = alunoId;
+        const salaId = crypto.randomBytes(16).toString('hex');
+        await pool.query(
+            'INSERT INTO agendamentos (aluno_id, professor_id, horario_id, sala_id, data, hora, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [alunoId, profId, horarioId, salaId, horario.data, horario.hora_inicio, 'ativo']
+        );
 
-        const aluno = alunos.find(a => a.id === alunoId);
-        if (aluno) {
-            if (!aluno.agenda) aluno.agenda = [];
-            aluno.agenda.push({
-                professor: { id: professor.id, nome: professor.nome },
-                salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-                data: horario.data,
-                hora: horario.horaInicio
-            });
-        }
+        const [aluno] = await pool.query('SELECT nome FROM alunos WHERE id = ?', [alunoId]);
+        const mensagem = `Nova aula agendada com ${aluno[0].nome} para o dia ${horario.data} às ${horario.hora_inicio}.`;
+        await pool.query(
+            'INSERT INTO notificacoes (usuario_id, usuario_tipo, tipo, mensagem) VALUES (?, ?, ?, ?)',
+            [profId, 'professor', 'novo_agendamento', mensagem]
+        );
 
-        if (!professor.agenda) professor.agenda = [];
-        professor.agenda.push({
-            aluno: { id: alunoId, nome: aluno.nome },
-            salaId: horario.salaId || crypto.randomBytes(16).toString('hex'),
-            data: horario.data,
-            hora: horario.horaInicio
-        });
+        await pool.query('COMMIT');
 
         res.render('pages/pagamento_sucesso', {
-            paymentId: req.query.payment_id,
-            status: req.query.status,
+            paymentId: payment_id,
+            status: status,
             message: "Agendamento concluído com sucesso!"
         });
 
     } catch (error) {
+        await pool.query('ROLLBACK');
         console.error('Erro ao processar sucesso do pagamento:', error);
         res.status(500).render('pages/pagamento_erro', { error: 'Ocorreu um erro crítico ao processar seu agendamento.' });
     }
 });
 
-
-// Rota de erro do pagamento
 router.get('/pagamento/erro', (req, res) => {
     res.render('pages/pagamento_erro', {
         error: req.query.error || 'Pagamento não aprovado'
     });
 });
 
-// Rota de pagamento pendente
 router.get('/pagamento/pendente', (req, res) => {
     res.render('pages/pagamento_pendente', {
         paymentId: req.query.payment_id
     });
 });
 
-router.get('/dashboard_prof', (req, res) => {
+router.get('/dashboard_prof', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const professor = professores.find(p => p.id === user.id);
-    const agora = new Date();
-    const mesAtual = agora.getMonth();
-    const anoAtual = agora.getFullYear();
-
-    let aulasProximas24h = 0;
-    let proximaAula = null;
-    let ganhosMes = { total: 0, concluidas: 0, futuras: 0 };
-    let avaliacaoMedia = { media: 0, totalAvaliacoes: 0, ultimoFeedback: "Nenhum feedback ainda." };
-
-    if (professor && professor.horariosDisponiveis) {
-        const horariosAgendados = professor.horariosDisponiveis
-            .filter(h => h.status === 'agendado')
-            .map(h => ({ ...h, dataObj: new Date(`${h.data}T${h.horaInicio}`) }))
-            .sort((a, b) => a.dataObj - b.dataObj);
-
-        const aulasFuturas = horariosAgendados.filter(h => h.dataObj > agora);
-
-        // Contagem para as próximas 24h
+    try {
+        const professor = await getUserById(user.id);
+        const agora = new Date();
+        const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
         const proximas24h = new Date(agora.getTime() + 24 * 60 * 60 * 1000);
-        aulasProximas24h = aulasFuturas.filter(h => h.dataObj < proximas24h).length;
 
-        // Encontra a próxima aula
-        if (aulasFuturas.length > 0) {
-            const proximoHorario = aulasFuturas[0];
-            const aluno = getUserById(proximoHorario.alunoId);
-            proximaAula = {
-                ...proximoHorario,
-                aluno: aluno,
-                salaId: proximoHorario.salaId || 'geral'
-            };
-        }
-
-        // Cálculo de Ganhos no Mês
-        const aulasConcluidasEsteMes = horariosAgendados.filter(h =>
-            h.dataObj < agora &&
-            h.dataObj.getMonth() === mesAtual &&
-            h.dataObj.getFullYear() === anoAtual
+        const [agendamentos] = await pool.query(
+            `SELECT ag.*, a.nome as alunoNome, h.preco
+             FROM agendamentos ag
+             JOIN alunos a ON ag.aluno_id = a.id
+             JOIN horarios_disponiveis h ON ag.horario_id = h.id
+             WHERE ag.professor_id = ? AND ag.status != 'cancelado'`,
+            [user.id]
         );
 
-        ganhosMes.total = aulasConcluidasEsteMes.length * 50; // Preço fixo de 50
-        ganhosMes.concluidas = aulasConcluidasEsteMes.length;
-        ganhosMes.futuras = aulasFuturas.length;
-    }
+        const aulas = agendamentos.map(ag => ({...ag, dataObj: new Date(`${ag.data}T${ag.hora}`)}));
+        const aulasFuturas = aulas.filter(ag => ag.dataObj > agora).sort((a,b) => a.dataObj - b.dataObj);
+        const aulasConcluidasMes = aulas.filter(ag => ag.dataObj < agora && ag.dataObj >= inicioMes);
 
-    // Cálculo da Avaliação Média
-    const comentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
-    const avaliacoes = comentarios.filter(c => c.nota);
+        const aulasProximas24h = aulasFuturas.filter(ag => ag.dataObj < proximas24h).length;
+        const proximaAula = aulasFuturas.length > 0 ? aulasFuturas[0] : null;
 
-    if (avaliacoes.length > 0) {
-        const somaNotas = avaliacoes.reduce((acc, c) => acc + c.nota, 0);
-        avaliacaoMedia.media = (somaNotas / avaliacoes.length).toFixed(1);
-        avaliacaoMedia.totalAvaliacoes = avaliacoes.length;
+        const ganhosMes = {
+            total: aulasConcluidasMes.reduce((sum, ag) => sum + parseFloat(ag.preco), 0),
+            concluidas: aulasConcluidasMes.length,
+            futuras: aulasFuturas.length,
+        };
 
-        // Pega o feedback mais recente que tenha um texto
-        const ultimoFeedbackComTexto = [...avaliacoes].reverse().find(a => a.texto);
-        if(ultimoFeedbackComTexto) {
-            avaliacaoMedia.ultimoFeedback = ultimoFeedbackComTexto.texto;
+        const [comentarios] = await pool.query('SELECT nota, texto FROM comentarios WHERE professor_id = ?', [user.id]);
+        const avaliacoesComNota = comentarios.filter(c => c.nota);
+        let avaliacaoMedia = { media: 0, totalAvaliacoes: 0, ultimoFeedback: "Nenhum feedback ainda." };
+
+        if (avaliacoesComNota.length > 0) {
+            avaliacaoMedia.totalAvaliacoes = avaliacoesComNota.length;
+            avaliacaoMedia.media = (avaliacoesComNota.reduce((sum, c) => sum + c.nota, 0) / avaliacoesComNota.length).toFixed(1);
+            const ultimoFeedback = comentarios.filter(c => c.texto).pop();
+            if (ultimoFeedback) avaliacaoMedia.ultimoFeedback = ultimoFeedback.texto;
         }
-    }
 
-    res.render('pages/dashboard_prof', {
-        user,
-        professor: professor || user,
-        session: req.session,
-        aulasProximas24h,
-        proximaAula,
-        ganhosMes,
-        avaliacaoMedia
-    });
+        res.render('pages/dashboard_prof', {
+            user,
+            professor,
+            session: req.session,
+            aulasProximas24h,
+            proximaAula,
+            ganhosMes,
+            avaliacaoMedia
+        });
+    } catch(error) {
+        console.error("Erro no dashboard do professor:", error);
+        res.redirect('/logout');
+    }
 });
 
 
@@ -933,34 +906,55 @@ router.get('/dashboard_aluno', (req, res) => {
     res.render('pages/dashboard_aluno', { user, session: req.session });
 });
 
+router.get('/-progressomeu', async (req, res) => {
+    const user = req.session.user_aluno;
+    if (!user) {
+        return res.redirect('/login');
+    }
 
-router.get('/painel_adm', (req, res) => {
-    res.render('pages/painel_adm', { professores });
+    try {
+        const dashboardData = await AnalyticsService.getDashboardData(user.id);
+        res.render('pages/meu-progresso', {
+            user,
+            dashboard: dashboardData,
+            session: req.session
+        });
+    } catch (error) {
+        console.error('Erro ao carregar a página de progresso do aluno:', error);
+        res.status(500).send('Não foi possível carregar seus dados de progresso.');
+    }
 });
 
-// Rota para buscar o histórico de chats do usuário com filtro de pesquisa
+router.get('/painel_adm', async (req, res) => {
+    try {
+        const [professores] = await pool.query('SELECT * from professores');
+        res.render('pages/painel_adm', { professores });
+    } catch(error) {
+        console.error("Erro ao carregar painel ADM:", error);
+        res.render('pages/painel_adm', { professores: [] });
+    }
+});
+
 router.get('/historico_chats', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    // Termo de pesquisa da query string
     const searchQuery = (req.query.search || '').trim().toLowerCase();
 
     try {
         const allMessages = await chatStore.loadMessages();
-        let userChats = []; // Alterado para 'let' para permitir a reatribuição após o filtro
+        let userChats = [];
 
         for (const room in allMessages) {
             if (room.startsWith('global')) continue;
 
             const roomParts = room.replace('chat_', '').split('-');
-            // **CORREÇÃO**: Garantir que o ID do usuário da sessão seja string para a comparação
             if (roomParts.includes(String(user.id))) {
                 const messages = allMessages[room];
                 if (messages.length > 0) {
                     const lastMessage = messages[messages.length - 1];
                     const partnerId = roomParts.find(id => id !== String(user.id));
-                    const partner = getUserById(partnerId);
+                    const partner = await getUserById(partnerId);
 
                     userChats.push({
                         id: room,
@@ -973,26 +967,75 @@ router.get('/historico_chats', async (req, res) => {
             }
         }
 
-        // Aplica o filtro de pesquisa se um termo foi fornecido
         if (searchQuery) {
             userChats = userChats.filter(chat =>
                 chat.partnerName.toLowerCase().includes(searchQuery)
             );
         }
 
-        // Ordena os chats pelo mais recente
-        userChats.sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
+        userChats.sort((a, b) => new Date(b.lastActive) - new Date(b.lastActive));
 
-        // Passa o termo de pesquisa para o template
         res.render('pages/historico_chats', {
             chats: userChats,
             user,
-            searchQuery // Envia a pesquisa de volta para o input
+            searchQuery
         });
 
     } catch (error) {
         console.error('Erro ao carregar o histórico de chats:', error);
         res.status(500).send('Não foi possível carregar o histórico de conversas.');
+    }
+});
+
+router.get('/historico_aulas', async (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) return res.redirect('/login');
+
+    const searchQuery = (req.query.search || '').trim().toLowerCase();
+
+    try {
+        const allMessages = await chatStore.loadMessages();
+        let userChats = [];
+
+        for (const room in allMessages) {
+            if (room.startsWith('global')) continue;
+
+            const roomParts = room.replace('chat_', '').split('-');
+            if (roomParts.includes(String(user.id))) {
+                const messages = allMessages[room];
+                if (messages.length > 0) {
+                    const lastMessage = messages[messages.length - 1];
+                    const partnerId = roomParts.find(id => id !== String(user.id));
+                    const partner = await getUserById(partnerId);
+
+                    userChats.push({
+                        id: room,
+                        partnerName: partner.nome || `Usuário ${partnerId}`,
+                        partnerRole: partner.tipo,
+                        lastMessage: lastMessage.text,
+                        lastActive: lastMessage.time
+                    });
+                }
+            }
+        }
+
+        if (searchQuery) {
+            userChats = userChats.filter(chat =>
+                chat.partnerName.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        userChats.sort((a, b) => new Date(b.lastActive) - new Date(b.lastActive));
+
+        res.render('pages/historico_chats', {
+            chats: userChats,
+            user,
+            searchQuery
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar o histórico de chats:', error);
+        res.status(500).send('Não foi possível carregar o histórico de aulas.');
     }
 });
 
@@ -1009,7 +1052,6 @@ router.get('/editar_perfil_prof', (req, res) => {
     res.render('pages/editar_perfil_prof', { user, erros: {}, dados: {}, session: req.session });
 });
 
-// POST: Editar perfil do professor com validação e upload de foto
 router.post('/perfil/editar', (req, res) => {
     upload(req, res, async (err) => {
         const isProf = !!req.session.user_prof;
@@ -1020,12 +1062,7 @@ router.post('/perfil/editar', (req, res) => {
         const renderPage = isProf ? 'pages/editar_perfil_prof' : 'pages/editar_perfil_aluno';
 
         if (err) {
-            return res.render(renderPage, {
-                user,
-                erros: { foto: { msg: err.message } },
-                dados: req.body,
-                session: req.session
-            });
+            return res.render(renderPage, { user, erros: { foto: { msg: err.message } }, dados: req.body, session: req.session });
         }
 
         await body('nome').notEmpty().withMessage('O nome é obrigatório.').run(req);
@@ -1035,183 +1072,239 @@ router.post('/perfil/editar', (req, res) => {
         if (!erros.isEmpty()) {
             return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body, session: req.session });
         }
-
-        // Garante que 'disciplinas' seja sempre um array
-        let disciplinas = req.body.disciplinas || [];
-        if (disciplinas && !Array.isArray(disciplinas)) {
-            disciplinas = [disciplinas];
-        }
-        // Filtra valores vazios que possam ter sido enviados pelo formulário
-        disciplinas = disciplinas.filter(d => d && d.trim() !== '');
-
-        const updatedData = {
-            nome: req.body.nome,
-            email: req.body.email,
-            descricao: req.body.descricao || user.descricao,
-            link_previa: req.body.link_previa || user.link_previa,
-            status: req.body.status || user.status,
-            disciplinas: disciplinas // Usa o array de disciplinas que foi tratado
-        };
-
-        if (req.file) {
-            updatedData.foto = '/imagens/uploads/' + req.file.filename;
-        }
-
-        // Atualiza a sessão
-        req.session.user_prof = { ...user, ...updatedData };
-
-        // Atualiza o array global `professores`
-        const profIndex = professores.findIndex(p => p.id === user.id);
-        if (profIndex !== -1) {
-            professores[profIndex] = { ...professores[profIndex], ...updatedData };
-        }
-
-        req.session.save(err => {
-            if (err) {
-                return res.render(renderPage, { user, erros: { general: { msg: 'Erro ao salvar.' } }, session: req.session });
+        
+        try {
+            const table = isProf ? 'professores' : 'alunos';
+            let disciplinas = req.body.disciplinas || [];
+            if (disciplinas && !Array.isArray(disciplinas)) {
+                disciplinas = [disciplinas];
             }
-            res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
-        });
+            disciplinas = disciplinas.filter(d => d && d.trim() !== '');
+
+            const updatedData = {
+                nome: req.body.nome,
+                email: req.body.email,
+            };
+
+            if (isProf) {
+                updatedData.descricao = req.body.descricao || user.descricao;
+                updatedData.link_previa = req.body.link_previa || user.link_previa;
+                updatedData.status = req.body.status || user.status;
+                if (req.file) {
+                    updatedData.foto = '/imagens/uploads/' + req.file.filename;
+                }
+                
+                await pool.query('UPDATE professores SET nome=?, email=?, descricao=?, link_previa=?, status=?, foto=? WHERE id=?', 
+                    [updatedData.nome, updatedData.email, updatedData.descricao, updatedData.link_previa, updatedData.status, updatedData.foto || user.foto, user.id]
+                );
+                
+                await pool.query('DELETE FROM disciplinas WHERE professor_id = ?', [user.id]);
+                for (const d of disciplinas) {
+                    await pool.query('INSERT INTO disciplinas (professor_id, nome) VALUES (?, ?)', [user.id, d]);
+                }
+                updatedData.disciplinas = disciplinas;
+
+            } else { 
+                await pool.query('UPDATE alunos SET nome=?, email=? WHERE id=?', [updatedData.nome, updatedData.email, user.id]);
+            }
+            
+            const sessionKey = isProf ? 'user_prof' : 'user_aluno';
+            req.session[sessionKey] = { ...user, ...updatedData };
+
+            req.session.save(err => {
+                if (err) {
+                    console.error("Erro ao salvar sessão após editar perfil:", err);
+                }
+                res.redirect(isProf ? '/perfil_prof' : '/perfil_aluno');
+            });
+
+        } catch(error) {
+            console.error("Erro ao editar perfil:", error);
+            res.render(renderPage, { user, erros: { general: { msg: 'Erro ao salvar.' } }, session: req.session });
+        }
     });
 });
 
-
-router.get('/pesquisar_profs', (req, res) => {
+router.get('/pesquisar_profs', async (req, res) => {
     const query = (req.query.query || '').trim().toLowerCase();
     const page = parseInt(req.query.page) || 1;
-    const itemsPerPage = 1;
+    const itemsPerPage = 5; 
 
-    let results = professores;
-    if (query) {
-        results = professores.filter(p => 
-            (p.nome && p.nome.toLowerCase().includes(query)) || 
-            (p.descricao && p.descricao.toLowerCase().includes(query)) ||
-            (p.disciplinas && Array.isArray(p.disciplinas) && p.disciplinas.some(d => d.toLowerCase().includes(query)))
-        );
+    try {
+        let sql = `
+            SELECT p.id, p.nome, p.foto, p.descricao, p.status, GROUP_CONCAT(d.nome SEPARATOR ', ') as disciplinas
+            FROM professores p
+            LEFT JOIN disciplinas d ON p.id = d.professor_id
+        `;
+        const params = [];
+
+        if (query) {
+            sql += `
+                WHERE (p.nome LIKE ? OR p.descricao LIKE ? OR d.nome LIKE ?)
+            `;
+            const likeQuery = `%${query}%`;
+            params.push(likeQuery, likeQuery, likeQuery);
+        }
+
+        sql += ` GROUP BY p.id`;
+
+        const [countRows] = await pool.query(sql.replace(/SELECT p.id,.*FROM/s, 'SELECT COUNT(DISTINCT p.id) as total FROM'), params);
+        const totalItems = countRows[0].total;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        sql += ` LIMIT ? OFFSET ?`;
+        params.push(itemsPerPage, (page - 1) * itemsPerPage);
+
+        const [results] = await pool.query(sql, params);
+        
+        results.forEach(prof => {
+            prof.disciplinas = prof.disciplinas ? prof.disciplinas.split(', ') : [];
+        });
+
+        res.render('pages/pesquisar_profs', {
+            professores: results,
+            query,
+            session: req.session,
+            currentPage: page,
+            totalPages,
+            url: req.path
+        });
+
+    } catch (error) {
+        console.error("Erro ao pesquisar professores:", error);
+        res.render('pages/pesquisar_profs', { professores: [], query, session: req.session, currentPage: 1, totalPages: 1, url: req.path });
     }
-
-    const totalItems = results.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const paginatedResults = results.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
-    res.render('pages/pesquisar_profs', { 
-        professores: paginatedResults, 
-        query, 
-        session: req.session,
-        currentPage: page,
-        totalPages,
-        url: req.path
-    });
 });
+
 
 router.get('/professores', (req, res) => {
     res.redirect('/pesquisar_profs?query=' + (req.query.query || ''));
 });
 
-router.get('/agenda', (req, res) => {
+router.get('/agenda', async (req, res) => {
     const user = req.session.user_aluno;
     if (!user) return res.redirect('/login');
-    res.render('pages/agenda', { user, session: req.session });
+
+    try {
+        const [agendamentos] = await pool.query(
+            `SELECT ag.*, p.nome as professor_nome, p.id as professor_id
+             FROM agendamentos ag
+             JOIN professores p ON ag.professor_id = p.id
+             WHERE ag.aluno_id = ? AND ag.status = 'ativo'
+             ORDER BY ag.data, ag.hora`,
+            [user.id]
+        );
+        const agendaFormatada = agendamentos.map(ag => ({
+            id: ag.id,
+            professor: { id: ag.professor_id, nome: ag.professor_nome },
+            salaId: ag.sala_id,
+            data: ag.data,
+            hora: ag.hora,
+        }));
+
+        res.render('pages/agenda', { user: { ...user, agenda: agendaFormatada }, session: req.session });
+    } catch(error) {
+        console.error("Erro ao carregar agenda do aluno:", error);
+        res.render('pages/agenda', { user, session: req.session });
+    }
 });
 
-router.get('/ganhos_mes', (req, res) => {
+router.get('/ganhos_mes', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const professor = professores.find(p => p.id === user.id);
     const agora = new Date();
-    const mesAtual = agora.getMonth();
-    const anoAtual = agora.getFullYear();
+    const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1);
 
-    const VALOR_AULA = 50; // Valor fixo por aula
+    try {
+        const [aulasConcluidas] = await pool.query(
+            `SELECT h.preco, a.nome as aluno_nome, ag.data, ag.hora
+             FROM agendamentos ag
+             JOIN horarios_disponiveis h ON ag.horario_id = h.id
+             JOIN alunos a ON ag.aluno_id = a.id
+             WHERE ag.professor_id = ?
+               AND ag.status = 'concluido'
+               AND ag.data >= ?
+             ORDER BY ag.data DESC, ag.hora DESC`,
+            [user.id, inicioMes]
+        );
 
-    let movimentacoes = [];
-    let resumo = {
-        mes: agora.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
-        totalGanhos: 0,
-        aulasConcluidas: 0,
-        aulasAgendadas: 0,
-        ticketMedio: 0
-    };
+        const [aulasAgendadas] = await pool.query(
+            'SELECT COUNT(*) as total FROM agendamentos WHERE professor_id = ? AND status = ? AND data >= ?',
+            [user.id, 'ativo', agora]
+        );
 
-    if (professor && professor.horariosDisponiveis) {
-        const aulasDoMes = professor.horariosDisponiveis.filter(h => {
-            const dataAula = new Date(`${h.data}T${h.horaInicio}`);
-            return h.status === 'agendado' && dataAula.getMonth() === mesAtual && dataAula.getFullYear() === anoAtual;
+        let resumo = {
+            mes: agora.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }),
+            totalGanhos: aulasConcluidas.reduce((sum, aula) => sum + parseFloat(aula.preco), 0),
+            aulasConcluidas: aulasConcluidas.length,
+            aulasAgendadas: aulasAgendadas[0].total,
+            ticketMedio: aulasConcluidas.length > 0 ? (aulasConcluidas.reduce((sum, aula) => sum + parseFloat(aula.preco), 0) / aulasConcluidas.length) : 0
+        };
+
+        let movimentacoes = aulasConcluidas.map(aula => ({
+            titulo: `Aula com ${aula.aluno_nome}`,
+            data: new Date(aula.data).toLocaleDateString('pt-BR'),
+            hora: aula.hora,
+            valor: parseFloat(aula.preco)
+        }));
+
+        res.render('pages/ganhos_mes', {
+            user,
+            resumo,
+            movimentacoes
         });
 
-        const aulasConcluidas = aulasDoMes.filter(h => new Date(`${h.data}T${h.horaInicio}`) < agora);
-        resumo.aulasConcluidas = aulasConcluidas.length;
-        resumo.totalGanhos = aulasConcluidas.length * VALOR_AULA;
-        resumo.aulasAgendadas = aulasDoMes.length - aulasConcluidas.length;
-        resumo.ticketMedio = resumo.aulasConcluidas > 0 ? resumo.totalGanhos / resumo.aulasConcluidas : 0;
-
-        // Ordena por data, da mais recente para a mais antiga
-        movimentacoes = aulasConcluidas
-            .sort((a, b) => new Date(`${b.data}T${b.horaInicio}`) - new Date(`${a.data}T${a.horaInicio}`))
-            .map(h => ({
-                titulo: `Aula com ${getUserById(h.alunoId).nome || 'Aluno'}`,
-                data: new Date(`${h.data}T${h.horaInicio}`).toLocaleDateString('pt-BR'),
-                hora: h.horaInicio,
-                valor: VALOR_AULA
-            }));
+    } catch(error) {
+        console.error("Erro ao carregar ganhos do mês:", error);
+        res.redirect('/dashboard_prof');
     }
-
-    res.render('pages/ganhos_mes', {
-        user,
-        resumo,
-        movimentacoes
-    });
 });
 
-
-router.get('/feedbacks_prof', (req, res) => {
+router.get('/feedbacks_prof', async (req, res) => {
     const user = req.session.user_prof;
     if (!user) return res.redirect('/login');
 
-    const allComentarios = (req.session.prof_comentarios && req.session.prof_comentarios[user.id]) || [];
-    const feedbacks = allComentarios
-        .sort((a, b) => new Date(b.data) - new Date(a.data)); // Mais recentes primeiro
+    try {
+        const [feedbacks] = await pool.query(
+            'SELECT * FROM comentarios WHERE professor_id = ? ORDER BY criado_em DESC',
+            [user.id]
+        );
 
-    const avaliacoesComNota = feedbacks.filter(f => f.nota);
-    const totalAvaliacoes = avaliacoesComNota.length;
+        const avaliacoesComNota = feedbacks.filter(f => f.nota);
+        const totalAvaliacoes = avaliacoesComNota.length;
 
-    const distribuicaoNotas = {
-        5: { count: 0, percent: 0 },
-        4: { count: 0, percent: 0 },
-        3: { count: 0, percent: 0 },
-        2: { count: 0, percent: 0 },
-        1: { count: 0, percent: 0 },
-    };
+        const distribuicaoNotas = { 5: { count: 0 }, 4: { count: 0 }, 3: { count: 0 }, 2: { count: 0 }, 1: { count: 0 } };
+        let somaNotas = 0;
 
-    let somaNotas = 0;
+        if (totalAvaliacoes > 0) {
+            avaliacoesComNota.forEach(f => {
+                somaNotas += f.nota;
+                if (distribuicaoNotas[f.nota]) {
+                    distribuicaoNotas[f.nota].count++;
+                }
+            });
+            Object.keys(distribuicaoNotas).forEach(key => {
+                distribuicaoNotas[key].percent = (distribuicaoNotas[key].count / totalAvaliacoes) * 100;
+            });
+        }
 
-    if (totalAvaliacoes > 0) {
-        avaliacoesComNota.forEach(f => {
-            somaNotas += f.nota;
-            if (distribuicaoNotas[f.nota]) {
-                distribuicaoNotas[f.nota].count++;
+        const mediaGeral = totalAvaliacoes > 0 ? (somaNotas / totalAvaliacoes).toFixed(1) : "0.0";
+
+        res.render('pages/feedbacks_prof', {
+            user,
+            feedbacks,
+            resumo: {
+                media: mediaGeral,
+                total: totalAvaliacoes,
+                distribuicao: distribuicaoNotas
             }
         });
-
-        for (let i = 1; i <= 5; i++) {
-            distribuicaoNotas[i].percent = (distribuicaoNotas[i].count / totalAvaliacoes) * 100;
-        }
+    } catch (error) {
+        console.error("Erro ao carregar feedbacks:", error);
+        res.redirect('/dashboard_prof');
     }
-
-    const mediaGeral = totalAvaliacoes > 0 ? (somaNotas / totalAvaliacoes).toFixed(1) : "0.0";
-
-    res.render('pages/feedbacks_prof', {
-        user,
-        feedbacks,
-        resumo: {
-            media: mediaGeral,
-            total: totalAvaliacoes,
-            distribuicao: distribuicaoNotas
-        }
-    });
 });
-
 
 router.get('/feedbacks_aluno', (req, res) => {
     const user = req.session.user_aluno;
@@ -1237,28 +1330,27 @@ router.post('/atividades', (req, res) => {
     const activities = activityStore.getActivities();
     const newActivity = req.body;
     newActivity.id = Math.random().toString(36).substring(7);
-    newActivity.professorId = user.id; // Save creator's ID
+    newActivity.professorId = user.id; 
 
     activities.activities.push(newActivity);
     activityStore.saveActivities(activities);
     res.redirect('/lista_atividades');
 });
 
-// Rota para explorar todas as atividades
-router.get('/explorar_atividades', (req, res) => {
+router.get('/explorar_atividades', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
     const activitiesData = activityStore.getActivities();
 
-    // Filtra para não exibir os testes de nivelamento
-    const activities = activitiesData.activities
+    const activities = await Promise.all(activitiesData.activities
         .filter(activity => !activity.isTest)
-        .map(activity => {
-            const creator = getUserById(activity.professorId);
+        .map(async (activity) => {
+            const creator = await getUserById(activity.professorId);
             return {
                 ...activity,
                 professorNome: creator ? creator.nome : 'Anônimo'
             };
-        });
+        })
+    );
 
     res.render('pages/explorar_atividades', {
         activities,
@@ -1268,16 +1360,14 @@ router.get('/explorar_atividades', (req, res) => {
 });
 
 
-// Rota para ver uma atividade específica
-router.get('/ver_atividade/:id', (req, res) => {
+router.get('/ver_atividade/:id', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
     const activitiesData = activityStore.getActivities();
     const activity = activitiesData.activities.find(a => a.id === req.params.id);
 
     if (activity) {
-        // Para testes, o criador é o próprio aluno. Para outras, é o professor.
         const creatorId = activity.isTest ? activity.alunoId : activity.professorId;
-        const creator = getUserById(creatorId);
+        const creator = await getUserById(creatorId);
 
         const activityData = {
             ...activity,
@@ -1296,56 +1386,76 @@ router.get('/ver_atividade/:id', (req, res) => {
 router.post('/submit-test/:activityId', async (req, res) => {
     const { activityId } = req.params;
     const user = req.session.user_aluno;
-
-    if (!user) {
-        return res.redirect('/login');
-    }
+    if (!user) return res.redirect('/login');
 
     const activitiesData = activityStore.getActivities();
     const activity = activitiesData.activities.find(a => a.id === activityId);
-
-    if (!activity || !activity.isTest) {
-        return res.status(404).send('Teste não encontrado.');
-    }
+    if (!activity || !activity.isTest) return res.status(404).send('Teste não encontrado.');
 
     const userAnswers = req.body.answers;
     let score = 0;
     const totalQuestions = activity.questions.length;
-
-    activity.questions.forEach((question, index) => {
-        if (userAnswers[index] && userAnswers[index].toLowerCase() === question.correct.toLowerCase()) {
-            score++;
-        }
-    });
-
-    const pontuacao_total = (score / totalQuestions) * 100;
+    const questionIds = [];
 
     try {
-        // Salva a tentativa de teste
+        await pool.query('START TRANSACTION');
+
+        const [existingActivity] = await pool.query('SELECT id FROM atividades WHERE id = ?', [activityId]);
+        if (existingActivity.length === 0) {
+            await pool.query('INSERT INTO atividades (id, titulo, descricao) VALUES (?, ?, ?)', [activityId, activity.title, activity.description]);
+
+            for (const q of activity.questions) {
+                let habilidadeId = null;
+                if (q.habilidade) {
+                    const [habilidadeResult] = await pool.query('INSERT INTO habilidades (codigo, descricao) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)', [q.habilidade, q.habilidade]);
+                    habilidadeId = habilidadeResult.insertId;
+                }
+
+                const [result] = await pool.query(
+                    'INSERT INTO questoes (atividade_id, enunciado, alternativa_a, alternativa_b, alternativa_c, alternativa_d, resposta, habilidade_id, dificuldade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [activityId, q.text || q.question || q.enunciado, q.options[0], q.options[1], q.options[2], q.options[3], q.correct, habilidadeId, q.dificuldade]
+                );
+                questionIds.push(result.insertId);
+            }
+        } else {
+            const [existingQuestions] = await pool.query('SELECT id FROM questoes WHERE atividade_id = ?', [activityId]);
+            existingQuestions.forEach(q => questionIds.push(q.id));
+        }
+
+        activity.questions.forEach((question, index) => {
+            if (userAnswers[index] && userAnswers[index].toLowerCase() === question.correct.toLowerCase()) {
+                score++;
+            }
+        });
+
+        const pontuacao_total = (score / totalQuestions) * 100;
+
         const [result] = await pool.query(
-            'INSERT INTO tentativas_teste (aluno_id, atividade_id, pontuacao_total, total_questoes) VALUES (?, ?, ?, ?)',
-            [user.id, activityId, pontuacao_total, totalQuestions]
+            'INSERT INTO tentativas_teste (aluno_id, atividade_id, tipo, pontuacao_total, total_questoes) VALUES (?, ?, ?, ?, ?)',
+            [user.id, activityId, 'diagnostico', pontuacao_total, totalQuestions]
         );
         const tentativaId = result.insertId;
 
-        // Salva as respostas individuais
         for (let i = 0; i < totalQuestions; i++) {
             const question = activity.questions[i];
-            const userAnswer = userAnswers[i] || null;
-            const isCorrect = userAnswer && userAnswer.toLowerCase() === question.correct.toLowerCase() ? 1 : 0;
+            const userAnswer = userAnswers[i];
+            const isCorrect = userAnswer && userAnswer.toLowerCase() === question.correct.toLowerCase();
+            const questionId = questionIds[i];
 
-            await pool.query(
-                'INSERT INTO respostas_teste (tentativa_id, questao_id, resposta_marcada, acertou, habilidade, dificuldade) VALUES (?, ?, ?, ?, ?, ?)',
-                [tentativaId, i + 1, userAnswer, isCorrect, question.habilidade || 'geral', question.dificuldade || 'media']
-            );
+            if (questionId) {
+                await pool.query(
+                    'INSERT INTO respostas_teste (tentativa_id, questao_id, resposta_marcada, acertou) VALUES (?, ?, ?, ?)',
+                    [tentativaId, questionId, userAnswer, isCorrect ? 1 : 0]
+                );
+            }
         }
 
-        // Gera a trilha com base no resultado
-        await trilhaService.salvarResumoPorHabilidade({ tentativaId: tentativaId, alunoId: user.id });
-        await trilhaService.gerarTrilhaDaTentativa({ alunoId: user.id, tentativaId: tentativaId });
+        await trilhaService.gerarTrilhaDaTentativa({ alunoId: user.id, tentativaId });
 
+        await pool.query('COMMIT');
         res.redirect('/trilha');
     } catch (error) {
+        await pool.query('ROLLBACK');
         console.error('Erro ao submeter o teste e gerar a trilha:', error);
         res.status(500).send('Erro ao processar o teste.');
     }
@@ -1361,7 +1471,7 @@ router.get('/gerar_atividade', async (req, res) => {
         return res.redirect('/login');
     }
 
-    const { level } = req.query;
+    const { level } = req.query; 
     let prompt;
 
     switch (level) {
@@ -1378,7 +1488,7 @@ router.get('/gerar_atividade', async (req, res) => {
             prompt = 'um exercício de matemática para o 4º ano do ensino fundamental com 10 questões de múltipla escolha.';
             break;
         case 'fundamental5':
-            prompt = 'um exercício de matemática para o 5º ano do ensino fundamental com 10 questões de múltipla escolha.';
+            prompt = 'um exercício de matemática para o 5º ano do ensino fundamental com 3 questões de múltipla escolha.';
             break;
         case 'fundamental6':
             prompt = 'um exercício de matemática para o 6º ano do ensino fundamental com 10 questões de múltipla escolha.';
@@ -1419,13 +1529,23 @@ router.get('/gerar_atividade', async (req, res) => {
 
         const data = await response.json();
         const activities = activityStore.getActivities();
+
+        const questions = (data.questions || []).map(q => ({
+            title: q.title, 
+            text: q.title, 
+            options: Object.values(q.options || {}), 
+            correct: q.correct,
+            habilidade: q.habilidade,
+            dificuldade: q.dificuldade
+        }));
+
         const newActivity = {
             id: Math.random().toString(36).substring(7),
-            alunoId: user.id, // ID do aluno que está fazendo o teste
-            isTest: true, // Marca como um teste de nivelamento
+            alunoId: user.id,
+            isTest: true,
             title: data.title || 'Teste de Nivelamento',
             description: data.description || 'Este é um teste para avaliar seu conhecimento.',
-            questions: data.questions || []
+            questions: questions
         };
 
         activities.activities.push(newActivity);
@@ -1444,30 +1564,21 @@ router.get('/trilha', async (req, res) => {
     }
 
     try {
-        const [trilhas] = await pool.query(
-          `SELECT id FROM trilhas WHERE aluno_id = ? AND status = 'ativa' ORDER BY criado_em DESC LIMIT 1`,
-          [user.id]
-        );
+        const tarefa = await trilhaService.iniciarTrilhaParaAluno(user.id);
 
-        if (trilhas.length === 0) {
-            return res.redirect('/dashboard_aluno');
-        }
-        const trilhaId = trilhas[0].id;
+        if (tarefa.tarefaTipo === 'CONCLUIDO') {
+            // MODIFICADO: Renderiza a página de conclusão em vez de redirecionar
+            return res.render('pages/trilha_concluida');
+        } 
 
-        const proximoItem = await trilhaService.proximoItemPendente(trilhaId);
+        res.render('pages/trilha', {
+            user,
+            tarefa: tarefa, 
+            session: req.session
+        });
 
-        if (proximoItem) {
-            res.render('pages/trilha', {
-                user,
-                item: proximoItem,
-                session: req.session
-            });
-        } else {
-            await pool.query('UPDATE trilhas SET status = ? WHERE id = ?', ['concluida', trilhaId]);
-            res.redirect('/dashboard_aluno');
-        }
     } catch (error) {
-        console.error('Erro ao obter próximo item da trilha:', error);
+        console.error('Erro ao carregar a trilha de exercícios:', error);
         res.status(500).send('Erro ao carregar a trilha de exercícios.');
     }
 });
@@ -1477,15 +1588,29 @@ router.post('/trilha/responder', async (req, res) => {
     if (!user) {
         return res.redirect('/login');
     }
-
+    
     const { item_id, resposta } = req.body;
+    const tempoResposta = 15; 
 
     try {
         if (!item_id || !resposta) {
+            console.warn("Tentativa de resposta sem item_id ou resposta.", { body: req.body });
             return res.redirect('/trilha');
         }
 
-        await trilhaService.responderItemTrilha(item_id, resposta);
+        const resultado = await trilhaService.processarRespostaEProximaQuestao(
+            user.id, 
+            item_id, 
+            resposta, 
+            tempoResposta
+        );
+
+        GamificationService.registrarAtividade(user.id);
+
+        if (resultado.acertou) {
+            GamificationService.concederXpPorAcerto(user.id);
+        }
+        
         res.redirect('/trilha');
 
     } catch (error) {

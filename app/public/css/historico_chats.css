@@ -1,0 +1,430 @@
+/* ===== VARIÁVEIS (harmonizadas com home.css) ===== */
+:root {
+    --color-primary: #800020;
+    --color-secondary: #b22222;
+    --color-background: #f7f8fa;
+    --color-card: #fff;
+    --color-text: #222;
+    --color-text-light: #666;
+
+    --color-online: #2ecc71;
+    --color-offline: #c0c0c0;
+
+    --radius: 12px;
+    --shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", Arial, sans-serif;
+}
+
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* ===== HEADER ===== */
+header {
+  background: var(--color-card);
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: sticky;
+  top: 0;
+  margin-left: -20px;
+  z-index: 100;
+  border-bottom: 2px solid var(--color-primary);
+  height: 60px;
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.menu-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  color: #800020;
+  cursor: pointer;
+}
+
+/* ============ MENU LATERAL ============ */
+nav {
+  position: fixed;
+  top: 0;
+  left: -260px; /* Largura base aumentada para 260px */
+  width: 260px;
+  height: 100vh;
+  background: #800020;
+  padding-top: 60px; /* Espaço para o header */
+  transition: 0.3s;
+  z-index: 1002;
+}
+
+nav.active {
+  left: 0px;
+}
+
+.nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 24px;
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
+}
+
+nav a:hover {
+  background: #b22222;
+}
+
+#close-menu {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Botão de recolher (desktop) */
+#toggle-menu {
+  position: absolute;
+  top: 15px;
+  right: -17px; /* Posicionado fora do painel */
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: #800020;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: none; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1003;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#toggle-menu:hover { transform: scale(1.05); }
+
+#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1001;
+}
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-left: auto;
+}
+
+/* ============ SEARCH (APRIMORADO) ============ */
+.search-bar {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 0 16px;
+}
+
+.search-bar form {
+    display: flex;
+    justify-content: center;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    background: var(--color-card);
+    border-radius: 25px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(128, 0, 32, 0.4);
+}
+
+.search-bar input[type="search"] {
+    flex-grow: 1;
+    height: 44px; 
+    border-radius: 25px;
+    border: none;
+    padding: 0 15px;
+    background: none;
+    font-size: 1rem;
+}
+
+.search-bar input[type="search"]:focus {
+    outline: none;
+}
+
+.search-bar button[type="submit"] {
+    /* Usando a cor primária para o botão */
+    background: var(--color-primary);
+    border: none;
+    border-radius: 0 25px 25px 0;
+    width: 45px;
+    height: 44px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.search-bar button[type="submit"]:hover {
+    background: var(--color-secondary);
+}
+
+.search-bar button[type="submit"] svg {
+    stroke: var(--color-card);
+}
+
+/* ===== MAIN ===== */
+.container {
+    max-width: 800px;
+    margin: 25px auto;
+    padding: 0 15px;
+}
+
+/* ===== LISTA DE CHATS ===== */
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* ===== CARD ===== */
+.chat-card {
+    display: flex;
+    gap: 16px;
+    background: var(--color-card);
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+/* perfil */
+.profile-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile {
+    font-size: 3rem;
+    color: #bbb;
+}
+
+.status {
+    position: absolute;
+    bottom: 3px;
+    right: 3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--color-card);
+}
+.status.online { background: var(--color-online); }
+.status.offline { background: var(--color-offline); }
+
+/* texto */
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.time {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+.last-msg {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+/* TAGS */
+.tag {
+    margin-top: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.tag.professor {
+    background: var(--color-primary);
+    color: #fff;
+}
+.tag.aluno {
+    background: #eaf7ff;
+    color: #0a6abf;
+}
+
+/* ===== ESTADO VAZIO ===== */
+.empty {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.empty .icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.empty p {
+    font-size: 1rem;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.btn-primary:hover {
+    background: var(--color-secondary);
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 768px) {
+    .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid var(--bordo);
+    padding-top: 0;
+  }
+
+  .container {
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+    position: sticky;
+    left: 25%;
+  }
+
+  nav.collapsed {
+    width: 70px;
+  }
+
+  nav.collapsed ~ .container {
+    margin-left: 70px;
+  }
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
+
+    .title { font-size: 1.6rem; }
+    .profile { font-size: 3.3rem; }
+}

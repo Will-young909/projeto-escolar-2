@@ -56,28 +56,39 @@ router.post('/generate-exercise', async (req, res) => {
     }
 
     const fullPrompt = `
-Crie um exercício com base na seguinte descrição: \"${prompt}\".
+Crie um exercício de matemática com base na descrição: \"${prompt}\".
 
 RESPONDA SOMENTE COM JSON VÁLIDO.
-NÃO use markdown.
-NÃO escreva explicações.
-Se a resposta não for JSON válido, corrija antes de enviar.
+NÃO use markdown, nem escreva explicações.
 
-Formato:
+Formato esperado:
 {
-  \"title\": \"Título\",
-  \"description\": \"Descrição\",
+  \"title\": \"Título do Exercício\",
+  \"description\": \"Descrição do Exercício\",
   \"questions\": [
     {
-      \"title\": \"Pergunta\",
-      \"type\": \"multiple_choice\",
+      \"title\": \"Enunciado da Pergunta 1\",
+      \"habilidade\": \"Habilidade matemática (ex: 'Soma', 'Geometria', 'Frações')\",
+      \"dificuldade\": \"facil\",
       \"options\": {
-        \"1\": \"Opção 1\",
-        \"2\": \"Opção 2\",
-        \"3\": \"Opção 3\",
-        \"4\": \"Opção 4\"
+        \"1\": \"Opção A\",
+        \"2\": \"Opção B\",
+        \"3\": \"Opção C\",
+        \"4\": \"Opção D\"
       },
       \"correct\": \"1\"
+    },
+    {
+      \"title\": \"Enunciado da Pergunta 2\",
+      \"habilidade\": \"Habilidade matemática (ex: 'Subtração', 'Álgebra')\",
+      \"dificuldade\": \"medio\",
+      \"options\": {
+        \"1\": \"Opção A\",
+        \"2\": \"Opção B\",
+        \"3\": \"Opção C\",
+        \"4\": \"Opção D\"
+      },
+      \"correct\": \"3\"
     }
   ]
 }

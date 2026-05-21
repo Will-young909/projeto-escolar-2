@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nível Escolar | RegiMath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/cadastro.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+</head>
+<style>
+  main {
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    transform: translate(-50%, -50%);
+    top: 45%;
+    left: 50%;
+  }
+</style>
+<body>
+  <main class="atividades-container">
+    <div class="ia-generator-container card">
+      <h2>Qual o seu nível escolar?</h2>
+      <form id="level-form" action="/gerar_atividade" method="GET">
+        <select name="level" id="level-select">
+          <option value="fundamental1">1º ano - Ensino Fundamental</option>
+          <option value="fundamental2">2º ano - Ensino Fundamental</option>
+          <option value="fundamental3">3º ano - Ensino Fundamental</option>
+          <option value="fundamental4">4º ano - Ensino Fundamental</option>
+          <option value="fundamental5">5º ano - Ensino Fundamental</option>
+          <option value="fundamental6">6º ano - Ensino Fundamental</option>
+          <option value="fundamental7">7º ano - Ensino Fundamental</option>
+          <option value="fundamental8">8º ano - Ensino Fundamental</option>
+          <option value="fundamental9">9º ano - Ensino Fundamental</option>
+          <option value="medio1">1º ano - Ensino Médio</option>
+          <option value="medio2">2º ano - Ensino Médio</option>
+          <option value="medio3">3º ano - Ensino Médio</option>
+        </select>
+        <button type="submit" class="btn-primary">Gerar Atividade</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

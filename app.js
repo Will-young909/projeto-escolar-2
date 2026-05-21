@@ -1,6 +1,6 @@
+
 require('dotenv').config();
 
-// app.js
 const express = require("express");
 const session = require("express-session");
 const http = require("http");
@@ -11,9 +11,16 @@ const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago
 const chatStore = require('./app/lib/chatStore');
 const paymentsStore = require('./app/lib/paymentsStore');
 
+// --- Importação de Rotas ---
+const rotaPrincipal = require("./app/routes/router");
+const iaRouter = require("./app/routes/ia_router");
+const mlRouter = require("./app/routes/mlRoutes");
+const trilhaAdaptativaRouter = require("./app/routes/trilhaAdaptativaRoutes"); // Rota da Trilha Adaptativa
+
 const app = express();
 const PORT = process.env.APP_PORT;
 
+// --- Configurações de Sessão e Mercado Pago ---
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 
@@ -51,20 +58,20 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, "app/public")));
 
-const rotaPrincipal = require("./app/routes/router");
+// --- Registro das Rotas ---
 app.use("/", rotaPrincipal);
-
-const iaRouter = require("./app/routes/ia_router");
 app.use("/ia", iaRouter);
+app.use("/api/ml", mlRouter);
+app.use("/api/trilha-adaptativa", trilhaAdaptativaRouter); // Rota da Trilha Adaptativa registrada
 
 const server = http.createServer(app);
 const io = new Server(server);
 
+// --- Lógica de Socket.IO e Webhook ---
 io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
-// --- LÓGICA DE CHAT CORRIGIDA ---
 io.on("connection", (socket) => {
   const session = socket.request.session;
   const currentUser = session.user_aluno || session.user_prof;
@@ -78,7 +85,6 @@ io.on("connection", (socket) => {
   socket.on("joinRoom", async ({ room }) => {
     const roomUsers = room.replace('chat_','').split('-');
     
-    // **CORREÇÃO**: Converte o ID do usuário para String para garantir a correspondência
     if (!roomUsers.includes(String(currentUser.id))) {
       console.warn(`Tentativa de acesso não autorizado à sala ${room} pelo usuário ${currentUser.id}`);
       return;
@@ -95,7 +101,6 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", async ({ room, text }) => {
     const roomUsers = room.replace('chat_','').split('-');
     
-    // **CORREÇÃO**: Aplica a mesma lógica de conversão aqui
     if (!roomUsers.includes(String(currentUser.id))) {
       return;
     }
@@ -178,9 +183,7 @@ io.on("connection", (socket) => {
     });
   });
 });
-// --- FIM DA LÓGICA DE CHAT ---
 
-// Webhook para Mercado Pago
 app.post('/webhook/mercadopago', express.json(), async (req, res) => {
   try {
     const { type, data } = req.body;

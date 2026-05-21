@@ -17,11 +17,12 @@ const ProfessorModel = {
     return rows[0] || null;
   },
 
-  async create({ nome, email, senha, foto, descricao, link_previa, status }) {
+  async create({ id, nome, email, senha, foto, descricao, link_previa, status }) {
     const [result] = await pool.query(
-      `INSERT INTO professores (nome, email, senha, foto, descricao, link_previa, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO professores (id, nome, email, senha, foto, descricao, link_previa, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
+        id,
         nome,
         email,
         senha,
@@ -31,7 +32,7 @@ const ProfessorModel = {
         status || 'disponivel'
       ]
     );
-    return { id: result.insertId, nome, email };
+    return { id, nome, email };
   },
 
   async update(id, dados) {
