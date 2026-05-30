@@ -39,6 +39,44 @@ body {
   line-height: 1.5;
 }
 
+.header {
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: block;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid #800020;
+  height: 60px;
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.subheader__back {
+  border: none;
+  background: none;
+  color: var(--bordo);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.subheader__back:hover {
+  background: rgba(128, 0, 32, 0.06);
+}
+
 /* Container principal – mobile ocupa 100%, depois limita largura */
 .atividades-container {
   width: var(--container-width);
@@ -238,6 +276,10 @@ BOTÕES ÍCONE
   border-top: 3px solid #333;
 }
 
+.nivel {
+  display: flex;
+}
+
 /* ============================
 BARRA DE AÇÕES FLUTUANTE
 ============================ */
@@ -288,6 +330,8 @@ BOTÃO PRINCIPAL
   transform: translateY(1px);
 }
 
+
+
 /* ============================
 MEDIA QUERIES (MOBILE FIRST)
 ============================ */
@@ -296,6 +340,7 @@ MEDIA QUERIES (MOBILE FIRST)
 @media (min-width: 600px) {
   .atividades-container {
     padding: var(--spacing-lg);
+    margin: auto;
   }
 
   .form-header input {
@@ -314,6 +359,10 @@ MEDIA QUERIES (MOBILE FIRST)
   .btn-primary {
     width: auto;
     align-self: flex-end;
+  }
+
+  .nivel {
+    display: inline;
   }
 
   /* Toolbar mais compacta */

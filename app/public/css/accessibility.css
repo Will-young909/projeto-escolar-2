@@ -1,32 +1,20 @@
-/* === Accessibility FAB (Floating Action Button) === 
+ /*=== Accessibility FAB (Floating Action Button) === */
 .a11y-fab {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
-    background-color: #800020; /* A strong, accessible blue 
-    color: white;
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    z-index: 1001; /* Above other content, below modal 
-    transition: background-color 0.3s ease, transform 0.3s ease;
-} */
+    color: var(--color-text-light);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 1rem;
+  transition: background 0.3s;
+  display: block;
+} 
 
 .high-contrast .a11y-fab {
     background-color: #0056b3;
 }
 
-/*.a11y-fab:hover {
-    background-color: #800000;
-    transform: scale(1.1);
-}*/
+.a11y-fab:hover {
+    background-color: var(--color-secondary);
+}
 
 .high-contrast .a11y-fab:hover {
     background-color: #004494;
@@ -192,6 +180,11 @@
     background-color: #800020;
     color: white;
     padding: 10px 20px;
+    cursor: pointer;
+}
+
+#reduce-motion:hover {
+    background-color: #800000;
 }
 
 .high-contrast #reduce-motion{
@@ -209,9 +202,19 @@
     background-color: #800020;
     color: white;
     padding: 10px 20px;
+    cursor: pointer;
 }
 #reset-accessibility:hover {
     background-color: #800000;
+}
+
+.high-contrast #reset-accessibility{
+    background: #004494;
+    color: #fff;
+}
+
+.high-contrast #reset-accessibility:hover{
+    background: #111;
 }
 
 /* === High Contrast Adjustments === */
@@ -333,7 +336,7 @@
 }
 
 /* === Font & Other Adjustments (remain the same) === */
-.grayscale { filter: grayscale(100%); }
+
 .underline-links a { text-decoration: underline !important; }
 .reader-font { font-family: 'Open Sans', sans-serif !important; }
 .dyslexia-font { font-family: 'OpenDyslexic', sans-serif !important; }

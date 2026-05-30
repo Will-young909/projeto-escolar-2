@@ -42,7 +42,7 @@ a {
 }
 
 /* ===== Header ===== */
-header {
+.header {
   background: var(--branco);
   box-shadow: var(--sombra);
   display: flex;

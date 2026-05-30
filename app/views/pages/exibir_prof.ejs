@@ -90,7 +90,7 @@
 </head>
 
 <body>
-    <header>
+    <header class="header">
         <a href="/">
             <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
         </a>
@@ -256,7 +256,7 @@
                     <% if (professor.comentarios && professor.comentarios.length > 0) { %>
                         <% professor.comentarios.forEach(comentario => { %>
                             <li aria-label="Comentário de <%= comentario.usuario %>">
-                                <header class="comentario-header">
+                                <header class="comentario-header" style="border: none; background: transparent; box-shadow: none;">
                                     <strong><%= comentario.usuario %></strong>
                                     <% if (comentario.nota && comentario.nota > 0) { %>
                                         <section class="comentario-rating" aria-label="Nota: <%= comentario.nota %> de 5 estrelas">

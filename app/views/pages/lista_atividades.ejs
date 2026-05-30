@@ -7,16 +7,44 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        *,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+header {
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: block;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid #800020;
+  height: 60px;
+}
+
+.logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f0f2f5;
             color: #333;
             margin: 0;
-            padding: 20px;
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            
+            margin: 20px auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
@@ -70,10 +98,15 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <header>
+        <a href="/">
+           <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+         </a>
+         </button>
+       </header>
+    <main class="container">
         <div class="nav-links">
-            <a href="/dashboard_prof">Dashboard</a>
-            <a href="/atividades">Criar Atividade</a>
+            <a href="/dashboard_prof"><i class="fas fa-arrow-left"></i> Dashboard</a>
         </div>
         <h2><i class="fas fa-tasks"></i> Atividades Criadas</h2>
         <% if (locals.activities && locals.activities.length > 0) { %>
@@ -89,6 +122,6 @@
             <p class="no-activities">Nenhuma atividade criada ainda.</p>
         <% } %>
         <a href="/atividades" class="btn-primary">Criar Nova Atividade</a>
-    </div>
+        </main>
 </body>
 </html>

@@ -12,6 +12,15 @@
 </head>
 <body>
 
+  <header class="header">
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+    <button class="subheader__back" onclick="history.back()">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </button>
+  </header>
+
 <main class="atividades-container">
   <!-- Barra de ações -->
   <div class="actions-toolbar" aria-label="Ferramentas de atividade">
@@ -38,9 +47,9 @@
   </div>
 
   <div class="ia-generator-container card">
-    <textarea id="ia-prompt" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea>
-    <button id="generate-with-ia" class="btn-primary">Gerar com IA</button>
-     <a href="/nivel_escolar" class="btn-secondary">Gerar por Nível Escolar</a>
+    <textarea id="ia-prompt" class="correct-answer-input" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea><br>
+    <button style="margin-top: 10px;" id="generate-with-ia" class="btn-primary">Gerar com IA</button>
+     <button class="nivel" style="background: none; border: none; align-self: center; justify-self: center;"><a href="/nivel_escolar" style="text-decoration: none; margin-top: 10px; margin-bottom: 10px;" class="btn-primary">Gerar por Nível Escolar</a></button>
   </div>
 
   <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="/atividades">
@@ -75,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addQuestionBtn = document.getElementById('add-question');
   const generateWithIaBtn = document.getElementById('generate-with-ia');
   const iaPromptTextarea = document.getElementById('ia-prompt');
+  const activityForm = document.getElementById('activity-form');
   let questionCounter = 0;
 
   const createQuestionBlock = () => {
@@ -197,6 +207,54 @@ document.addEventListener('DOMContentLoaded', () => {
     newBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
+  activityForm.addEventListener('submit', (event) => {
+    const questions = document.querySelectorAll('.question-block');
+    let allValid = true;
+    let missingCorrectAnswer = false;
+    let missingGabarito = false;
+
+    questions.forEach(question => {
+      question.style.border = '';
+      question.title = '';
+
+      const typeSelector = question.querySelector('.question-type-selector');
+      if (!typeSelector) return;
+
+      const questionType = typeSelector.value;
+
+      if (questionType === 'multiple_choice') {
+        const questionId = question.id.split('-')[1];
+        const correctRadio = question.querySelector(`input[name="questions[${questionId}][correct]"]:checked`);
+        if (!correctRadio) {
+          allValid = false;
+          missingCorrectAnswer = true;
+          question.style.border = '2px solid red';
+          question.title = 'Selecione uma resposta correta para esta questão.';
+        }
+      } else if (questionType === 'short_text' || questionType === 'long_text') {
+        const answerInput = question.querySelector('.correct-answer-input');
+        if (!answerInput || !answerInput.value.trim()) {
+          allValid = false;
+          missingGabarito = true;
+          question.style.border = '2px solid red';
+          question.title = 'Forneça um gabarito para esta questão.';
+        }
+      }
+    });
+
+    if (!allValid) {
+      event.preventDefault();
+      let alertMessage = 'Por favor, corrija os seguintes erros antes de salvar:';
+      if (missingCorrectAnswer) {
+        alertMessage += '\n- Marque a resposta correta para todas as questões de múltipla escolha.';
+      }
+      if (missingGabarito) {
+        alertMessage += '\n- Forneça um gabarito para as questões de resposta curta ou parágrafo.';
+      }
+      alert(alertMessage);
+    }
+  });
+
   // Lógica da IA
   generateWithIaBtn.addEventListener('click', async () => {
     const prompt = iaPromptTextarea.value.trim();
@@ -221,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
 
-      // Limpa questões existentes e reseta o contador
       questionsContainer.innerHTML = '';
       questionCounter = 0;
 
@@ -245,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (q.type === 'multiple_choice') {
               const optionsContainer = contentDiv.querySelector('.options-container');
-              optionsContainer.innerHTML = ''; // Limpa a opção padrão
+              optionsContainer.innerHTML = ''; 
 
               Object.keys(q.options).forEach(key => {
                 const newOption = document.createElement('div');
@@ -284,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Cria uma questão inicial ao carregar a página
   createQuestionBlock();
 });
 </script>

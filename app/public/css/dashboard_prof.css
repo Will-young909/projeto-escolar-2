@@ -500,7 +500,7 @@ main {
   }
 
   .stats { grid-template-columns: repeat(3, 1fr); }
-  .manage-grid { grid-template-columns: repeat(1, 1fr); }
+  .manage-grid { grid-template-columns: repeat(2, 1fr); }
   .next-class { flex-direction: row; justify-content: space-between; align-items: center; }
 }
 

@@ -367,6 +367,57 @@ svg {
     background: var(--color-secondary);
 }
 
+/* Adicione estas classes ao seu arquivo de estilo */
+
+.aula-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.aula-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--color-card);
+  padding: 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: inherit;
+  transition: 0.3s;
+}
+
+.aula-card:hover { transform: translateY(-3px); }
+
+.aula-icon {
+  font-size: 2rem;
+  color: var(--color-primary);
+  width: 60px;
+  text-align: center;
+}
+
+.prof-name {
+  font-size: 0.9rem;
+  color: var(--color-text-light);
+  margin-bottom: 5px;
+}
+
+.status-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tag.concluida { background: #d4edda; color: #155724; }
+.tag.pendente { background: #fff3cd; color: #856404; }
+.tag.cancelada { background: #f8d7da; color: #721c24; }
+
+.duracao {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+}
+
 /* ===== DESKTOP ===== */
 @media (min-width: 768px) {
     .menu-btn,

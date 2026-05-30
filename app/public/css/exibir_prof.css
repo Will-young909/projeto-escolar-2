@@ -56,7 +56,7 @@ body.no-scroll {
 }
 
 /* -------- Cabeçalho (Padronizado) -------- */
-header {
+.header {
     font-size: 14px;
     display: flex;
     justify-content: space-between;
@@ -194,9 +194,9 @@ svg {
 .perfil-container {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-    width: 100%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
 }
 
 .card {

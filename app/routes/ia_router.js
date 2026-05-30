@@ -125,10 +125,11 @@ router.post('/generate-trail', async (req, res) => {
     try {
       const { testResults, alunoId } = req.body;
   
-      if (!testResults || !alunoId) {
+      if (!testResults && !alunoId) {
         return res.status(400).json({
           error: 'testResults and alunoId are required'
-        });
+        }),
+        res.send('/nivel_escolar');
       }
   
       const aluno = await AlunoModel.findById(alunoId);

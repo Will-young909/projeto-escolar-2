@@ -41,17 +41,18 @@ body.no-scroll {
 
 /* ===== HEADER ===== */
 .main-header {
+  background: var(--color-text-light);
+  box-shadow: var(--shadow-md);
   display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--color-text-light);
-    padding: 8px var(--spacing-md);
-    height: 60px;
-    border-bottom: 2px solid var(--color-primary);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: sticky;
+  top: 0;
+  margin-left: -20px;
+  z-index: 100;
+  border-bottom: 2px solid var(--color-primary);
+  height: 60px;
 }
 
 /*.header-content-wrapper {
@@ -86,6 +87,7 @@ body.no-scroll {
   color: var(--color-primary);
   font-weight: 700;
   font-size: 1rem;
+  margin-bottom: 20px;
 }
 
 /* ============ MENU LATERAL ============ */

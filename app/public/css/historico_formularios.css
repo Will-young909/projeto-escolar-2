@@ -1,4 +1,4 @@
-/* ===== VARIÁVEIS (harmonizadas com home.css) ===== */
+/* ===== VARIÁVEIS (harmonizadas com historico.css) ===== */
 :root {
     --color-primary: #800020;
     --color-secondary: #b22222;
@@ -6,9 +6,6 @@
     --color-card: #fff;
     --color-text: #222;
     --color-text-light: #666;
-
-    --color-online: #2ecc71;
-    --color-offline: #c0c0c0;
 
     --radius: 12px;
     --shadow: 0 4px 10px rgba(0,0,0,0.08);
@@ -38,7 +35,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px; /* Padding ajustado */
+  padding: 10px 20px;
   position: sticky;
   top: 0;
   margin-left: -20px;
@@ -67,11 +64,11 @@ header {
 nav {
   position: fixed;
   top: 0;
-  left: -260px; /* Largura base aumentada para 260px */
+  left: -260px;
   width: 260px;
   height: 100vh;
   background: #800020;
-  padding-top: 60px; /* Espaço para o header */
+  padding-top: 60px;
   transition: 0.3s;
   z-index: 1002;
 }
@@ -114,11 +111,10 @@ nav a:hover {
   cursor: pointer;
 }
 
-/* Botão de recolher (desktop) */
 #toggle-menu {
   position: absolute;
   top: 15px;
-  right: -17px; /* Posicionado fora do painel */
+  right: -17px;
   width: 42px;
   height: 42px;
   border-radius: 8px;
@@ -136,7 +132,6 @@ nav a:hover {
 
 #toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
 
-/* Overlay */
 #overlay {
   position: fixed;
   inset: 0;
@@ -210,7 +205,6 @@ svg {
 }
 
 .search-bar button[type="submit"] {
-    /* Usando a cor primária para o botão */
     background: var(--color-primary);
     border: none;
     border-radius: 0 25px 25px 0;
@@ -239,55 +233,36 @@ svg {
     padding: 0 15px;
 }
 
-/* ===== LISTA DE CHATS ===== */
-.chat-list {
+/* ===== LISTA DE FORMULARIOS ===== */
+.form-list {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-/* ===== CARD ===== */
-.chat-card {
+/* ===== CARD DE FORMULÁRIO ===== */
+.form-card {
     display: flex;
-    gap: 16px;
+    align-items: center;
+    gap: 20px;
     background: var(--color-card);
-    padding: 25px;
+    padding: 20px;
     border-radius: var(--radius);
     box-shadow: var(--shadow);
     text-decoration: none;
     color: inherit;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: 0.3s;
 }
 
-.chat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+.form-card:hover { transform: translateY(-3px); }
+
+.form-icon {
+    font-size: 2rem;
+    color: var(--color-primary);
+    width: 60px;
+    text-align: center;
 }
 
-/* perfil */
-.profile-wrapper {
-    position: relative;
-    flex-shrink: 0;
-}
-
-.profile {
-    font-size: 3rem;
-    color: #bbb;
-}
-
-.status {
-    position: absolute;
-    bottom: 3px;
-    right: 3px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid var(--color-card);
-}
-.status.online { background: var(--color-online); }
-.status.offline { background: var(--color-offline); }
-
-/* texto */
 .content {
     flex: 1;
     display: flex;
@@ -312,9 +287,16 @@ svg {
     color: var(--color-text-light);
 }
 
-.last-msg {
+.description {
     font-size: 0.9rem;
     color: var(--color-text-light);
+    margin-bottom: 5px;
+}
+
+.status-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 /* TAGS */
@@ -327,14 +309,8 @@ svg {
     width: fit-content;
 }
 
-.tag.professor {
-    background: var(--color-primary);
-    color: #fff;
-}
-.tag.aluno {
-    background: #eaf7ff;
-    color: #0a6abf;
-}
+.tag.concluida { background: #d4edda; color: #155724; }
+.tag.info { background: #eaf7ff; color: #0a6abf; }
 
 /* ===== ESTADO VAZIO ===== */
 .empty {
@@ -426,5 +402,4 @@ svg {
   }
 
     .title { font-size: 1.6rem; }
-    .profile { font-size: 3.3rem; }
 }

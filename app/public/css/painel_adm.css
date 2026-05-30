@@ -353,7 +353,7 @@ main {
             font-weight: 600;
             margin-bottom: 8px;
         }
-        .form-group input {
+        .form-group input, input {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--color-border);
@@ -427,6 +427,10 @@ main {
 
     .admin-header-content h1 {
         font-size: 1.9rem;
+    }
+
+    input {
+        max-width: 300px;
     }
 }
 

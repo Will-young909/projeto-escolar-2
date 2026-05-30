@@ -13,6 +13,7 @@ const paymentsStore = require('./app/lib/paymentsStore');
 
 // --- Importação de Rotas ---
 const rotaPrincipal = require("./app/routes/router");
+const adminRoutes = require("./app/routes/adminRoutes");
 const iaRouter = require("./app/routes/ia_router");
 const mlRouter = require("./app/routes/mlRoutes");
 const trilhaAdaptativaRouter = require("./app/routes/trilhaAdaptativaRoutes"); // Rota da Trilha Adaptativa
@@ -60,6 +61,7 @@ app.use(express.static(path.join(__dirname, "app/public")));
 
 // --- Registro das Rotas ---
 app.use("/", rotaPrincipal);
+app.use("/admin", adminRoutes);
 app.use("/ia", iaRouter);
 app.use("/api/ml", mlRouter);
 app.use("/api/trilha-adaptativa", trilhaAdaptativaRouter); // Rota da Trilha Adaptativa registrada

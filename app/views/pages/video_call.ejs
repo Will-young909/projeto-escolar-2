@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -10,6 +11,7 @@
   <link rel="stylesheet" href="../css/video_call.css" />
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" type="image/png"/>
   <link rel="manifest" href="/manifest.json" />
+  <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
 </head>
 
 <body>
@@ -102,10 +104,8 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
-const ROOM = "<%= room %>"; // Variável EJS
+const ROOM = "<%= room %>"; 
 
-
-// Mapeamento de elementos para evitar repetição de document.getElementById
 const ELEMENTS = {
     localVideo: document.getElementById('localVideo'),
     remoteVideo: document.getElementById('remoteVideo'),
@@ -119,40 +119,27 @@ const ELEMENTS = {
     btnStartRec: document.getElementById('btnStartRec'),
     btnStopRec: document.getElementById('btnStopRec'),
     btnEndCall: document.getElementById('btnEndCall'),
-    downloadLink: document.getElementById('downloadLink')
 };
-
 
 const configuration = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        // Adicionar mais STUN servers para redundância e estabilidade
         { urls: 'stun:stun1.l.google.com:19302' } 
     ]
 };
-
-
-// ===================== CLASSE PRINCIPAL (SINGLETON) =====================
-
 
 class VideoCallManager {
     constructor() {
         this.localStream = null;
         this.remoteStream = null;
         this.pc = null;
-        this.mediaRecorder = null;
-        this.recordedBlobs = [];
+        this.recorder = null;
         this.isSharingScreen = false;
         this.peerId = null;
         this.currentRoom = ROOM;
 
-
         this.init();
     }
-
-
-    // ===================== UTILIDADES (UX/UI) =====================
-
 
     updateStatus(text, className, isRemote = false) {
         const element = isRemote ? ELEMENTS.remoteStatus : ELEMENTS.statusIndicator;
@@ -161,14 +148,11 @@ class VideoCallManager {
             element.textContent = text;
             ELEMENTS.remotePlaceholder.classList.toggle('active', className !== 'connected');
         } else {
-            // Atualiza o status geral
             ELEMENTS.statusIndicator.className = 'connection-status ' + className;
             ELEMENTS.statusIndicator.innerHTML = `<i class="fas fa-circle status-icon"></i> ${text}`;
         }
     }
 
-
-    // Alterna a classe 'off' e o ícone do botão
     toggleButtonState(button, track, iconOn, iconOff, placeholderElement = null) {
         if (!track) return;
         
@@ -178,16 +162,10 @@ class VideoCallManager {
         button.setAttribute('data-status', isEnabled ? 'on' : 'off');
         
         if (placeholderElement) {
-            // Oculta o placeholder se a track estiver ativa (vídeo)
             placeholderElement.classList.toggle('active', !isEnabled);
         }
-        // Atualiza aria-label com o novo estado
         button.setAttribute('aria-label', `${isEnabled ? 'Desativar' : 'Ativar'} ${button.title}`);
     }
-
-
-    // ===================== WEBRTC E STREAMING =====================
-
 
     async initLocalStream(isScreenShare = false) {
         try {
@@ -195,10 +173,8 @@ class VideoCallManager {
                 this.localStream.getTracks().forEach(track => track.stop());
             }
 
-
             let stream;
             if (isScreenShare) {
-                // Adicionado systemAudio opcional no getDisplayMedia
                 stream = await navigator.mediaDevices.getDisplayMedia({ 
                     video: true, 
                     audio: true 
@@ -207,7 +183,6 @@ class VideoCallManager {
                 ELEMENTS.btnShareScreen.classList.add('active');
                 ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-share-square';
                 
-                // Handler para quando o usuário para de compartilhar pela UI nativa do SO
                 stream.getVideoTracks()[0].onended = () => this.restoreLocalCamera();
             } else {
                 stream = await navigator.mediaDevices.getUserMedia({
@@ -218,7 +193,6 @@ class VideoCallManager {
                 ELEMENTS.btnShareScreen.classList.remove('active');
                 ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
             }
-
 
             this.localStream = stream;
             ELEMENTS.localVideo.srcObject = this.localStream;
@@ -237,7 +211,6 @@ class VideoCallManager {
                 'fas fa-microphone-slash'
             );
 
-
         } catch (err) {
             console.error('Erro ao acessar mídia local:', err);
             this.updateStatus('Erro na Mídia', 'error');
@@ -246,22 +219,17 @@ class VideoCallManager {
         }
     }
 
-
     createPeerConnection() {
-        if (this.pc) return; // Se já existe, não recria
+        if (this.pc) return; 
         
         this.pc = new RTCPeerConnection(configuration);
 
-
-        // 1. Receber tracks remotas (on 'track')
         this.pc.ontrack = (evt) => {
             if (!this.remoteStream) {
                 this.remoteStream = new MediaStream();
                 ELEMENTS.remoteVideo.srcObject = this.remoteStream;
             }
-            // Adiciona tracks de forma segura para lidar com múltiplas streams ou substituições
             evt.streams[0].getTracks().forEach(t => {
-                // Previne adicionar tracks duplicadas (problema comum em WebRTC)
                 if (!this.remoteStream.getTrackById(t.id)) {
                     this.remoteStream.addTrack(t);
                 }
@@ -270,34 +238,28 @@ class VideoCallManager {
             this.updateStatus('Conectado', 'connected', true);
         };
 
-
-        // 2. Enviar ICE candidates
         this.pc.onicecandidate = (evt) => {
             if (evt.candidate && this.peerId) {
                 socket.emit('signal', { to: this.peerId, from: socket.id, data: { candidate: evt.candidate } });
             }
         };
         
-        // 3. Monitorar estado da conexão
         this.pc.onconnectionstatechange = () => {
             const state = this.pc.connectionState;
             const statusMap = {
                 'connected': ['Conexão Ativa', 'connected'],
                 'disconnected': ['Desconectado', 'disconnected'],
                 'failed': ['Falha na Conexão', 'error'],
-                'connecting': ['Conectando...', 'connecting'] // Adicionar estado "connecting"
+                'connecting': ['Conectando...', 'connecting']
             };
             const [text, className] = statusMap[state] || ['Estado Desconhecido', 'warning'];
             this.updateStatus(text, className);
         };
 
-
-        // 4. Adiciona tracks locais (após a inicialização do stream)
         if (this.localStream) {
             this.localStream.getTracks().forEach(track => this.pc.addTrack(track, this.localStream));
         }
     }
-
 
     closePeerConnection() {
         if (this.pc) {
@@ -316,11 +278,9 @@ class VideoCallManager {
         }
     }
 
-
     async startCall(isInitiator) {
         if (!this.localStream) await this.initLocalStream();
         this.createPeerConnection();
-
 
         if (isInitiator) {
             this.updateStatus('Iniciando Chamada...', 'connecting');
@@ -330,12 +290,9 @@ class VideoCallManager {
         }
     }
 
-
-    // Troca as tracks de forma mais genérica
     async switchLocalStream(newStream) {
         this.localStream = newStream;
         ELEMENTS.localVideo.srcObject = newStream;
-
 
         if (this.pc) {
             const senders = this.pc.getSenders();
@@ -344,28 +301,21 @@ class VideoCallManager {
                 if (sender) {
                     await sender.replaceTrack(newTrack);
                 } else {
-                    // Adiciona se a track for nova (ex: áudio do sistema na partilha de tela)
                     this.pc.addTrack(newTrack, newStream);
                 }
             });
 
-
-            // Lidar com tracks que não existem mais (ex: se o áudio foi removido)
             senders.forEach(sender => {
                 if (sender.track && !newStream.getTracks().some(t => t.kind === sender.track.kind)) {
-                    // Nota: A remoção de tracks é complexa, replaceTrack com null é uma opção mais segura
-                    // Ou renegociar SDP, mas replaceTrack é suficiente para mute/screenshare.
                 }
             });
         }
     }
 
-
     async restoreLocalCamera() {
         this.isSharingScreen = false;
         ELEMENTS.btnShareScreen.classList.remove('active');
         ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
-
 
         if (ELEMENTS.localVideo.srcObject) {
             ELEMENTS.localVideo.srcObject.getTracks().forEach(track => track.stop());
@@ -374,10 +324,6 @@ class VideoCallManager {
         await this.initLocalStream(false); 
         await this.switchLocalStream(this.localStream);
     }
-
-
-    // ===================== HANDLERS DE CONTROLE (UX) =====================
-
 
     handleToggleAudio() {
         if (!this.localStream) return;
@@ -388,17 +334,14 @@ class VideoCallManager {
         this.toggleButtonState(ELEMENTS.btnToggleAudio, audioTrack, 'fas fa-microphone', 'fas fa-microphone-slash');
     }
 
-
     handleToggleCam() {
         if (!this.localStream) return;
         const videoTrack = this.localStream.getVideoTracks()[0];
         if (!videoTrack) return;
 
-
         videoTrack.enabled = !videoTrack.enabled;
         this.toggleButtonState(ELEMENTS.btnToggleCam, videoTrack, 'fas fa-video', 'fas fa-video-slash', ELEMENTS.localPlaceholder);
     }
-
 
     async handleShareScreen() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
@@ -406,112 +349,83 @@ class VideoCallManager {
             return;
         }
 
-
         if (this.isSharingScreen) {
             await this.restoreLocalCamera();
         } else {
             await this.initLocalStream(true);
-            // Chama o switch para propagar as novas tracks da tela
             await this.switchLocalStream(this.localStream); 
         }
     }
-
 
     handleEndCall(e) {
         e.preventDefault();
         if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
             socket.emit('end-call', this.currentRoom);
             this.closePeerConnection();
-            window.history.back(); // Volta para a página anterior
+            window.history.back();
         }
     }
     
-    // ===================== GRAVAÇÃO (MediaRecorder) =====================
-
-
-    getMixedStreamForRecording() {
-        const mixed = new MediaStream();
-        // Clona tracks existentes para não interferir na chamada WebRTC
-        if (this.localStream) this.localStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
-        if (this.remoteStream) this.remoteStream.getTracks().forEach(t => mixed.addTrack(t.clone()));
-
-
-        return mixed;
-    }
-
-
     handleStartRec() {
-        this.recordedBlobs = [];
-        const mixed = this.getMixedStreamForRecording();
-        if (!mixed.getTracks().length) {
-            alert('Nenhuma mídia disponível para gravar. Aguarde a conexão.');
-            return;
-        }
-        
-        // Mime Type robusto e verificação
-        const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
-            ? 'video/webm;codecs=vp9,opus' 
-            : (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') 
-                ? 'video/webm;codecs=vp8,opus' 
-                : 'video/webm');
-
-
-        try {
-            this.mediaRecorder = new MediaRecorder(mixed, { mimeType });
-        } catch (e) {
-            console.error('MediaRecorder não suportado:', e);
-            alert('MediaRecorder não é suportado no seu navegador');
-            return;
-        }
-
-
-        this.mediaRecorder.ondataavailable = (event) => {
-            if (event.data && event.data.size > 0) this.recordedBlobs.push(event.data);
-        };
-
-
-        this.mediaRecorder.onstop = () => {
-            const blob = new Blob(this.recordedBlobs, { type: mimeType.split(';')[0] });
-            const url = window.URL.createObjectURL(blob);
-            
-            ELEMENTS.downloadLink.href = url;
-            ELEMENTS.downloadLink.download = `Regimath_Gravacao_${this.currentRoom}_${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
-            ELEMENTS.downloadLink.style.display = 'inline-flex';
-            
-            // Reverter estados dos botões
-            ELEMENTS.btnStartRec.disabled = false;
-            ELEMENTS.btnStopRec.disabled = true;
-            ELEMENTS.btnStartRec.classList.remove('recording');
-            ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-dot-circle';
-        };
-
-
-        this.mediaRecorder.start(1000); 
-        ELEMENTS.btnStartRec.disabled = true;
-        ELEMENTS.btnStopRec.disabled = false;
-        ELEMENTS.downloadLink.style.display = 'none';
-        
-        ELEMENTS.btnStartRec.classList.add('recording');
-        ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-pause';
-        alert('Gravação iniciada.');
+      if (!this.localStream || !this.remoteStream) {
+        alert('Aguarde o outro participante se conectar para iniciar a gravação.');
+        return;
+      }
+      ELEMENTS.btnStartRec.disabled = true;
+      ELEMENTS.btnStopRec.disabled = false;
+      this.recorder = RecordRTC([this.localStream, this.remoteStream], {
+        type: 'video',
+        mimeType: 'video/webm',
+        bitsPerSecond: 128000
+      });
+      this.recorder.startRecording();
+      ELEMENTS.btnStartRec.classList.add('recording');
+      ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-pause';
+      alert('Gravação iniciada.');
     }
-
 
     handleStopRec() {
-        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') this.mediaRecorder.stop();
-        ELEMENTS.btnStopRec.disabled = true;
+      if(this.recorder){
+        this.recorder.stopRecording(() => {
+          let blob = this.recorder.getBlob();
+          this.uploadRecording(blob);
+          this.recorder = null;
+        });
+      }
+      ELEMENTS.btnStartRec.disabled = false;
+      ELEMENTS.btnStopRec.disabled = true;
+      ELEMENTS.btnStartRec.classList.remove('recording');
+      ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-circle';
+      alert('Gravação finalizada. O vídeo está sendo enviado para o histórico.');
     }
 
+    uploadRecording(blob) {
+      const formData = new FormData();
+      formData.append('video', blob, `recording_${ROOM}.webm`);
+      formData.append('room', ROOM);
 
-
-    // ===================== SOCKET.IO HANDLERS =====================
-
+      fetch('/upload_recording', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.success) {
+          showToast('Gravação salva com sucesso!', 'success');
+        } else {
+          showToast('Erro ao salvar a gravação.', 'error');
+        }
+      })
+      .catch(err => {
+        console.error('Error uploading recording:', err);
+        showToast('Erro de conexão ao salvar a gravação.', 'error');
+      });
+    }
 
     setupSocketHandlers() {
         socket.on('connect', () => {
             socket.emit('join', this.currentRoom);
         });
-
 
         socket.on('peer-joined', id => {
             this.peerId = id;
@@ -520,7 +434,6 @@ class VideoCallManager {
             this.startCall(true); 
         });
 
-
         socket.on('peer-left', id => {
             if (id === this.peerId) {
                 this.closePeerConnection();
@@ -528,13 +441,10 @@ class VideoCallManager {
             }
         });
 
-
         socket.on('signal', async ({ from, data }) => {
             if (!this.peerId || from !== this.peerId) this.peerId = from;
 
-
             this.createPeerConnection();
-
 
             if (data.sdp) {
                 try {
@@ -549,7 +459,6 @@ class VideoCallManager {
                 }
             }
 
-
             if (data.candidate) {
                 try {
                     await this.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -560,10 +469,6 @@ class VideoCallManager {
         });
     }
 
-
-    // ===================== INICIALIZAÇÃO =====================
-
-
     setupEventListeners() {
         ELEMENTS.btnToggleAudio.addEventListener('click', () => this.handleToggleAudio());
         ELEMENTS.btnToggleCam.addEventListener('click', () => this.handleToggleCam());
@@ -573,22 +478,17 @@ class VideoCallManager {
         ELEMENTS.btnStopRec.addEventListener('click', () => this.handleStopRec());
     }
 
-
     async init() {
         this.setupEventListeners();
         this.setupSocketHandlers();
-        // Inicializa o stream da câmera (não inicia a chamada, apenas a pré-visualização)
         await this.initLocalStream(false);
     }
 }
 
-
-// Inicializa a aplicação
 document.addEventListener('DOMContentLoaded', () => {
     window.videoCallManager = new VideoCallManager();
 });
     
-    // Função para mostrar toast (mobile-friendly)
     function showToast(message, type = 'info') {
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
@@ -605,18 +505,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 3000);
     }
 
-    // Inicializar com as melhorias mobile
     document.addEventListener('DOMContentLoaded', () => {
       window.videoCallManager = new VideoCallManager();
       
-      // Detectar suporte a gestos
       if ('ontouchstart' in window) {
         initMobileGestures();
       }
     });
 
     function initMobileGestures() {
-      // Swipe para sair
       let startX, startY;
       document.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
@@ -632,7 +529,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY)) {
           if (diffX > 0) {
-            // Swipe direita para esquerda = sair
             document.querySelector('.btn-exit').click();
           }
         }

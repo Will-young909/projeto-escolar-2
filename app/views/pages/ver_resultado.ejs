@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado do Teste | Regimath</title>
+    <link rel="stylesheet" href="/css/ver_resultado.css">
+    <style>
+        .options .correct { background-color: #90ee90; }
+        .options .incorrect { background-color: #f08080; }
+        .options .correct::after { content: ' ✔'; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Resultado do Teste: <%= atividade.title %></h1>
+
+        <div class="summary">
+            <p><strong>Pontuação:</strong> <%= Number(tentativa.pontuacao_total).toFixed(0) %>%</p>
+            <p><strong>Questões Corretas:</strong> <%= respostas.filter(r => r.acertou).length %> de <%= tentativa.total_questoes %></p>
+        </div>
+
+        <div class="questions-container">
+            <% atividade.questions.forEach((question, index) => { %>
+                <div class="question-card">
+                    <h2>Questão <%= index + 1 %>: <%= question.text %></h2>
+                    <ul class="options">
+                        <% 
+                        const respostaDoUsuario = respostas[index];
+                        question.options.forEach(option => { 
+                            let className = '';
+                            const isSelected = option === respostaDoUsuario.resposta_marcada;
+                            const isCorrect = option === question.correct;
+
+                            if (isSelected) {
+                                className = respostaDoUsuario.acertou ? 'correct' : 'incorrect';
+                            } else if (isCorrect) {
+                                className = 'correct';
+                            }
+                        %>
+                            <li class="<%= className %>"><%= option %></li>
+                        <% }); %>
+                    </ul>
+                </div>
+            <% }); %>
+        </div>
+
+        <a href="/historico_formularios" class="back-button">Voltar ao Histórico</a>
+    </div>
+</body>
+</html>

@@ -4,14 +4,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Histórico de Aulas | Regimath</title>
+    <title>Histórico de Formulários | Regimath</title>
 
     <!-- FONTES + ICONES -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/historico_aulas.css">
+    <link rel="stylesheet" href="../css/historico_formularios.css">
     <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 
@@ -66,70 +66,64 @@
 
     <main class="container">
 
-        <h1 class="title">Histórico de Aulas</h1>
+        <h1 class="title">Histórico de Formulários</h1>
 
         <section class="search-bar">
         <form action="" method="GET" role="search">
             <section class="input-wrapper">
-                <input type="search" placeholder="Pesquisar por professor ou matéria" id="pesquisar" name="search" aria-label="Pesquisar aula" value="<%= locals.searchQuery || '' %>">
+                <input type="search" placeholder="Pesquisar por título" id="pesquisar" name="search" aria-label="Pesquisar formulário" value="<%= locals.searchQuery || '' %>">
                 <button type="submit" aria-label="Buscar" class="new"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
             </section>
         </form>
         </section>
 
-        <% function formatLastActive(ts) {
+        <% function formatCompletionDate(ts) {
             if (!ts) return "";
             const d = new Date(ts);
             return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
         } %>
 
-        <% if (aulas && aulas.length > 0) { %>
+        <% if (forms && forms.length > 0) { %>
 
-          <section class="aula-list">
-              <% aulas.forEach(aula => { %>
-                  
-                  <a href="<%= aula.gravacao_url || '#' %>" class="aula-card" <% if (aula.gravacao_url) { %>target="_blank" rel="noopener noreferrer"<% } %>>
+            <section class="form-list">
+                <% forms.forEach(form => { %>
+                    
+                    <a href="/ver_resultado/<%= form.tentativa_id %>" class="form-card">
 
-                      <i class="fas <%= aula.gravacao_url ? 'fa-play-circle' : 'fa-chalkboard-teacher' %> aula-icon"></i>
+                        <i class="fas fa-file-alt form-icon"></i>
 
-                      <section class="content">
-                          <section class="top-row">
-                              <h2 class="name"><%= aula.materia || 'Matemática' %></h2>
-                              <p class="time"><%= formatLastActive(aula.data) %></p>
-                          </section>
+                        <section class="content">
+                            <section class="top-row">
+                                <h2 class="name"><%= form.titulo %></h2>
+                                <p class="time"><%= formatCompletionDate(form.data_conclusao) %></p>
+                            </section>
 
-                          <p class="prof-name">
-                              <% if (session.user_aluno) { %>
-                                  Com <%= aula.professor_nome %>
-                              <% } else { %>
-                                  Com <%= aula.aluno_nome %>
-                              <% } %>
-                          </p>
+                            <p class="description">
+                                <%= form.descricao ? form.descricao.slice(0, 100) : "Sem descrição." %>
+                                <%= form.descricao && form.descricao.length > 100 ? "..." : "" %>
+                            </p>
 
-                          <section class="status-row">
-                              <p class="tag <%= aula.status %>">
-                                  <%= aula.status.charAt(0).toUpperCase() + aula.status.slice(1) %>
-                              </p>
-                              <% if (!aula.gravacao_url) { %>
-                                  <p class="duracao">Sem gravação</p>
-                              <% } else { %>
-                                  <p class="duracao">Ver gravação</p>
-                              <% } %>
-                          </section>
-                      </section>
+                            <section class="status-row">
+                                <p class="tag concluida">
+                                    Pontuação: <%= Number(form.pontuacao_total).toFixed(0) %>%
+                                </p>
+                                <p class="tag info">
+                                    <%= form.total_questoes %> Questões
+                                </p>
+                            </section>
+                        </section>
 
-                  </a>
+                    </a>
 
-              <% }) %>
-          </section>
+                <% }) %>
+            </section>
 
-      <% } else { %>
-
+        <% } else { %>
 
             <section class="empty">
-                <i class="fas fa-history icon"></i>
-                <p>Nenhuma aula encontrada no seu histórico.</p>
-                <a href="/pesquisar_profs" class="btn-primary">Agendar nova aula</a>
+                <i class="fas fa-file-excel icon"></i>
+                <p>Nenhum formulário concluído.</p>
+                <a href="/explorar_atividades" class="btn-primary">Explorar Atividades</a>
             </section>
 
         <% } %>

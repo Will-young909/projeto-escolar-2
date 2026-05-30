@@ -9,6 +9,7 @@ const chatStore = require('../lib/chatStore');
 const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const trilhaService = require('../services/trilhaService');
 const GamificationService = require('../services/GamificationService');
 const AnalyticsService = require('../services/AnalyticsService');
@@ -39,6 +40,22 @@ const upload = multer({
     fileFilter: fileFilter,
     limits: { fileSize: 5 * 1024 * 1024 } 
 }).single('foto');
+
+const videoStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = 'app/public/recordings';
+        if (!fs.existsSync(dir)){
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadVideo = multer({ storage: videoStorage }).single('video');
 
 async function getUserByEmail(email, tipo) {
     const searchEmail = email.toLowerCase();
@@ -647,6 +664,26 @@ router.get("/video/:room", (req, res) => {
     res.render("pages/video_call", { room, user });
 });
 
+router.post('/upload_recording', (req, res) => {
+    uploadVideo(req, res, async (err) => {
+        if (err) {
+            console.error('Erro ao fazer upload da gravação:', err);
+            return res.status(500).json({ success: false, message: 'Erro ao fazer upload.' });
+        }
+        
+        const { room } = req.body;
+        const videoPath = `/recordings/${req.file.filename}`;
+
+        try {
+            await pool.query('UPDATE agendamentos SET gravacao_url = ? WHERE sala_id = ?', [videoPath, room]);
+            res.json({ success: true, message: 'Gravação salva com sucesso!' });
+        } catch (error) {
+            console.error('Erro ao salvar URL da gravação no banco de dados:', error);
+            res.status(500).json({ success: false, message: 'Erro ao salvar gravação no banco de dados.' });
+        }
+    });
+});
+
 router.get('/politica', (req, res) => {
     res.render('pages/politica');
 });
@@ -925,14 +962,9 @@ router.get('/-progressomeu', async (req, res) => {
     }
 });
 
-router.get('/painel_adm', async (req, res) => {
-    try {
-        const [professores] = await pool.query('SELECT * from professores');
-        res.render('pages/painel_adm', { professores });
-    } catch(error) {
-        console.error("Erro ao carregar painel ADM:", error);
-        res.render('pages/painel_adm', { professores: [] });
-    }
+router.get('/painel_adm', (req, res) => {
+    // Redireciona para a rota de dashboard de admin, que usa o controller e middleware corretos
+    res.redirect('/admin/dashboard');
 });
 
 router.get('/historico_chats', async (req, res) => {
@@ -973,7 +1005,7 @@ router.get('/historico_chats', async (req, res) => {
             );
         }
 
-        userChats.sort((a, b) => new Date(b.lastActive) - new Date(b.lastActive));
+        userChats.sort((a, b) => new Date(b.lastActive) - new Date(a.lastActive));
 
         res.render('pages/historico_chats', {
             chats: userChats,
@@ -992,53 +1024,131 @@ router.get('/historico_aulas', async (req, res) => {
     if (!user) return res.redirect('/login');
 
     const searchQuery = (req.query.search || '').trim().toLowerCase();
+    const userType = req.session.user_aluno ? 'aluno' : 'professor';
 
     try {
-        const allMessages = await chatStore.loadMessages();
-        let userChats = [];
+        let query;
+        let params = [user.id];
 
-        for (const room in allMessages) {
-            if (room.startsWith('global')) continue;
-
-            const roomParts = room.replace('chat_', '').split('-');
-            if (roomParts.includes(String(user.id))) {
-                const messages = allMessages[room];
-                if (messages.length > 0) {
-                    const lastMessage = messages[messages.length - 1];
-                    const partnerId = roomParts.find(id => id !== String(user.id));
-                    const partner = await getUserById(partnerId);
-
-                    userChats.push({
-                        id: room,
-                        partnerName: partner.nome || `Usuário ${partnerId}`,
-                        partnerRole: partner.tipo,
-                        lastMessage: lastMessage.text,
-                        lastActive: lastMessage.time
-                    });
-                }
-            }
+        if (userType === 'aluno') {
+            query = `
+                SELECT a.*, p.nome as professor_nome, 'Matemática' as materia 
+                FROM agendamentos a
+                JOIN professores p ON a.professor_id = p.id
+                WHERE a.aluno_id = ? AND a.status = 'concluido'
+            `;
+        } else {
+            query = `
+                SELECT a.*, al.nome as aluno_nome, 'Matemática' as materia 
+                FROM agendamentos a
+                JOIN alunos al ON a.aluno_id = al.id
+                WHERE a.professor_id = ? AND a.status = 'concluido'
+            `;
         }
 
         if (searchQuery) {
-            userChats = userChats.filter(chat =>
-                chat.partnerName.toLowerCase().includes(searchQuery)
-            );
+            query += ` AND (p.nome LIKE ? OR 'Matemática' LIKE ?)`;
+            params.push(`%${searchQuery}%`, `%${searchQuery}%`);
         }
 
-        userChats.sort((a, b) => new Date(b.lastActive) - new Date(b.lastActive));
+        const [aulas] = await pool.query(query, params);
 
-        res.render('pages/historico_chats', {
-            chats: userChats,
+        res.render('pages/historico_aulas', {
+            aulas: aulas,
             user,
-            searchQuery
+            searchQuery,
+            session: req.session
         });
 
     } catch (error) {
-        console.error('Erro ao carregar o histórico de chats:', error);
+        console.error('Erro ao carregar o histórico de aulas:', error);
         res.status(500).send('Não foi possível carregar o histórico de aulas.');
     }
 });
 
+router.get('/historico_formularios', async (req, res) => {
+    const user = req.session.user_aluno;
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    const searchQuery = (req.query.search || '').trim().toLowerCase();
+
+    try {
+        let query = `
+            SELECT t.id as tentativa_id, t.pontuacao_total, t.total_questoes, t.data_conclusao, a.titulo, a.descricao
+            FROM tentativas_teste t
+            JOIN atividades a ON t.atividade_id = a.id
+            WHERE t.aluno_id = ?
+        `;
+        const params = [user.id];
+
+        if (searchQuery) {
+            query += ` AND a.titulo LIKE ?`;
+            params.push(`%${searchQuery}%`);
+        }
+
+        query += ` ORDER BY t.data_conclusao DESC`;
+
+        const [forms] = await pool.query(query, params);
+
+        res.render('pages/historico_formularios', {
+            forms: forms,
+            user,
+            searchQuery,
+            session: req.session
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar o histórico de formulários:', error);
+        res.status(500).send('Não foi possível carregar o histórico de formulários.');
+    }
+});
+
+router.get('/ver_resultado/:tentativa_id', async (req, res) => {
+    const user = req.session.user_aluno;
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    const { tentativa_id } = req.params;
+
+    try {
+        const [tentativaRows] = await pool.query(
+            'SELECT * FROM tentativas_teste WHERE id = ? AND aluno_id = ?',
+            [tentativa_id, user.id]
+        );
+
+        if (tentativaRows.length === 0) {
+            return res.status(404).send('Tentativa não encontrada ou não pertence a este usuário.');
+        }
+        const tentativa = tentativaRows[0];
+
+        const [respostas] = await pool.query(
+            'SELECT * FROM respostas_teste WHERE tentativa_id = ? ORDER BY id ASC',
+            [tentativa_id]
+        );
+
+        const activitiesData = activityStore.getActivities();
+        const atividade = activitiesData.activities.find(a => a.id === tentativa.atividade_id);
+
+        if (!atividade) {
+            return res.status(404).send('Atividade não encontrada.');
+        }
+
+        res.render('pages/ver_resultado', {
+            tentativa,
+            respostas,
+            atividade,
+            user,
+            session: req.session
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar o resultado do teste:', error);
+        res.status(500).send('Não foi possível carregar o resultado do teste.');
+    }
+});
 
 router.get('/editar_perfil_aluno', (req, res) => {
     const user = req.session.user_aluno;
@@ -1128,7 +1238,7 @@ router.post('/perfil/editar', (req, res) => {
 router.get('/pesquisar_profs', async (req, res) => {
     const query = (req.query.query || '').trim().toLowerCase();
     const page = parseInt(req.query.page) || 1;
-    const itemsPerPage = 5; 
+    const itemsPerPage = 1; 
 
     try {
         let sql = `
@@ -1148,7 +1258,9 @@ router.get('/pesquisar_profs', async (req, res) => {
 
         sql += ` GROUP BY p.id`;
 
-        const [countRows] = await pool.query(sql.replace(/SELECT p.id,.*FROM/s, 'SELECT COUNT(DISTINCT p.id) as total FROM'), params);
+        // Construir uma query de contagem sem o GROUP BY para obter o total real
+        const countSql = sql.replace(/SELECT[\s\S]*?FROM/i, 'SELECT COUNT(DISTINCT p.id) as total FROM').replace(/\sGROUP BY[\s\S]*/i, '');
+        const [countRows] = await pool.query(countSql, params);
         const totalItems = countRows[0].total;
         const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -1243,7 +1355,7 @@ router.get('/ganhos_mes', async (req, res) => {
         };
 
         let movimentacoes = aulasConcluidas.map(aula => ({
-            titulo: `Aula com ${aula.aluno_nome}`,
+            titulo: `Aula com ${aula.aluno_nome}` ,
             data: new Date(aula.data).toLocaleDateString('pt-BR'),
             hora: aula.hora,
             valor: parseFloat(aula.preco)
@@ -1321,16 +1433,40 @@ router.get('/lista_atividades', (req, res) => {
     res.render('pages/lista_atividades', { activities: activities.activities });
 });
 
-router.post('/atividades', (req, res) => {
+router.post('/atividades', [
+    body('title').notEmpty().withMessage('O título da atividade é obrigatório.'),
+    body('questions').custom((questions, { req }) => {
+        if (!questions) {
+            throw new Error('A atividade deve ter pelo menos uma questão.');
+        }
+        for (const question of Object.values(questions)) {
+            if (question.type === 'multiple_choice') {
+                if (!question.correct) {
+                    throw new Error('Cada questão de múltipla escolha deve ter uma resposta correta.');
+                }
+            } else if (question.type === 'short_text' || question.type === 'long_text') {
+                if (!question.correctAnswer || question.correctAnswer.trim() === '') {
+                    throw new Error('Cada questão de resposta curta ou parágrafo deve ter um gabarito.');
+                }
+            }
+        }
+        return true;
+    })
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) {
         return res.redirect('/login');
     }
 
-    const activities = activityStore.getActivities();
     const newActivity = req.body;
+    const activities = activityStore.getActivities();
     newActivity.id = Math.random().toString(36).substring(7);
-    newActivity.professorId = user.id; 
+    newActivity.professorId = user.id;
 
     activities.activities.push(newActivity);
     activityStore.saveActivities(activities);

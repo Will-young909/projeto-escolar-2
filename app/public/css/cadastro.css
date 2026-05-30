@@ -56,10 +56,9 @@ header {
 
 /* ============ MAIN / FORMULÁRIO ============ */
 main {
-  padding: var(--spacing-lg);
-  width: 90%; /* Ajuste a largura para mobile */
-  max-width: 450px; /* Reduzido para um formulário mais focado */
-  margin: var(--spacing-lg) auto 80px; /* Margem superior, centro, e inferior para o rodapé fixo */
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
   background-color: var(--color-card-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
@@ -304,7 +303,10 @@ textarea:focus {
 /* Tablet (768px) */
 @media (min-width: 768px) {
     main {
-        max-width: 550px;
+      padding: var(--spacing-lg);
+      width: 100%; /* Ajuste a largura para mobile */
+      max-width: 450px; /* Reduzido para um formulário mais focado */
+      margin: var(--spacing-lg) auto 80px; /* Margem superior, centro, e inferior para o rodapé fixo */
     }
 
     .logo {

@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         letterSpacing: 0,
         lineHeight: 1.5,
         highContrast: false,
-        grayscale: false,
+
         underlineLinks: false,
         readerFont: false,
         dyslexiaFont: false,
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h4>Esquemas de Cores e Fontes</h4>
                     <div class="a11y-control-grid">
                         <button id="high-contrast"><i class="fas fa-adjust"></i> Alto Contraste</button>
-                        <button id="grayscale"><i class="fas fa-palette"></i> Escala de Cinza</button>
+
                         <button id="reader-font"><i class="fas fa-book-reader"></i> Fonte Amigável</button>
                         <button id="dyslexia-font"><i class="fas fa-eye"></i> Fonte para Dislexia</button>
                     </div>
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const increaseLineHeightButton = document.getElementById('increase-line-height');
     const decreaseLineHeightButton = document.getElementById('decrease-line-height');
     const highContrastButton = document.getElementById('high-contrast');
-    const grayscaleButton = document.getElementById('grayscale');
+
     const underlineLinksButton = document.getElementById('underline-links');
     const readerFontButton = document.getElementById('reader-font');
     const dyslexiaFontButton = document.getElementById('dyslexia-font');
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bodyStyle.lineHeight = preferences.lineHeight;
 
         document.body.classList.toggle('high-contrast', preferences.highContrast);
-        document.body.classList.toggle('grayscale', preferences.grayscale);
+
         document.body.classList.toggle('underline-links', preferences.underlineLinks);
         document.body.classList.toggle('reader-font', preferences.readerFont);
         document.body.classList.toggle('dyslexia-font', preferences.dyslexiaFont);
@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     highContrastButton.addEventListener('click', createToggleHandler('highContrast'));
-    grayscaleButton.addEventListener('click', createToggleHandler('grayscale'));
+
     underlineLinksButton.addEventListener('click', createToggleHandler('underlineLinks'));
     readerFontButton.addEventListener('click', createToggleHandler('readerFont'));
     dyslexiaFontButton.addEventListener('click', createToggleHandler('dyslexiaFont'));

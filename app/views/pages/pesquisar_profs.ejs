@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
     <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
     <style>
 .pagination {
@@ -173,7 +174,7 @@
                 <section class="pagination" aria-label="Navegação de páginas">
                     <ul>
                         <% if (currentPage > 1) { %>
-                            <li><a href="<%= url %>?page=<%= currentPage - 1 %>&query=<%= query %>">Anterior</a></li>
+                            <li><a href="<%= url %>?page=<%= currentPage - 1 %>&query=<%= encodeURIComponent(query) %>">Anterior</a></li>
                         <% } else { %>
                             <li class="disabled"><span>Anterior</span></li>
                         <% } %>
@@ -182,12 +183,12 @@
                             <% if (i === currentPage) { %>
                                 <li class="active"><span><%= i %></span></li>
                             <% } else { %>
-                                <li><a href="<%= url %>?page=<%= i %>&query=<%= query %>"><%= i %></a></li>
+                                <li><a href="<%= url %>?page=<%= i %>&query=<%= encodeURIComponent(query) %>"><%= i %></a></li>
                             <% } %>
                         <% } %>
 
                         <% if (currentPage < totalPages) { %>
-                            <li><a href="<%= url %>?page=<%= currentPage + 1 %>&query=<%= query %>">Próxima</a></li>
+                            <li><a href="<%= url %>?page=<%= currentPage + 1 %>&query=<%= encodeURIComponent(query) %>">Próxima</a></li>
                         <% } else { %>
                             <li class="disabled"><span>Próxima</span></li>
                         <% } %>

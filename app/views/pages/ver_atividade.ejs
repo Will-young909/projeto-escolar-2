@@ -16,15 +16,21 @@
     </style>
 </head>
 <body>
+    <header>
+        <a href="/">
+           <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+         </a>
+         </button>
+       </header>
     <main class="atividades-container">
         <div class="form-builder-card" style="max-width: 800px; margin: auto;">
-            <header class="form-header">
+            <section class="form-header">
                 <h1><%= activity.title %></h1>
                 <p><%= activity.description %></p>
                 <% if (activity.professorNome) { %>
                     <p><strong>Professor:</strong> <%= activity.professorNome %></p>
                 <% } %>
-            </header>
+            </section>
 
             <% if (activity && activity.questions && activity.questions.length > 0) { %>
                 <% const isTest = activity.isTest || false; %>

@@ -24,45 +24,19 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ============================================================
--- RESET OPCIONAL
+-- TABELA: ADMINS
 -- ============================================================
 
-/*
-DROP TABLE IF EXISTS aluno_conteudo_consumido;
-DROP TABLE IF EXISTS prerequisito_conteudos_apoio;
-DROP TABLE IF EXISTS conteudos_apoio;
-DROP TABLE IF EXISTS aluno_prerequisito_proficiencia;
-DROP TABLE IF EXISTS questoes_prerequisitos;
-DROP TABLE IF EXISTS prerequisitos;
+CREATE TABLE IF NOT EXISTS admins (
+    id                      VARCHAR(255) PRIMARY KEY,
+    nome                    VARCHAR(150) NOT NULL,
+    email                   VARCHAR(255) NOT NULL UNIQUE,
+    senha                   VARCHAR(255) NOT NULL,
+    role                    ENUM('admin', 'superadmin') NOT NULL DEFAULT 'admin',
+    criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 
-DROP TABLE IF EXISTS habilidade_prerequisitos;
-DROP TABLE IF EXISTS historico_questoes;
-DROP TABLE IF EXISTS usuario_habilidades;
-DROP TABLE IF EXISTS revisao_agendada;
-DROP TABLE IF EXISTS trilha_itens;
-DROP TABLE IF EXISTS trilhas;
-DROP TABLE IF EXISTS resultado_habilidade;
-DROP TABLE IF EXISTS respostas_teste;
-DROP TABLE IF EXISTS tentativas_teste;
-DROP TABLE IF EXISTS sessoes_adaptativas;
-
-DROP TABLE IF EXISTS questoes;
-DROP TABLE IF EXISTS habilidades;
-DROP TABLE IF EXISTS atividades;
-
-DROP TABLE IF EXISTS agendamentos;
-DROP TABLE IF EXISTS horarios_disponiveis;
-DROP TABLE IF EXISTS disciplinas;
-
-DROP TABLE IF EXISTS comentarios;
-DROP TABLE IF EXISTS mensagens_chat;
-DROP TABLE IF EXISTS notificacoes;
-DROP TABLE IF EXISTS pagamentos;
-DROP TABLE IF EXISTS denuncias;
-
-DROP TABLE IF EXISTS professores;
-DROP TABLE IF EXISTS alunos;
-*/
 
 -- ============================================================
 -- TABELA: ALUNOS
@@ -96,21 +70,23 @@ CREATE TABLE professores (
     nome                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(255) NOT NULL UNIQUE,
     senha                   VARCHAR(255) NOT NULL,
-
     foto                    VARCHAR(500)
                                 DEFAULT '/imagens/imagem_perfil.jpg',
-
     descricao               TEXT,
     link_previa             VARCHAR(500) DEFAULT '',
-
     status                  ENUM(
                                 'disponivel',
                                 'indisponivel'
                              ) DEFAULT 'disponivel',
-
+    aprovacao_status        ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending',
+    aprovado_por            VARCHAR(255) NULL,
+    aprovado_em             TIMESTAMP NULL,
+    motivo_reprovacao       TEXT NULL,
+    pagamentos_bloqueados   BOOLEAN DEFAULT FALSE,
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                                ON UPDATE CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_prof_aprovado_por FOREIGN KEY (aprovado_por) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -174,34 +150,27 @@ CREATE TABLE horarios_disponiveis (
 
 CREATE TABLE agendamentos (
     id                      INT AUTO_INCREMENT PRIMARY KEY,
-
     aluno_id                VARCHAR(255) NOT NULL,
     professor_id            VARCHAR(255) NOT NULL,
     horario_id              INT NOT NULL,
-
     sala_id                 VARCHAR(100),
-
     data                    DATE NOT NULL,
     hora                    TIME NOT NULL,
-
+    no_show                 BOOLEAN DEFAULT FALSE,
     status                  ENUM(
                                 'ativo',
                                 'cancelado',
                                 'concluido'
                              ) DEFAULT 'ativo',
-
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
     CONSTRAINT fk_agendamento_aluno
         FOREIGN KEY (aluno_id)
         REFERENCES alunos(id)
         ON DELETE CASCADE,
-
     CONSTRAINT fk_agendamento_professor
         FOREIGN KEY (professor_id)
         REFERENCES professores(id)
         ON DELETE CASCADE,
-
     CONSTRAINT fk_agendamento_horario
         FOREIGN KEY (horario_id)
         REFERENCES horarios_disponiveis(id)
@@ -237,7 +206,7 @@ CREATE TABLE atividades (
 CREATE TABLE habilidades (
     id                      INT AUTO_INCREMENT PRIMARY KEY,
 
-    codigo                  VARCHAR(20) NOT NULL UNIQUE,
+    codigo                  VARCHAR(200) NOT NULL UNIQUE,
     descricao               TEXT NOT NULL,
 
     ano_escolar             INT,
@@ -380,6 +349,13 @@ CREATE TABLE tentativas_teste (
     total_questoes              INT
                                     NOT NULL DEFAULT 0,
 
+    acertos                     INT
+                                    NOT NULL DEFAULT 0,
+
+    erros                       INT
+                                    NOT NULL DEFAULT 0,
+    data_conclusao TIMESTAMP,
+
     criado_em                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_tentativa_aluno
@@ -403,7 +379,7 @@ CREATE TABLE respostas_teste (
     tentativa_id                INT NOT NULL,
     questao_id                  INT NOT NULL,
 
-    resposta_marcada            CHAR(1),
+    resposta_marcada            VARCHAR(500),
 
     acertou                     BOOLEAN
                                     NOT NULL DEFAULT FALSE,
@@ -872,21 +848,39 @@ CREATE TABLE comentarios (
 
 CREATE TABLE denuncias (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
-
     tipo                            VARCHAR(100) NOT NULL,
-
     titulo                          VARCHAR(300) NOT NULL,
-
     descricao                       TEXT NOT NULL,
-
     email                           VARCHAR(255),
-
     evidencia                       VARCHAR(500),
-
     anonimo                         BOOLEAN DEFAULT FALSE,
-
-    criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    prioridade                      VARCHAR(255) DEFAULT 'baixa',
+    sla                             DATETIME,
+    responsavel_id                  VARCHAR(255),
+    status                          VARCHAR(255) DEFAULT 'aberta',
+    criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_denuncia_responsavel FOREIGN KEY (responsavel_id) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS denuncia_historico (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    denuncia_id INT NOT NULL,
+    usuario_id VARCHAR(255),
+    acao VARCHAR(255) NOT NULL,
+    detalhes TEXT,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (denuncia_id) REFERENCES denuncias(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES admins(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS alertas_operacionais (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(255) NOT NULL,
+    entidade_id VARCHAR(255) NOT NULL,
+    mensagem TEXT NOT NULL,
+    resolvido BOOLEAN DEFAULT FALSE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ============================================================
 -- TABELA: PAGAMENTOS
@@ -913,6 +907,18 @@ CREATE TABLE pagamentos (
     criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS repasses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    professor_id VARCHAR(255) NOT NULL,
+    valor DECIMAL(10, 2) NOT NULL,
+    status ENUM('pendente', 'pago', 'falhou') NOT NULL DEFAULT 'pendente',
+    data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_pagamento TIMESTAMP NULL,
+    metodo_pagamento VARCHAR(255),
+    referencia_transacao VARCHAR(255),
+    FOREIGN KEY (professor_id) REFERENCES professores(id)
+);
+
 -- ============================================================
 -- TABELA: NOTIFICAÇÕES
 -- ============================================================
@@ -935,6 +941,26 @@ CREATE TABLE notificacoes (
 
     criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- TABELA: AUDITORIA ADMINISTRATIVA
+-- ============================================================
+
+CREATE TABLE admin_audit_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_id VARCHAR(255) NOT NULL,
+  acao VARCHAR(255) NOT NULL,
+  entidade VARCHAR(255) NOT NULL,
+  entidade_id VARCHAR(255) NOT NULL,
+  diff_json JSON NULL,
+  motivo TEXT NULL,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_audit_admin
+    FOREIGN KEY (admin_id)
+    REFERENCES admins(id)
+    ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
 
 -- ============================================================
 -- ÍNDICES PARA PERFORMANCE

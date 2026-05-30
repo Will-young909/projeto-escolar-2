@@ -146,3 +146,272 @@ nav a:hover {
   transition: 0.3s;
   z-index: 1001;
 }
+
+#overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+svg {
+  object-fit: contain;
+  width: 24px;
+  height: 24px;
+  stroke: #fff;
+}
+
+.title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-left: auto;
+}
+
+/* ============ SEARCH (APRIMORADO) ============ */
+.search-bar {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 0 16px;
+}
+
+.search-bar form {
+    display: flex;
+    justify-content: center;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    background: var(--color-card);
+    border-radius: 25px;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(128, 0, 32, 0.4);
+}
+
+.search-bar input[type="search"] {
+    flex-grow: 1;
+    height: 44px; 
+    border-radius: 25px;
+    border: none;
+    padding: 0 15px;
+    background: none;
+    font-size: 1rem;
+}
+
+.search-bar input[type="search"]:focus {
+    outline: none;
+}
+
+.search-bar button[type="submit"] {
+    /* Usando a cor primária para o botão */
+    background: var(--color-primary);
+    border: none;
+    border-radius: 0 25px 25px 0;
+    width: 45px;
+    height: 44px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.search-bar button[type="submit"]:hover {
+    background: var(--color-secondary);
+}
+
+.search-bar button[type="submit"] svg {
+    stroke: var(--color-card);
+}
+
+/* ===== MAIN ===== */
+.container {
+    max-width: 800px;
+    margin: 25px auto;
+    padding: 0 15px;
+}
+
+/* ===== LISTA DE AULAS ===== */
+.aula-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* ===== CARD DE AULA ===== */
+.aula-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--color-card);
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    transition: 0.3s;
+}
+
+.aula-card:hover { transform: translateY(-3px); }
+
+.aula-icon {
+    font-size: 2rem;
+    color: var(--color-primary);
+    width: 60px;
+    text-align: center;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.time {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+.prof-name {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    margin-bottom: 5px;
+}
+
+.status-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* TAGS DE STATUS */
+.tag {
+    margin-top: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.tag.concluida { background: #d4edda; color: #155724; }
+.tag.pendente { background: #fff3cd; color: #856404; }
+.tag.cancelada { background: #f8d7da; color: #721c24; }
+
+.duracao {
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+/* ===== ESTADO VAZIO ===== */
+.empty {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.empty .icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.empty p {
+    font-size: 1rem;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.btn-primary:hover {
+    background: var(--color-secondary);
+}
+
+/* ===== DESKTOP ===== */
+@media (min-width: 768px) {
+    .menu-btn,
+  #overlay,
+  #close-menu {
+    display: none;
+  }
+
+  #toggle-menu { display: flex; }
+
+  nav {
+    left: 0;
+    width: 260px;
+    border-right: 2px solid var(--bordo);
+    padding-top: 0;
+  }
+
+  .container {
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+    position: sticky;
+    left: 25%;
+  }
+
+  nav.collapsed {
+    width: 70px;
+  }
+
+  nav.collapsed ~ .container {
+    margin-left: 70px;
+  }
+
+  nav.collapsed a {
+    text-indent: -9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed .nav-links li {
+    line-height: 42px;
+    overflow: hidden;
+    display: none;
+  }
+
+  nav.collapsed a {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+
+  .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
+
+    .title { font-size: 1.6rem; }
+}

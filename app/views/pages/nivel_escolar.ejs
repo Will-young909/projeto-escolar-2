@@ -5,10 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nível Escolar | RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/cadastro.css">
   <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 <style>
+  .header {
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px; /* Padding ajustado */
+  position: block;
+  top: 0;
+  z-index: 100;
+  border-bottom: 2px solid #800020;
+  height: 60px;
+}
+
   main {
     margin: 10px;
     display: flex;
@@ -19,11 +34,36 @@
     top: 45%;
     left: 50%;
   }
+
+  .subheader__back {
+  border: none;
+  background: none;
+  color: var(--bordo);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.subheader__back:hover {
+  background: rgba(128, 0, 32, 0.06);
+}
 </style>
 <body>
+  <header class="header">
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+    <button class="subheader__back" onclick="history.back()">
+      <i class="fas fa-arrow-left"></i> Voltar
+    </button>
+  </header>
+
   <main class="atividades-container">
     <div class="ia-generator-container card">
-      <h2>Qual o seu nível escolar?</h2>
+      <h2>Escolha o nível escolar?</h2>
       <form id="level-form" action="/gerar_atividade" method="GET">
         <select name="level" id="level-select">
           <option value="fundamental1">1º ano - Ensino Fundamental</option>
