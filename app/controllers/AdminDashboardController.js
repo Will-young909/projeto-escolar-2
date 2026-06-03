@@ -40,6 +40,14 @@ exports.getDashboard = async (req, res) => {
         // Busca as outras listas sem filtro para as demais tabelas
         const [approvedTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status = \'approved\' ORDER BY criado_em DESC');
         const [inactiveTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status IN (\'rejected\', \'suspended\') ORDER BY criado_em DESC');
+        const [denuncias] = await connection.query(`
+            SELECT d.*, a.nome AS responsavel_nome
+            FROM denuncias d
+            LEFT JOIN admins a ON a.id = d.responsavel_id
+            ORDER BY d.criado_em DESC
+            LIMIT 50
+        `);
+        const openReports = denuncias.filter(d => d.status !== 'resolvida').length;
         
         connection.release();
 
@@ -49,6 +57,8 @@ exports.getDashboard = async (req, res) => {
             pendingTeachers: filteredTeachers, // A lista principal agora é paginada e filtrada
             approvedTeachers: approvedTeachers,
             inactiveTeachers: inactiveTeachers,
+            denuncias,
+            openReports,
             pagination: {
                 page: parseInt(page),
                 totalPages,

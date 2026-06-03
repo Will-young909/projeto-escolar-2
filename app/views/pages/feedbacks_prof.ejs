@@ -66,13 +66,13 @@
           <article class="fb-card">
             <header class="fb-card__topo">
               <section>
-                <strong><%= fb.usuario %></strong>
+                <strong><%= fb.usuario || fb.usuario_nome || 'Aluno' %></strong>
                 <!-- <p class="fb-card__aula">Aula: Álgebra Linear</p> -->
               </section>
               <% if (fb.nota) { %>
                 <section class="fb-card__nota">
-                  <p><%= fb.nota.toFixed(1) %></p>
-                  <p><%= '★ '.repeat(fb.nota) + '☆ '.repeat(5 - fb.nota) %></p>
+                  <p><%= Number(fb.nota).toFixed(1) %></p>
+                  <p><%= '★ '.repeat(Number(fb.nota)) + '☆ '.repeat(5 - Number(fb.nota)) %></p>
                 </section>
               <% } %>
             </header>

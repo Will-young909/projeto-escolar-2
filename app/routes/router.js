@@ -70,6 +70,108 @@ async function getUserByEmail(email, tipo) {
     }
 }
 
+
+function normalizeActivityQuestions(activity) {
+    const rawQuestions = Array.isArray(activity.questions) ? activity.questions : Object.values(activity.questions || {});
+    return rawQuestions.map((question) => {
+        const optionsSource = question.options || null;
+        let options = null;
+        if (optionsSource) {
+            if (Array.isArray(optionsSource)) {
+                options = optionsSource.reduce((acc, value, index) => {
+                    const letter = String.fromCharCode(65 + index);
+                    acc[letter] = value;
+                    return acc;
+                }, {});
+            } else {
+                options = Object.fromEntries(Object.entries(optionsSource).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''));
+            }
+        }
+
+        const correctKey = question.correct !== undefined && question.correct !== null ? String(question.correct) : '';
+        const correctAnswer = question.correctAnswer || (options ? (options[correctKey] || correctKey) : '');
+
+        return {
+            ...question,
+            title: question.title || question.text || question.enunciado || 'Questão',
+            text: question.text || question.title || question.enunciado || 'Questão',
+            type: question.type || (options ? 'multiple_choice' : 'short_text'),
+            options,
+            correct: correctKey,
+            correctAnswer
+        };
+    });
+}
+
+async function ensureActivityPersisted(activity, creatorId = null) {
+    const normalizedQuestions = normalizeActivityQuestions(activity);
+    const activityId = activity.id;
+
+    const [existingActivity] = await pool.query('SELECT id FROM atividades WHERE id = ?', [activityId]);
+    if (existingActivity.length === 0) {
+        await pool.query(
+            'INSERT INTO atividades (id, professor_id, titulo, descricao) VALUES (?, ?, ?, ?)',
+            [activityId, creatorId || activity.professorId || null, activity.title || 'Atividade', activity.description || null]
+        );
+    }
+
+    const [existingQuestions] = await pool.query('SELECT id FROM questoes WHERE atividade_id = ? ORDER BY id ASC', [activityId]);
+    if (existingQuestions.length >= normalizedQuestions.length) {
+        return { activity: { ...activity, questions: normalizedQuestions }, questionIds: existingQuestions.map(q => q.id) };
+    }
+
+    if (existingQuestions.length > 0) {
+        await pool.query('DELETE FROM questoes WHERE atividade_id = ?', [activityId]);
+    }
+
+    const questionIds = [];
+    for (const q of normalizedQuestions) {
+        let habilidadeId = null;
+        if (q.habilidade) {
+            const [habilidadeResult] = await pool.query(
+                'INSERT INTO habilidades (codigo, descricao) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)',
+                [q.habilidade, q.habilidade]
+            );
+            habilidadeId = habilidadeResult.insertId;
+        }
+
+        const optionEntries = q.options ? Object.entries(q.options) : [];
+        const resposta = q.options ? (q.correct || optionEntries[0]?.[0] || '') : (q.correctAnswer || '');
+        const [result] = await pool.query(
+            'INSERT INTO questoes (atividade_id, enunciado, alternativa_a, alternativa_b, alternativa_c, alternativa_d, resposta, habilidade_id, dificuldade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                activityId,
+                q.text,
+                optionEntries[0]?.[1] || null,
+                optionEntries[1]?.[1] || null,
+                optionEntries[2]?.[1] || null,
+                optionEntries[3]?.[1] || null,
+                resposta,
+                habilidadeId,
+                q.dificuldade || 'facil'
+            ]
+        );
+        questionIds.push(result.insertId);
+    }
+
+    return { activity: { ...activity, questions: normalizedQuestions }, questionIds };
+}
+
+function normalizeAnswers(answers) {
+    if (!answers) return [];
+    if (Array.isArray(answers)) return answers;
+    return Object.keys(answers).sort((a, b) => Number(a) - Number(b)).map(key => answers[key]);
+}
+
+function isAnswerCorrect(question, answer) {
+    if (answer === undefined || answer === null || String(answer).trim() === '') return false;
+    const marked = String(answer).trim();
+    if (question.options) {
+        return marked.toLowerCase() === String(question.correct || '').toLowerCase();
+    }
+    return marked.toLowerCase() === String(question.correctAnswer || '').trim().toLowerCase();
+}
+
 async function getUserById(id) {
     try {
         let [profRows] = await pool.query("SELECT *, 'professor' as tipo FROM professores WHERE id = ?", [id]);
@@ -141,10 +243,10 @@ router.post('/professor/horarios', async (req, res) => {
 
     try {
         await pool.query('START TRANSACTION');
-        await pool.query('DELETE FROM horarios_disponiveis WHERE professor_id = ? AND data = ?', [professorId, date]);
+        await pool.query("DELETE FROM horarios_disponiveis WHERE professor_id = ? AND data = ? AND status IN ('disponivel', 'cancelado')", [professorId, date]);
 
         for (const slot of slots) {
-            if (slot.start && slot.end && slot.price) {
+            if (slot.start && slot.end && Number(slot.price) > 0) {
                 await pool.query(
                     'INSERT INTO horarios_disponiveis (professor_id, data, hora_inicio, hora_fim, preco, status) VALUES (?, ?, ?, ?, ?, ?)',
                     [professorId, date, slot.start, slot.end, slot.price, 'disponivel']
@@ -194,8 +296,11 @@ router.post('/agendar-horario', async (req, res) => {
         const horarioIdBanco = horario.id;
 
         const mpPreferenceClient = req.app.locals.mpPreferenceClient;
-        if (!mpPreferenceClient) {
-            return res.status(500).send('Serviço de pagamento não está configurado.');
+        const siteUrl = process.env.SITE_URL || `${req.protocol}://${req.get('host')}`;
+
+        if (!mpPreferenceClient || !process.env.MP_ACCESS_TOKEN) {
+            const reference = encodeURIComponent(JSON.stringify({ profId, horarioId: horarioIdBanco, alunoId }));
+            return res.redirect(`/pagamento/sucesso?external_reference=${reference}&status=approved&dev_checkout=1`);
         }
 
         const preference = {
@@ -207,9 +312,9 @@ router.post('/agendar-horario', async (req, res) => {
                 unit_price: parseFloat(horario.preco)
             }],
             back_urls: {
-                success: "http://localhost:3000/pagamento/sucesso",
-                failure: "http://localhost:3000/pagamento/erro",
-                pending: "http://localhost:3000/pagamento/pendente"
+                success: `${siteUrl}/pagamento/sucesso`,
+                failure: `${siteUrl}/pagamento/erro`,
+                pending: `${siteUrl}/pagamento/pendente`
             },
             auto_return: "approved",
             external_reference: JSON.stringify({ profId, horarioId: horarioIdBanco, alunoId }),
@@ -444,12 +549,17 @@ router.get('/exibir_prof/:id', async (req, res) => {
         );
 
         const [comentarios] = await pool.query(
-            'SELECT usuario_nome, texto, nota, criado_em FROM comentarios WHERE professor_id = ? ORDER BY criado_em DESC',
+            'SELECT usuario_nome AS usuario, texto, nota, criado_em AS data FROM comentarios WHERE professor_id = ? ORDER BY criado_em DESC',
             [professorId]
         );
 
         professor.horariosDisponiveis = horarios;
         professor.comentarios = comentarios;
+        const avaliacoes = comentarios.filter(c => c.nota);
+        professor.num_avaliacoes = avaliacoes.length;
+        professor.avaliacao_media = avaliacoes.length
+            ? (avaliacoes.reduce((sum, c) => sum + Number(c.nota), 0) / avaliacoes.length).toFixed(1)
+            : '0.0';
 
         const user = req.session.user_aluno || req.session.user_prof;
         res.render('pages/exibir_prof', { professor, session: req.session, user });
@@ -627,8 +737,8 @@ router.post('/exibir_prof/:id/comentar', async (req, res) => {
         }
 
         await pool.query(
-            'INSERT INTO comentarios (professor_id, usuario_nome, texto, nota) VALUES (?, ?, ?, ?)',
-            [professorId, user.nome, texto.trim(), notaInt]
+            'INSERT INTO comentarios (professor_id, aluno_id, usuario_nome, texto, nota) VALUES (?, ?, ?, ?, ?)',
+            [professorId, req.session.user_aluno ? user.id : null, user.nome, texto.trim(), notaInt]
         );
 
         res.redirect(`/exibir_prof/${professorId}`);
@@ -658,11 +768,23 @@ router.get('/chat', (req, res) => {
     res.redirect('/historico_chats');
 });
 
-router.get("/video/:room", (req, res) => {
+router.get("/video/:room", async (req, res) => {
     const { room } = req.params;
     const user = req.session.user_aluno || req.session.user_prof;
     if (!user) return res.redirect('/login');
-    res.render("pages/video_call", { room, user });
+
+    try {
+        const column = req.session.user_aluno ? 'aluno_id' : 'professor_id';
+        const [agendamento] = await pool.query(
+            `SELECT id FROM agendamentos WHERE sala_id = ? AND ${column} = ? AND status = 'ativo'`,
+            [room, user.id]
+        );
+        if (agendamento.length === 0) return res.status(403).send('Você não tem acesso a esta sala de aula.');
+        res.render("pages/video_call", { room, user });
+    } catch (error) {
+        console.error('Erro ao validar acesso à videochamada:', error);
+        res.status(500).send('Não foi possível abrir a sala de aula.');
+    }
 });
 
 router.post('/upload_recording', (req, res) => {
@@ -706,7 +828,7 @@ router.get('/aulas', async (req, res) => {
         }
 
         const [agendamentos] = await pool.query(
-            `SELECT ag.*, a.nome as alunoNome
+            `SELECT ag.*, ag.sala_id AS salaId, a.id AS aluno_id, a.nome as alunoNome
              FROM agendamentos ag
              JOIN alunos a ON ag.aluno_id = a.id
              WHERE ag.professor_id = ? AND ag.status = 'ativo'
@@ -714,7 +836,14 @@ router.get('/aulas', async (req, res) => {
             [professor.id]
         );
 
-        professor.agendamentos = agendamentos;
+        professor.agenda = agendamentos.map(ag => ({
+            id: ag.id,
+            aluno: { id: ag.aluno_id, nome: ag.alunoNome },
+            salaId: ag.salaId || ag.sala_id,
+            data: ag.data,
+            hora: ag.hora,
+            assunto: ag.assunto || 'Matemática'
+        }));
 
         res.render('pages/aulas', { user: professor, session: req.session });
 
@@ -745,9 +874,14 @@ router.post('/denuncia',
 
     try {
         const { tipo, titulo, descricao, email, evidencia, anonimo } = req.body;
+        const prioridade = tipo === 'seguranca' || tipo === 'assédio' ? 'alta' : 'baixa';
+        const [result] = await pool.query(
+            'INSERT INTO denuncias (tipo, titulo, descricao, email, evidencia, anonimo, prioridade, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [tipo, titulo, descricao, anonimo ? null : email, evidencia || null, anonimo ? 1 : 0, prioridade, 'aberta']
+        );
         await pool.query(
-            'INSERT INTO denuncias (tipo, titulo, descricao, email, evidencia, anonimo) VALUES (?, ?, ?, ?, ?, ?)',
-            [tipo, titulo, descricao, anonimo ? null : email, evidencia, anonimo ? 1 : 0]
+            'INSERT INTO denuncia_historico (denuncia_id, acao, detalhes) VALUES (?, ?, ?)',
+            [result.insertId, 'Criação', 'Denúncia enviada pelo formulário público']
         );
         return res.redirect('/denuncia_sucesso');
     } catch (error) {
@@ -837,6 +971,12 @@ router.get('/pagamento/sucesso', async (req, res) => {
         }
         const horario = horarioRows[0];
 
+        const [agendamentoExistente] = await pool.query('SELECT id FROM agendamentos WHERE horario_id = ? AND status = ?', [horarioId, 'ativo']);
+        if (agendamentoExistente.length > 0) {
+            await pool.query('ROLLBACK');
+            return res.status(409).render('pages/pagamento_erro', { error: 'Este horário já possui um agendamento ativo.' });
+        }
+
         await pool.query('UPDATE horarios_disponiveis SET status = ?, aluno_id = ? WHERE id = ?', ['agendado', alunoId, horarioId]);
 
         const salaId = crypto.randomBytes(16).toString('hex');
@@ -846,10 +986,12 @@ router.get('/pagamento/sucesso', async (req, res) => {
         );
 
         const [aluno] = await pool.query('SELECT nome FROM alunos WHERE id = ?', [alunoId]);
-        const mensagem = `Nova aula agendada com ${aluno[0].nome} para o dia ${horario.data} às ${horario.hora_inicio}.`;
+        const [professor] = await pool.query('SELECT nome FROM professores WHERE id = ?', [profId]);
+        const mensagemProfessor = `Nova aula agendada com ${aluno[0].nome} para o dia ${horario.data} às ${horario.hora_inicio}.`;
+        const mensagemAluno = `Sua aula com ${professor[0].nome} foi agendada para o dia ${horario.data} às ${horario.hora_inicio}.`;
         await pool.query(
-            'INSERT INTO notificacoes (usuario_id, usuario_tipo, tipo, mensagem) VALUES (?, ?, ?, ?)',
-            [profId, 'professor', 'novo_agendamento', mensagem]
+            'INSERT INTO notificacoes (usuario_id, usuario_tipo, tipo, mensagem) VALUES (?, ?, ?, ?), (?, ?, ?, ?)',
+            [profId, 'professor', 'novo_agendamento', mensagemProfessor, alunoId, 'aluno', 'novo_agendamento', mensagemAluno]
         );
 
         await pool.query('COMMIT');
@@ -1088,19 +1230,22 @@ router.get('/historico_formularios', async (req, res) => {
 
     try {
         let query = `
-            SELECT t.id as tentativa_id, t.pontuacao_total, t.total_questoes, t.data_conclusao, a.titulo, a.descricao
+            SELECT t.id as tentativa_id, t.tipo, t.pontuacao_total, t.total_questoes,
+                   COALESCE(t.data_conclusao, t.criado_em) AS data_conclusao,
+                   COALESCE(a.titulo, CONCAT('Formulário ', t.atividade_id)) AS titulo,
+                   COALESCE(a.descricao, 'Formulário concluído') AS descricao
             FROM tentativas_teste t
-            JOIN atividades a ON t.atividade_id = a.id
+            LEFT JOIN atividades a ON t.atividade_id = a.id
             WHERE t.aluno_id = ?
         `;
         const params = [user.id];
 
         if (searchQuery) {
-            query += ` AND a.titulo LIKE ?`;
+            query += ` AND COALESCE(a.titulo, t.atividade_id) LIKE ?`;
             params.push(`%${searchQuery}%`);
         }
 
-        query += ` ORDER BY t.data_conclusao DESC`;
+        query += ` ORDER BY COALESCE(t.data_conclusao, t.criado_em) DESC`;
 
         const [forms] = await pool.query(query, params);
 
@@ -1137,15 +1282,32 @@ router.get('/ver_resultado/:tentativa_id', async (req, res) => {
         const tentativa = tentativaRows[0];
 
         const [respostas] = await pool.query(
-            'SELECT * FROM respostas_teste WHERE tentativa_id = ? ORDER BY id ASC',
+            `SELECT rt.*, q.enunciado, q.alternativa_a, q.alternativa_b, q.alternativa_c, q.alternativa_d, q.resposta
+             FROM respostas_teste rt
+             JOIN questoes q ON q.id = rt.questao_id
+             WHERE rt.tentativa_id = ?
+             ORDER BY rt.id ASC`,
             [tentativa_id]
         );
 
         const activitiesData = activityStore.getActivities();
-        const atividade = activitiesData.activities.find(a => a.id === tentativa.atividade_id);
+        let atividade = activitiesData.activities.find(a => a.id === tentativa.atividade_id);
 
-        if (!atividade) {
-            return res.status(404).send('Atividade não encontrada.');
+        if (atividade) {
+            atividade = { ...atividade, questions: normalizeActivityQuestions(atividade) };
+        } else {
+            const [atividadeRows] = await pool.query('SELECT id, titulo, descricao FROM atividades WHERE id = ?', [tentativa.atividade_id]);
+            if (atividadeRows.length === 0) return res.status(404).send('Atividade não encontrada.');
+            atividade = {
+                id: atividadeRows[0].id,
+                title: atividadeRows[0].titulo,
+                description: atividadeRows[0].descricao,
+                questions: respostas.map(r => ({
+                    text: r.enunciado,
+                    options: { A: r.alternativa_a, B: r.alternativa_b, C: r.alternativa_c, D: r.alternativa_d },
+                    correct: r.resposta
+                }))
+            };
         }
 
         const recomendacoesProfessores = await RecomendacaoProfessorService.recomendarProfessoresParaAluno(user.id, {
@@ -1419,7 +1581,11 @@ router.get('/feedbacks_prof', async (req, res) => {
 
     try {
         const [feedbacks] = await pool.query(
-            'SELECT * FROM comentarios WHERE professor_id = ? ORDER BY criado_em DESC',
+            `SELECT c.*, c.usuario_nome AS usuario, c.criado_em AS data, a.id AS aluno_id, a.nome AS aluno_nome
+             FROM comentarios c
+             LEFT JOIN alunos a ON a.id = c.aluno_id
+             WHERE c.professor_id = ?
+             ORDER BY c.criado_em DESC`,
             [user.id]
         );
 
@@ -1431,15 +1597,15 @@ router.get('/feedbacks_prof', async (req, res) => {
 
         if (totalAvaliacoes > 0) {
             avaliacoesComNota.forEach(f => {
-                somaNotas += f.nota;
+                somaNotas += Number(f.nota);
                 if (distribuicaoNotas[f.nota]) {
                     distribuicaoNotas[f.nota].count++;
                 }
             });
-            Object.keys(distribuicaoNotas).forEach(key => {
-                distribuicaoNotas[key].percent = (distribuicaoNotas[key].count / totalAvaliacoes) * 100;
-            });
         }
+        Object.keys(distribuicaoNotas).forEach(key => {
+            distribuicaoNotas[key].percent = totalAvaliacoes > 0 ? (distribuicaoNotas[key].count / totalAvaliacoes) * 100 : 0;
+        });
 
         const mediaGeral = totalAvaliacoes > 0 ? (somaNotas / totalAvaliacoes).toFixed(1) : "0.0";
 
@@ -1458,10 +1624,24 @@ router.get('/feedbacks_prof', async (req, res) => {
     }
 });
 
-router.get('/feedbacks_aluno', (req, res) => {
+router.get('/feedbacks_aluno', async (req, res) => {
     const user = req.session.user_aluno;
     if (!user) return res.redirect('/login');
-    res.render('pages/feedbacks_aluno', { user, session: req.session });
+
+    try {
+        const [comentarios] = await pool.query(
+            `SELECT c.*, c.criado_em AS data, p.id AS profId, p.nome AS professorNome
+             FROM comentarios c
+             JOIN professores p ON p.id = c.professor_id
+             WHERE c.aluno_id = ? OR (c.aluno_id IS NULL AND c.usuario_nome = ?)
+             ORDER BY c.criado_em DESC`,
+            [user.id, user.nome]
+        );
+        res.render('pages/feedbacks_aluno', { user: { ...user, comentarios }, session: req.session });
+    } catch (error) {
+        console.error('Erro ao carregar feedbacks do aluno:', error);
+        res.render('pages/feedbacks_aluno', { user: { ...user, comentarios: [] }, session: req.session });
+    }
 });
 
 router.get('/atividades', (req, res) => {
@@ -1547,6 +1727,7 @@ router.get('/ver_atividade/:id', async (req, res) => {
 
         const activityData = {
             ...activity,
+            questions: normalizeActivityQuestions(activity),
             professorNome: creator ? creator.nome : 'Anônimo'
         };
         res.render('pages/ver_atividade', {
@@ -1559,63 +1740,41 @@ router.get('/ver_atividade/:id', async (req, res) => {
     }
 });
 
-router.post('/submit-test/:activityId', async (req, res) => {
+async function handleActivitySubmission(req, res) {
     const { activityId } = req.params;
     const user = req.session.user_aluno;
     if (!user) return res.redirect('/login');
 
     const activitiesData = activityStore.getActivities();
     const activity = activitiesData.activities.find(a => a.id === activityId);
-    if (!activity || !activity.isTest) return res.status(404).send('Teste não encontrado.');
+    if (!activity) return res.status(404).send('Formulário não encontrado.');
 
-    const userAnswers = req.body.answers;
-    let score = 0;
-    const totalQuestions = activity.questions.length;
-    const questionIds = [];
+    const userAnswers = normalizeAnswers(req.body.answers);
 
     try {
         await pool.query('START TRANSACTION');
 
-        const [existingActivity] = await pool.query('SELECT id FROM atividades WHERE id = ?', [activityId]);
-        if (existingActivity.length === 0) {
-            await pool.query('INSERT INTO atividades (id, titulo, descricao) VALUES (?, ?, ?)', [activityId, activity.title, activity.description]);
+        const { activity: normalizedActivity, questionIds } = await ensureActivityPersisted(activity, activity.professorId || null);
+        const totalQuestions = normalizedActivity.questions.length;
+        let score = 0;
 
-            for (const q of activity.questions) {
-                let habilidadeId = null;
-                if (q.habilidade) {
-                    const [habilidadeResult] = await pool.query('INSERT INTO habilidades (codigo, descricao) VALUES (?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id)', [q.habilidade, q.habilidade]);
-                    habilidadeId = habilidadeResult.insertId;
-                }
-
-                const [result] = await pool.query(
-                    'INSERT INTO questoes (atividade_id, enunciado, alternativa_a, alternativa_b, alternativa_c, alternativa_d, resposta, habilidade_id, dificuldade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                    [activityId, q.text || q.question || q.enunciado, q.options[0], q.options[1], q.options[2], q.options[3], q.correct, habilidadeId, q.dificuldade]
-                );
-                questionIds.push(result.insertId);
-            }
-        } else {
-            const [existingQuestions] = await pool.query('SELECT id FROM questoes WHERE atividade_id = ?', [activityId]);
-            existingQuestions.forEach(q => questionIds.push(q.id));
-        }
-
-        activity.questions.forEach((question, index) => {
-            if (userAnswers[index] && userAnswers[index].toLowerCase() === question.correct.toLowerCase()) {
-                score++;
-            }
+        normalizedActivity.questions.forEach((question, index) => {
+            if (isAnswerCorrect(question, userAnswers[index])) score++;
         });
 
-        const pontuacao_total = (score / totalQuestions) * 100;
+        const pontuacao_total = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+        const tipoTentativa = normalizedActivity.isTest ? 'diagnostico' : 'checkpoint';
 
         const [result] = await pool.query(
-            'INSERT INTO tentativas_teste (aluno_id, atividade_id, tipo, pontuacao_total, total_questoes) VALUES (?, ?, ?, ?, ?)',
-            [user.id, activityId, 'diagnostico', pontuacao_total, totalQuestions]
+            'INSERT INTO tentativas_teste (aluno_id, atividade_id, tipo, pontuacao_total, total_questoes, acertos, erros, data_conclusao) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+            [user.id, activityId, tipoTentativa, pontuacao_total, totalQuestions, score, totalQuestions - score]
         );
         const tentativaId = result.insertId;
 
         for (let i = 0; i < totalQuestions; i++) {
-            const question = activity.questions[i];
-            const userAnswer = userAnswers[i];
-            const isCorrect = userAnswer && userAnswer.toLowerCase() === question.correct.toLowerCase();
+            const question = normalizedActivity.questions[i];
+            const userAnswer = userAnswers[i] || '';
+            const isCorrect = isAnswerCorrect(question, userAnswer);
             const questionId = questionIds[i];
 
             if (questionId) {
@@ -1626,16 +1785,21 @@ router.post('/submit-test/:activityId', async (req, res) => {
             }
         }
 
-        await trilhaService.gerarTrilhaDaTentativa({ alunoId: user.id, tentativaId });
+        if (normalizedActivity.isTest) {
+            await trilhaService.gerarTrilhaDaTentativa({ alunoId: user.id, tentativaId });
+        }
 
         await pool.query('COMMIT');
-        res.redirect('/trilha');
+        res.redirect(`/ver_resultado/${tentativaId}`);
     } catch (error) {
         await pool.query('ROLLBACK');
-        console.error('Erro ao submeter o teste e gerar a trilha:', error);
-        res.status(500).send('Erro ao processar o teste.');
+        console.error('Erro ao submeter formulário:', error);
+        res.status(500).send('Erro ao processar o formulário.');
     }
-});
+}
+
+router.post('/submit-test/:activityId', handleActivitySubmission);
+router.post('/submit-activity/:activityId', handleActivitySubmission);
 
 router.get('/nivel_escolar', (req, res) => {
     res.render('pages/nivel_escolar');
@@ -1709,7 +1873,7 @@ router.get('/gerar_atividade', async (req, res) => {
         const questions = (data.questions || []).map(q => ({
             title: q.title,
             text: q.title,
-            options: Object.values(q.options || {}),
+            options: q.options || {},
             correct: q.correct,
             habilidade: q.habilidade,
             dificuldade: q.dificuldade

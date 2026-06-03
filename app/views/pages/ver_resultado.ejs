@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultado do Teste | Regimath</title>
+    <title>Resultado do Formulário | Regimath</title>
     <link rel="stylesheet" href="/css/ver_resultado.css">
     <style>
         .options .correct { background-color: #90ee90; }
         .options .incorrect { background-color: #f08080; }
         .options .correct::after { content: ' ✔'; }
+        .options .incorrect::after { content: ' ✘'; }
+        .marked-label { float: right; font-size: 0.85rem; font-weight: 700; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Resultado do Teste: <%= atividade.title %></h1>
+        <h1>Resultado do Formulário: <%= atividade.title %></h1>
 
         <div class="summary">
             <p><strong>Pontuação:</strong> <%= Number(tentativa.pontuacao_total).toFixed(0) %>%</p>
@@ -22,25 +24,39 @@
 
         <div class="questions-container">
             <% atividade.questions.forEach((question, index) => { %>
+                <% const respostaDoUsuario = respostas[index] || {}; %>
                 <div class="question-card">
-                    <h2>Questão <%= index + 1 %>: <%= question.text %></h2>
-                    <ul class="options">
-                        <% 
-                        const respostaDoUsuario = respostas[index];
-                        question.options.forEach(option => { 
-                            let className = '';
-                            const isSelected = option === respostaDoUsuario.resposta_marcada;
-                            const isCorrect = option === question.correct;
-
-                            if (isSelected) {
-                                className = respostaDoUsuario.acertou ? 'correct' : 'incorrect';
-                            } else if (isCorrect) {
-                                className = 'correct';
-                            }
-                        %>
-                            <li class="<%= className %>"><%= option %></li>
-                        <% }); %>
-                    </ul>
+                    <h2>Questão <%= index + 1 %>: <%= question.text || question.title %></h2>
+                    <% if (question.options) { %>
+                        <ul class="options">
+                            <%
+                            const opcoes = Array.isArray(question.options)
+                                ? question.options.map((value, i) => [String.fromCharCode(65 + i), value])
+                                : Object.entries(question.options).filter(([, value]) => value);
+                            const marcada = String(respostaDoUsuario.resposta_marcada || '');
+                            const correta = String(question.correct || respostaDoUsuario.resposta || '');
+                            opcoes.forEach(([key, value]) => {
+                                let className = '';
+                                const isSelected = key.toLowerCase() === marcada.toLowerCase();
+                                const isCorrect = key.toLowerCase() === correta.toLowerCase();
+                                if (isSelected) className = respostaDoUsuario.acertou ? 'correct selected' : 'incorrect selected';
+                                else if (isCorrect) className = 'correct';
+                            %>
+                                <li class="<%= className %>">
+                                    <strong><%= key %>)</strong> <%= value %>
+                                    <% if (isSelected) { %><span class="marked-label">Sua resposta</span><% } %>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } else { %>
+                        <p><strong>Sua resposta:</strong> <%= respostaDoUsuario.resposta_marcada || 'Não respondida' %></p>
+                        <p class="<%= respostaDoUsuario.acertou ? 'correct' : 'incorrect' %>">
+                            <%= respostaDoUsuario.acertou ? 'Resposta correta' : 'Resposta incorreta' %>
+                        </p>
+                        <% if (!respostaDoUsuario.acertou) { %>
+                            <p><strong>Resposta esperada:</strong> <%= question.correctAnswer || respostaDoUsuario.resposta %></p>
+                        <% } %>
+                    <% } %>
                 </div>
             <% }); %>
         </div>

@@ -39,7 +39,7 @@
       <li><a href="#page-dashboard" class="admin-nav-link active"><i class="fa-solid fa-chart-pie"></i><p class="label">Dashboard</p></a></li>
       <li><a href="#page-users" class="admin-nav-link"><i class="fa-solid fa-users"></i><p class="label">Usuários</p><p class="badge" id="pending-teachers-badge"><%= pagination.totalItems %></p></a></li>
       <li><a href="#page-finance" class="admin-nav-link"><i class="fa-solid fa-wallet"></i><p class="label">Financeiro</p></a></li>
-      <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><p class="label">Moderação</p><p class="badge" id="open-reports-badge">0</p></a></li>
+      <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><p class="label">Moderação</p><p class="badge" id="open-reports-badge"><%= typeof openReports !== 'undefined' ? openReports : 0 %></p></a></li>
       <li><a href="#page-settings" class="admin-nav-link"><i class="fa-solid fa-gear"></i><p class="label">Configurações</p></a></li>
       <li><a href="/" class="admin-nav-link"><i class="fas fa-home"></i><p class="label">Home</p></a></li>
       <li><a href="/logout" class="admin-nav-link"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg><p class="label">Sair</p></a></li>
@@ -242,8 +242,54 @@
     <!-- MODERAÇÃO -->
     <section class="content-page" id="page-moderation">
       <section class="card">
-        <h2 class="section-title">Denúncias Pendentes (1)</h2>
-        <section class="table-wrapper"><table class="data-table"></table></section>
+        <h2 class="section-title">Denúncias Recebidas (<%= (denuncias || []).length %>)</h2>
+        <section class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Título</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Contato</th>
+                <th>Enviada em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (denuncias && denuncias.length > 0) { %>
+                <% denuncias.forEach(denuncia => { %>
+                  <tr>
+                    <td>#<%= denuncia.id %></td>
+                    <td><%= denuncia.tipo %></td>
+                    <td>
+                      <strong><%= denuncia.titulo %></strong><br>
+                      <small><%= denuncia.descricao && denuncia.descricao.length > 120 ? denuncia.descricao.slice(0, 120) + '...' : denuncia.descricao %></small>
+                      <% if (denuncia.evidencia) { %><br><a href="<%= denuncia.evidencia %>" target="_blank" rel="noopener">Ver evidência</a><% } %>
+                    </td>
+                    <td><span class="status-badge status-<%= denuncia.prioridade %>"><%= denuncia.prioridade %></span></td>
+                    <td><span class="status-badge status-<%= denuncia.status %>"><%= denuncia.status %></span></td>
+                    <td><%= denuncia.anonimo ? 'Anônimo' : (denuncia.email || 'Não informado') %></td>
+                    <td><%= new Date(denuncia.criado_em).toLocaleString('pt-BR') %></td>
+                    <td class="actions-buttons">
+                      <form action="/admin/denuncias/<%= denuncia.id %>/status" method="POST" style="display:inline-flex; gap: 6px; align-items:center;">
+                        <select name="status" aria-label="Status da denúncia <%= denuncia.id %>">
+                          <option value="aberta" <%= denuncia.status === 'aberta' ? 'selected' : '' %>>Aberta</option>
+                          <option value="em_analise" <%= denuncia.status === 'em_analise' ? 'selected' : '' %>>Em análise</option>
+                          <option value="resolvida" <%= denuncia.status === 'resolvida' ? 'selected' : '' %>>Resolvida</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr><td colspan="8">Nenhuma denúncia recebida.</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </section>
       </section>
     </section>
 
@@ -356,8 +402,8 @@
       // Load initial page and data
       const currentHash = window.location.hash || '#page-dashboard';
       // Ensure the correct page is shown on load, especially after form submission
-      if (currentHash === '#page-users') {
-          showPage('#page-users');
+      if (currentHash && document.querySelector(currentHash)) {
+          showPage(currentHash);
       } else {
           showPage('#page-dashboard');
       }

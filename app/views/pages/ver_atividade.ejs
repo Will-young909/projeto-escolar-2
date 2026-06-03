@@ -34,7 +34,7 @@
 
             <% if (activity && activity.questions && activity.questions.length > 0) { %>
                 <% const isTest = activity.isTest || false; %>
-                <form id="activity-form" <% if (isTest) { %>action="/submit-test/<%= activity.id %>" method="POST"<% } %>>
+                <form id="activity-form" action="<%= isTest ? '/submit-test/' : '/submit-activity/' %><%= activity.id %>" method="POST">
                     <% activity.questions.forEach((question, index) => { %>
                         <div class="question">
                             <p><strong>Questão <%= index + 1 %>:</strong> <%= question.title %></p>
@@ -71,7 +71,7 @@
     <script>
         const isTest = <%- JSON.stringify(activity.isTest || false) %>;
 
-        if (!isTest) {
+        if (false && !isTest) {
             document.getElementById('activity-form')?.addEventListener('submit', function(event) {
                 event.preventDefault();
 

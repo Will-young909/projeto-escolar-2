@@ -114,6 +114,29 @@ io.on("connection", (socket) => {
     io.to(room).emit("newMessage", msg);
   });
 
+
+  socket.on('join', (room) => {
+    if (!room) return;
+    const existingPeers = Array.from(io.sockets.adapter.rooms.get(room) || []).filter(id => id !== socket.id);
+    socket.join(room);
+    existingPeers.forEach(peerId => {
+      socket.emit('peer-joined', peerId);
+      socket.to(peerId).emit('peer-joined', socket.id);
+    });
+    socket.data.videoRoom = room;
+  });
+
+  socket.on('signal', ({ to, data }) => {
+    if (!to || !data) return;
+    io.to(to).emit('signal', { from: socket.id, data });
+  });
+
+  socket.on('end-call', (room) => {
+    if (!room) return;
+    socket.to(room).emit('peer-left', socket.id);
+    socket.leave(room);
+  });
+
   socket.on('requestPayment', async (data) => {
     try {
       if (!MP_ACCESS_TOKEN) {
@@ -181,6 +204,7 @@ io.on("connection", (socket) => {
     socket.rooms.forEach(room => {
       if (room !== socket.id) {
         socket.to(room).emit("systemMessage", { text: `${currentUser.nome} saiu da sala.`, time: Date.now() });
+        socket.to(room).emit('peer-left', socket.id);
       }
     });
   });
