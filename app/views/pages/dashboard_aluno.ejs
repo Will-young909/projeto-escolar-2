@@ -106,6 +106,44 @@
             <a href="/feedbacks_aluno" class="link">Ver feedbacks <i class="fas fa-arrow-right"></i></a>
         </section>
     </section>
+
+    <% const recsProfessores = recomendacoesProfessores || { focos: [], recomendacoes: [] }; %>
+    <section class="recommendations card">
+      <section class="recommendations-heading">
+        <div>
+          <h2><i class="fas fa-user-graduate"></i> Professores recomendados para você</h2>
+          <p>Baseado nos seus últimos resultados e nas habilidades que mais precisam de reforço.</p>
+        </div>
+        <a href="/pesquisar_profs?recomendados=1" class="link">Ver recomendações <i class="fas fa-arrow-right"></i></a>
+      </section>
+
+      <% if (recsProfessores.focos && recsProfessores.focos.length > 0) { %>
+        <section class="recommendation-focuses" aria-label="Habilidades priorizadas">
+          <% recsProfessores.focos.slice(0, 3).forEach(foco => { %>
+            <span><%= foco.descricao %> (<%= Number(foco.percentual).toFixed(0) %>%)</span>
+          <% }); %>
+        </section>
+      <% } %>
+
+      <% if (recsProfessores.recomendacoes && recsProfessores.recomendacoes.length > 0) { %>
+        <section class="recommendation-list">
+          <% recsProfessores.recomendacoes.forEach(professor => { %>
+            <article class="recommendation-item">
+              <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
+              <section>
+                <h3><%= professor.nome %></h3>
+                <p class="match"><%= professor.score %>% de aderência</p>
+                <p><%= professor.motivos[0] %></p>
+                <a href="/exibir_prof/<%= professor.id %>" class="btn secondary">Ver perfil</a>
+              </section>
+            </article>
+          <% }); %>
+        </section>
+      <% } else { %>
+        <p class="empty-state">Faça um teste de nivelamento para receber recomendações personalizadas de professores.</p>
+      <% } %>
+    </section>
+
     
     <section class="notifications card">
       <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
