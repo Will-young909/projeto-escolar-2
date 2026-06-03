@@ -3,7 +3,7 @@ const pool = require('../../config/pool');
 const DenunciaModel = {
 
   async findAll(filtros = {}) {
-    let query = 'SELECT d.*, u.nome as responsavel_nome FROM denuncias d LEFT JOIN usuarios u ON d.responsavel_id = u.id';
+    let query = 'SELECT d.*, u.nome as responsavel_nome FROM denuncias d LEFT JOIN admins u ON d.responsavel_id = u.id';
     const params = [];
 
     if (filtros) {

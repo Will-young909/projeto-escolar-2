@@ -87,23 +87,14 @@
          <p>Aqui estão todos os feedbacks que você já deu.</p>
         </section>
 
-        <% 
-            const meusComentarios = [];
-            Object.entries(session.prof_comentarios || {}).forEach(([profId, comentarios]) => {
-                comentarios.forEach(comentario => {
-                    if (comentario.usuario === user.nome) {
-                        meusComentarios.push({ ...comentario, profId });
-                    }
-                });
-            });
-        %>
+        <% const meusComentarios = user.comentarios || []; %>
 
         <% if (meusComentarios.length > 0) { %>
             <section class="feedbacks-list">
                 <% meusComentarios.forEach(comentario => { %>
                     <section class="feedback-item">
                         <section class="feedback-header">
-                            <a href="/exibir_prof/<%= comentario.profId %>" style="text-decoration: none; color: inherit;"><strong>Professor</strong></a>
+                            <a href="/exibir_prof/<%= comentario.profId %>" style="text-decoration: none; color: inherit;"><strong><%= comentario.professorNome || 'Professor' %></strong></a>
                             <% if (comentario.nota) { %>
                                 <section class="rating">
                                     <% for(let i = 1; i <= 5; i++) { %>

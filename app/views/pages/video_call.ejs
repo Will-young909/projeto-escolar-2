@@ -373,6 +373,10 @@ class VideoCallManager {
       }
       ELEMENTS.btnStartRec.disabled = true;
       ELEMENTS.btnStopRec.disabled = false;
+      if (typeof RecordRTC === 'undefined') {
+        alert('Biblioteca de gravação indisponível.');
+        return;
+      }
       this.recorder = RecordRTC([this.localStream, this.remoteStream], {
         type: 'video',
         mimeType: 'video/webm',
@@ -485,10 +489,6 @@ class VideoCallManager {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.videoCallManager = new VideoCallManager();
-});
-    
     function showToast(message, type = 'info') {
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;

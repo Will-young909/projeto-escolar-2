@@ -154,6 +154,7 @@ CREATE TABLE agendamentos (
     professor_id            VARCHAR(255) NOT NULL,
     horario_id              INT NOT NULL,
     sala_id                 VARCHAR(100),
+    gravacao_url            VARCHAR(500) NULL,
     data                    DATE NOT NULL,
     hora                    TIME NOT NULL,
     no_show                 BOOLEAN DEFAULT FALSE,
@@ -827,6 +828,7 @@ CREATE TABLE comentarios (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
 
     professor_id                    VARCHAR(255) NOT NULL,
+    aluno_id                        VARCHAR(255) NULL,
 
     usuario_nome                    VARCHAR(150) NOT NULL,
 
@@ -839,7 +841,12 @@ CREATE TABLE comentarios (
     CONSTRAINT fk_comentario_professor
         FOREIGN KEY (professor_id)
         REFERENCES professores(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_comentario_aluno
+        FOREIGN KEY (aluno_id)
+        REFERENCES alunos(id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================================

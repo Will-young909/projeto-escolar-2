@@ -18,12 +18,12 @@ const AdminDenunciaController = {
 
       await DenunciaModel.update(id, { responsavel_id, status: 'em_analise' });
       await DenunciaModel.addHistory(id, {
-        usuario_id: req.user.id,
+        usuario_id: req.user?.id || req.session?.user_admin?.id || null,
         acao: 'Atribuição',
         detalhes: `Denúncia atribuída ao usuário com ID ${responsavel_id}`
       });
 
-      res.status(200).send('Denúncia atribuída com sucesso.');
+      res.redirect('/admin/dashboard#page-moderation');
     } catch (error) {
       res.status(500).send(error.message);
     }
@@ -36,12 +36,12 @@ const AdminDenunciaController = {
 
       await DenunciaModel.update(id, { status });
       await DenunciaModel.addHistory(id, {
-        usuario_id: req.user.id, 
+        usuario_id: req.user?.id || req.session?.user_admin?.id || null,
         acao: 'Mudança de Status',
         detalhes: `Status da denúncia alterado para ${status}`
       });
 
-      res.status(200).send('Status da denúncia atualizado com sucesso.');
+      res.redirect('/admin/dashboard#page-moderation');
     } catch (error) {
       res.status(500).send(error.message);
     }
@@ -53,12 +53,12 @@ const AdminDenunciaController = {
 
       await DenunciaModel.update(id, { status: 'resolvida' });
       await DenunciaModel.addHistory(id, {
-        usuario_id: req.user.id,
+        usuario_id: req.user?.id || req.session?.user_admin?.id || null,
         acao: 'Resolução',
         detalhes: 'Denúncia marcada como resolvida'
       });
 
-      res.status(200).send('Denúncia resolvida com sucesso.');
+      res.redirect('/admin/dashboard#page-moderation');
     } catch (error) {
       res.status(500).send(error.message);
     }
