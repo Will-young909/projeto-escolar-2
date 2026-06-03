@@ -45,6 +45,48 @@
             <% }); %>
         </div>
 
+
+
+        <% const recs = recomendacoesProfessores || { focos: [], recomendacoes: [] }; %>
+        <section class="teacher-recommendations">
+            <div class="recommendation-header">
+                <span class="badge">Recomendação inteligente</span>
+                <h2>Professores indicados para o seu próximo passo</h2>
+                <p>Usamos os pontos de atenção do seu resultado para priorizar professores com maior aderência ao reforço que você precisa.</p>
+            </div>
+
+            <% if (recs.focos && recs.focos.length > 0) { %>
+                <div class="focus-list" aria-label="Focos identificados no resultado">
+                    <% recs.focos.forEach(foco => { %>
+                        <span class="focus-chip"><%= foco.descricao %> • <%= Number(foco.percentual).toFixed(0) %>%</span>
+                    <% }); %>
+                </div>
+            <% } %>
+
+            <% if (recs.recomendacoes && recs.recomendacoes.length > 0) { %>
+                <div class="recommendation-grid">
+                    <% recs.recomendacoes.forEach(professor => { %>
+                        <article class="teacher-card">
+                            <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
+                            <div>
+                                <h3><%= professor.nome %></h3>
+                                <p class="match-score"><%= professor.score %>% de aderência estimada</p>
+                                <p class="teacher-disciplines"><%= professor.disciplinas && professor.disciplinas.length ? professor.disciplinas.join(', ') : 'Matemática' %></p>
+                                <ul>
+                                    <% professor.motivos.slice(0, 2).forEach(motivo => { %>
+                                        <li><%= motivo %></li>
+                                    <% }); %>
+                                </ul>
+                                <a href="/exibir_prof/<%= professor.id %>" class="recommendation-button">Ver professor</a>
+                            </div>
+                        </article>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <p class="empty-recommendations">Ainda não há professores disponíveis para recomendação automática.</p>
+            <% } %>
+        </section>
+
         <a href="/historico_formularios" class="back-button">Voltar ao Histórico</a>
     </div>
 </body>

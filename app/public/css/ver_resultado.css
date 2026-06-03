@@ -116,3 +116,95 @@ h1 {
 .back-button:hover {
     background-color: #b22222;
 }
+.teacher-recommendations {
+    margin-top: 28px;
+    padding: 22px;
+    border: 1px solid rgba(128, 0, 32, 0.15);
+    border-radius: var(--border-radius);
+    background: linear-gradient(180deg, #fff, #fff7f9);
+}
+
+.recommendation-header h2 {
+    color: var(--color-primary);
+    margin: 8px 0;
+}
+
+.badge,
+.focus-chip {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.badge {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.focus-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.focus-chip {
+    background: #f3e0e5;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.recommendation-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.teacher-card {
+    display: grid;
+    grid-template-columns: 86px 1fr;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.teacher-card img {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.teacher-card h3 {
+    margin: 0;
+    color: var(--color-text-dark);
+}
+
+.match-score,
+.teacher-disciplines {
+    margin: 4px 0;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.teacher-card ul {
+    margin: 8px 0;
+    padding-left: 18px;
+}
+
+.recommendation-button {
+    display: inline-block;
+    padding: 8px 12px;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.empty-recommendations {
+    padding: 12px;
+    background: var(--color-light-gray);
+    border-radius: 8px;
+}

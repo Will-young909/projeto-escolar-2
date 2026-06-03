@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const pool = require('../../config/pool');
 const paymentsStore = require('../lib/paymentsStore');
-const chatStore = require('../lib/chatStore'); 
+const chatStore = require('../lib/chatStore');
 const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
@@ -13,6 +13,7 @@ const fs = require('fs');
 const trilhaService = require('../services/trilhaService');
 const GamificationService = require('../services/GamificationService');
 const AnalyticsService = require('../services/AnalyticsService');
+const RecomendacaoProfessorService = require('../services/RecomendacaoProfessorService');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -38,7 +39,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
-    limits: { fileSize: 5 * 1024 * 1024 } 
+    limits: { fileSize: 5 * 1024 * 1024 }
 }).single('foto');
 
 const videoStorage = multer.diskStorage({
@@ -62,7 +63,7 @@ async function getUserByEmail(email, tipo) {
     const table = tipo === 'aluno' ? 'alunos' : 'professores';
     try {
         const [rows] = await pool.query(`SELECT * FROM ${table} WHERE email = ?`, [searchEmail]);
-        return rows[0]; 
+        return rows[0];
     } catch (error) {
         console.error(`Erro ao buscar usuário por e-mail (${tipo}):`, error);
         return null;
@@ -151,7 +152,7 @@ router.post('/professor/horarios', async (req, res) => {
             }
         }
 
-        await pool.query('COMMIT'); 
+        await pool.query('COMMIT');
 
         const [horariosAtualizados] = await pool.query('SELECT * FROM horarios_disponiveis WHERE professor_id = ?', [professorId]);
         req.session.user_prof.horariosDisponiveis = horariosAtualizados;
@@ -164,7 +165,7 @@ router.post('/professor/horarios', async (req, res) => {
             res.json({ success: true, message: 'Horários salvos com sucesso!' });
         });
     } catch (error) {
-        await pool.query('ROLLBACK'); 
+        await pool.query('ROLLBACK');
         console.error('Erro ao salvar horários no banco de dados:', error);
         res.status(500).json({ success: false, message: 'Erro no servidor ao salvar horários.' });
     }
@@ -318,7 +319,7 @@ router.post('/login', [
             id: user.id,
             nome: user.nome,
             email: user.email,
-            password: user.senha, 
+            password: user.senha,
             tipo: tipo
         };
 
@@ -326,7 +327,7 @@ router.post('/login', [
             sessionUser.agenda = [];
             sessionUser.notificacoes = [];
             req.session.user_aluno = sessionUser;
-        } else { 
+        } else {
             const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ?', [user.id]);
             const [horarios] = await pool.query('SELECT *, id as horarioId FROM horarios_disponiveis WHERE professor_id = ?', [user.id]);
 
@@ -354,7 +355,7 @@ router.post('/forgot', [
     body('senha').isLength({ min: 6 }).withMessage('A senha deve ter pelo menos 6 caracteres.'),
     body('confirmar').custom((value, { req }) => value === req.body.senha).withMessage('As senhas não coincidem.'),
     body('tipo').notEmpty().withMessage('Selecione um tipo (Aluno ou Professor).'),
-], async (req, res) => { 
+], async (req, res) => {
     const erros = validationResult(req);
     if (!erros.isEmpty()) {
         return res.render('pages/forgot_password', { erros: erros.mapped(), dados: req.body });
@@ -464,7 +465,7 @@ router.post('/cancelar-aula-prof', async (req, res) => {
         return res.status(401).json({ success: false, message: 'Professor não autenticado.' });
     }
 
-    const { agendamentoId, motivo } = req.body; 
+    const { agendamentoId, motivo } = req.body;
     const professorId = req.session.user_prof.id;
 
     try {
@@ -670,7 +671,7 @@ router.post('/upload_recording', (req, res) => {
             console.error('Erro ao fazer upload da gravação:', err);
             return res.status(500).json({ success: false, message: 'Erro ao fazer upload.' });
         }
-        
+
         const { room } = req.body;
         const videoPath = `/recordings/${req.file.filename}`;
 
@@ -937,10 +938,21 @@ router.get('/dashboard_prof', async (req, res) => {
 });
 
 
-router.get('/dashboard_aluno', (req, res) => {
+router.get('/dashboard_aluno', async (req, res) => {
     const user = req.session.user_aluno;
     if (!user) return res.redirect('/login');
-    res.render('pages/dashboard_aluno', { user, session: req.session });
+
+    try {
+        const recomendacoesProfessores = await RecomendacaoProfessorService.recomendarProfessoresParaAluno(user.id, { limite: 3 });
+        res.render('pages/dashboard_aluno', { user, session: req.session, recomendacoesProfessores });
+    } catch (error) {
+        console.error('Erro ao carregar recomendações de professores no dashboard:', error);
+        res.render('pages/dashboard_aluno', {
+            user,
+            session: req.session,
+            recomendacoesProfessores: { focos: [], recomendacoes: [] }
+        });
+    }
 });
 
 router.get('/-progressomeu', async (req, res) => {
@@ -1032,14 +1044,14 @@ router.get('/historico_aulas', async (req, res) => {
 
         if (userType === 'aluno') {
             query = `
-                SELECT a.*, p.nome as professor_nome, 'Matemática' as materia 
+                SELECT a.*, p.nome as professor_nome, 'Matemática' as materia
                 FROM agendamentos a
                 JOIN professores p ON a.professor_id = p.id
                 WHERE a.aluno_id = ? AND a.status = 'concluido'
             `;
         } else {
             query = `
-                SELECT a.*, al.nome as aluno_nome, 'Matemática' as materia 
+                SELECT a.*, al.nome as aluno_nome, 'Matemática' as materia
                 FROM agendamentos a
                 JOIN alunos al ON a.aluno_id = al.id
                 WHERE a.professor_id = ? AND a.status = 'concluido'
@@ -1136,12 +1148,18 @@ router.get('/ver_resultado/:tentativa_id', async (req, res) => {
             return res.status(404).send('Atividade não encontrada.');
         }
 
+        const recomendacoesProfessores = await RecomendacaoProfessorService.recomendarProfessoresParaAluno(user.id, {
+            tentativaId: tentativa.id,
+            limite: 3
+        });
+
         res.render('pages/ver_resultado', {
             tentativa,
             respostas,
             atividade,
             user,
-            session: req.session
+            session: req.session,
+            recomendacoesProfessores
         });
 
     } catch (error) {
@@ -1182,7 +1200,7 @@ router.post('/perfil/editar', (req, res) => {
         if (!erros.isEmpty()) {
             return res.render(renderPage, { user, erros: erros.mapped(), dados: req.body, session: req.session });
         }
-        
+
         try {
             const table = isProf ? 'professores' : 'alunos';
             let disciplinas = req.body.disciplinas || [];
@@ -1203,21 +1221,21 @@ router.post('/perfil/editar', (req, res) => {
                 if (req.file) {
                     updatedData.foto = '/imagens/uploads/' + req.file.filename;
                 }
-                
-                await pool.query('UPDATE professores SET nome=?, email=?, descricao=?, link_previa=?, status=?, foto=? WHERE id=?', 
+
+                await pool.query('UPDATE professores SET nome=?, email=?, descricao=?, link_previa=?, status=?, foto=? WHERE id=?',
                     [updatedData.nome, updatedData.email, updatedData.descricao, updatedData.link_previa, updatedData.status, updatedData.foto || user.foto, user.id]
                 );
-                
+
                 await pool.query('DELETE FROM disciplinas WHERE professor_id = ?', [user.id]);
                 for (const d of disciplinas) {
                     await pool.query('INSERT INTO disciplinas (professor_id, nome) VALUES (?, ?)', [user.id, d]);
                 }
                 updatedData.disciplinas = disciplinas;
 
-            } else { 
+            } else {
                 await pool.query('UPDATE alunos SET nome=?, email=? WHERE id=?', [updatedData.nome, updatedData.email, user.id]);
             }
-            
+
             const sessionKey = isProf ? 'user_prof' : 'user_aluno';
             req.session[sessionKey] = { ...user, ...updatedData };
 
@@ -1238,7 +1256,9 @@ router.post('/perfil/editar', (req, res) => {
 router.get('/pesquisar_profs', async (req, res) => {
     const query = (req.query.query || '').trim().toLowerCase();
     const page = parseInt(req.query.page) || 1;
-    const itemsPerPage = 1; 
+    const somenteRecomendados = req.query.recomendados === '1' && !!req.session.user_aluno;
+    const itemsPerPage = somenteRecomendados ? 3 : 1;
+    let recomendacoesProfessores = { focos: [], recomendacoes: [] };
 
     try {
         let sql = `
@@ -1261,17 +1281,26 @@ router.get('/pesquisar_profs', async (req, res) => {
         // Construir uma query de contagem sem o GROUP BY para obter o total real
         const countSql = sql.replace(/SELECT[\s\S]*?FROM/i, 'SELECT COUNT(DISTINCT p.id) as total FROM').replace(/\sGROUP BY[\s\S]*/i, '');
         const [countRows] = await pool.query(countSql, params);
-        const totalItems = countRows[0].total;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const totalItems = somenteRecomendados ? itemsPerPage : countRows[0].total;
+        const totalPages = somenteRecomendados ? 1 : Math.ceil(totalItems / itemsPerPage);
 
-        sql += ` LIMIT ? OFFSET ?`;
-        params.push(itemsPerPage, (page - 1) * itemsPerPage);
+        if (!somenteRecomendados) {
+            sql += ` LIMIT ? OFFSET ?`;
+            params.push(itemsPerPage, (page - 1) * itemsPerPage);
+        }
 
-        const [results] = await pool.query(sql, params);
-        
-        results.forEach(prof => {
-            prof.disciplinas = prof.disciplinas ? prof.disciplinas.split(', ') : [];
-        });
+        let results;
+
+        if (somenteRecomendados) {
+            recomendacoesProfessores = await RecomendacaoProfessorService.recomendarProfessoresParaAluno(req.session.user_aluno.id, { limite: itemsPerPage });
+            results = recomendacoesProfessores.recomendacoes;
+        } else {
+            [results] = await pool.query(sql, params);
+
+            results.forEach(prof => {
+                prof.disciplinas = prof.disciplinas ? prof.disciplinas.split(', ') : [];
+            });
+        }
 
         res.render('pages/pesquisar_profs', {
             professores: results,
@@ -1279,12 +1308,23 @@ router.get('/pesquisar_profs', async (req, res) => {
             session: req.session,
             currentPage: page,
             totalPages,
-            url: req.path
+            url: req.path,
+            somenteRecomendados,
+            recomendacoesProfessores
         });
 
     } catch (error) {
         console.error("Erro ao pesquisar professores:", error);
-        res.render('pages/pesquisar_profs', { professores: [], query, session: req.session, currentPage: 1, totalPages: 1, url: req.path });
+        res.render('pages/pesquisar_profs', {
+            professores: [],
+            query,
+            session: req.session,
+            currentPage: 1,
+            totalPages: 1,
+            url: req.path,
+            somenteRecomendados: false,
+            recomendacoesProfessores: { focos: [], recomendacoes: [] }
+        });
     }
 });
 
@@ -1607,7 +1647,7 @@ router.get('/gerar_atividade', async (req, res) => {
         return res.redirect('/login');
     }
 
-    const { level } = req.query; 
+    const { level } = req.query;
     let prompt;
 
     switch (level) {
@@ -1667,9 +1707,9 @@ router.get('/gerar_atividade', async (req, res) => {
         const activities = activityStore.getActivities();
 
         const questions = (data.questions || []).map(q => ({
-            title: q.title, 
-            text: q.title, 
-            options: Object.values(q.options || {}), 
+            title: q.title,
+            text: q.title,
+            options: Object.values(q.options || {}),
             correct: q.correct,
             habilidade: q.habilidade,
             dificuldade: q.dificuldade
@@ -1705,11 +1745,11 @@ router.get('/trilha', async (req, res) => {
         if (tarefa.tarefaTipo === 'CONCLUIDO') {
             // MODIFICADO: Renderiza a página de conclusão em vez de redirecionar
             return res.render('pages/trilha_concluida');
-        } 
+        }
 
         res.render('pages/trilha', {
             user,
-            tarefa: tarefa, 
+            tarefa: tarefa,
             session: req.session
         });
 
@@ -1724,9 +1764,9 @@ router.post('/trilha/responder', async (req, res) => {
     if (!user) {
         return res.redirect('/login');
     }
-    
+
     const { item_id, resposta } = req.body;
-    const tempoResposta = 15; 
+    const tempoResposta = 15;
 
     try {
         if (!item_id || !resposta) {
@@ -1735,9 +1775,9 @@ router.post('/trilha/responder', async (req, res) => {
         }
 
         const resultado = await trilhaService.processarRespostaEProximaQuestao(
-            user.id, 
-            item_id, 
-            resposta, 
+            user.id,
+            item_id,
+            resposta,
             tempoResposta
         );
 
@@ -1746,7 +1786,7 @@ router.post('/trilha/responder', async (req, res) => {
         if (resultado.acertou) {
             GamificationService.concederXpPorAcerto(user.id);
         }
-        
+
         res.redirect('/trilha');
 
     } catch (error) {
@@ -1758,21 +1798,21 @@ router.post('/trilha/responder', async (req, res) => {
 router.post('/webhook/mercadopago', express.json(), async (req, res) => {
     try {
       const { type, data } = req.body;
-  
+
       if (type === 'payment') {
         const paymentId = data.id;
         const paymentRes = await mpPaymentClient.get({ id: paymentId });
         const payment = paymentRes || {};
-  
+
         if (payment.status === 'approved') {
           const prefId = payment.external_reference || payment.preference_id;
           let room = payment.metadata?.room;
-          
+
           if (!room && prefId) {
             const storedPref = await paymentsStore.getByPreferenceId(prefId);
             if (storedPref) room = storedPref.room;
           }
-  
+
           if (room) {
             io.to(room).emit('paymentConfirmed', {
               id: paymentId,
@@ -1782,7 +1822,7 @@ router.post('/webhook/mercadopago', express.json(), async (req, res) => {
               status: payment.status,
               time: Date.now()
             });
-            
+
             await paymentsStore.updateByPreferenceId(prefId, { status: payment.status });
           }
         }

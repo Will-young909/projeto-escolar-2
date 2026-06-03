@@ -108,7 +108,7 @@
     </nav>
     <main>
         <section class="hero">
-            <h1>Encontre seu Professor de Matemática Ideal!</h1>
+            <h1><%= somenteRecomendados ? 'Professores recomendados para você' : 'Encontre seu Professor de Matemática Ideal!' %></h1>
             <p style="font-size: 1.1rem; margin-top: -10px; color: rgba(255, 255, 255, 0.9);">
                 <% if (professores.length < 2) { %>
                 Temos <%= professores.length %> professor disponível para te ajudar a dominar a matemática.
@@ -116,6 +116,12 @@
                 Temos <%= professores.length %> professores disponíveis para te ajudar a dominar a matemática.
             <% } %>
             </p>
+
+            <% if (session.user_aluno) { %>
+                <p style="margin-top: 12px;">
+                    <a href="/pesquisar_profs?recomendados=1" class="btn-primary" style="display: inline-block; text-decoration: none;">Ver recomendações baseadas nos meus resultados</a>
+                </p>
+            <% } %>
 
             <section class="search-bar">
                 <form action="/pesquisar_profs" method="GET" role="search">
@@ -133,11 +139,16 @@
                     Resultados para: <%= query %>
                 </p>
             <% } %>
+            <% if (somenteRecomendados && recomendacoesProfessores.focos && recomendacoesProfessores.focos.length > 0) { %>
+                <p style="margin-top: 15px; font-size: 0.95rem; color: rgba(255, 255, 255, 0.9);">
+                    Priorizando: <%= recomendacoesProfessores.focos.map(foco => foco.descricao).join(', ') %>
+                </p>
+            <% } %>
         </section>
         
         <section class="professores">
             <% if (professores.length > 0) { %>
-                <h3>Todos os Professores</h3>
+                <h3><%= somenteRecomendados ? 'Melhores recomendações para seu perfil' : 'Todos os Professores' %></h3>
                 
                 <section class="container">
                     <% professores.forEach(professor => { %>
@@ -147,13 +158,20 @@
                             </section>
                             <section class='card-content'>
                                 <h2 id="prof-<%= professor.id %>-nome"><%= professor.nome %></h2>
-                                <p class="limite">Máximo de 5 aulas por mês</p>
+                                <% if (somenteRecomendados && professor.score) { %>
+                                    <p class="limite"><strong><%= professor.score %>% de aderência ao seu resultado</strong></p>
+                                <% } else { %>
+                                    <p class="limite">Máximo de 5 aulas por mês</p>
+                                <% } %>
                                 <p class="avaliacao" role="img" aria-label="Avaliação de <%= (professor.avaliacao || Math.random() * 0.9 + 4).toFixed(1) %> estrelas">
                                     <i class="fa-solid fa-star" style="color: var(--color-star);"></i> <%= (professor.avaliacao || Math.random() * 0.9 + 4).toFixed(1) %> (<%= professor.num_avaliacoes || Math.floor(Math.random() * 80) + 20 %> avaliações)
                                 </p>
                                 <p class="descricao">
                                     <%= professor.descricao ? (professor.descricao.substring(0, 100) + (professor.descricao.length > 100 ? '...' : '')) : 'Professor especializado em ensino de Matemática.' %>
                                 </p>
+                                <% if (somenteRecomendados && professor.motivos && professor.motivos.length > 0) { %>
+                                    <p class="descricao"><strong>Por que recomendamos:</strong> <%= professor.motivos[0] %></p>
+                                <% } %>
                                 <a href="/exibir_prof/<%= professor.id %>" class="btn-previa">Ver Perfil Completo</a>
                             </section>
                         </article>
