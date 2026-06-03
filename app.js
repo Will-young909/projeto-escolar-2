@@ -186,44 +186,7 @@ io.on("connection", (socket) => {
   });
 });
 
-app.post('/webhook/mercadopago', express.json(), async (req, res) => {
-  try {
-    const { type, data } = req.body;
 
-    if (type === 'payment') {
-      const paymentId = data.id;
-      const paymentRes = await mpPaymentClient.get({ id: paymentId });
-      const payment = paymentRes || {};
-
-      if (payment.status === 'approved') {
-        const prefId = payment.external_reference || payment.preference_id;
-        let room = payment.metadata?.room;
-        
-        if (!room && prefId) {
-          const storedPref = await paymentsStore.getByPreferenceId(prefId);
-          if (storedPref) room = storedPref.room;
-        }
-
-        if (room) {
-          io.to(room).emit('paymentConfirmed', {
-            id: paymentId,
-            prefId,
-            amount: payment.transaction_amount || 0,
-            payer: payment.payer?.email || 'Pagador Desconhecido',
-            status: payment.status,
-            time: Date.now()
-          });
-          
-          await paymentsStore.updateByPreferenceId(prefId, { status: payment.status });
-        }
-      }
-    }
-    res.sendStatus(200);
-  } catch (err) {
-    console.error('Webhook MP error', err?.message || err);
-    res.sendStatus(500);
-  }
-});
 
 server.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);

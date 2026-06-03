@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS admins (
     id                      VARCHAR(255) PRIMARY KEY,
     nome                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(255) NOT NULL UNIQUE,
-    senha                   VARCHAR(255) NOT NULL,
+    senha                   CHAR(60) NOT NULL,
     role                    ENUM('admin', 'superadmin') NOT NULL DEFAULT 'admin',
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -46,7 +46,7 @@ CREATE TABLE alunos (
     id                      VARCHAR(255) PRIMARY KEY,
     nome                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(255) NOT NULL UNIQUE,
-    senha                   VARCHAR(255) NOT NULL,
+    senha                   CHAR(60) NOT NULL,
 
     xp_total                INT NOT NULL DEFAULT 0,
     nivel                   INT NOT NULL DEFAULT 1,
@@ -69,7 +69,7 @@ CREATE TABLE professores (
     id                      VARCHAR(255) PRIMARY KEY,
     nome                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(255) NOT NULL UNIQUE,
-    senha                   VARCHAR(255) NOT NULL,
+    senha                   CHAR(60) NOT NULL,
     foto                    VARCHAR(500)
                                 DEFAULT '/imagens/imagem_perfil.jpg',
     descricao               TEXT,

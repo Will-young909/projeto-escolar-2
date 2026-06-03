@@ -1602,7 +1602,7 @@ router.get('/nivel_escolar', (req, res) => {
 });
 
 router.get('/gerar_atividade', async (req, res) => {
-    const user = req.session.user_aluno;
+    const user = req.session.user_aluno || req.session.user_prof;
     if (!user) {
         return res.redirect('/login');
     }
@@ -1752,6 +1752,45 @@ router.post('/trilha/responder', async (req, res) => {
     } catch (error) {
         console.error('Erro ao responder item da trilha:', error);
         res.status(500).send('Erro ao processar sua resposta.');
+    }
+});
+
+router.post('/webhook/mercadopago', express.json(), async (req, res) => {
+    try {
+      const { type, data } = req.body;
+  
+      if (type === 'payment') {
+        const paymentId = data.id;
+        const paymentRes = await mpPaymentClient.get({ id: paymentId });
+        const payment = paymentRes || {};
+  
+        if (payment.status === 'approved') {
+          const prefId = payment.external_reference || payment.preference_id;
+          let room = payment.metadata?.room;
+          
+          if (!room && prefId) {
+            const storedPref = await paymentsStore.getByPreferenceId(prefId);
+            if (storedPref) room = storedPref.room;
+          }
+  
+          if (room) {
+            io.to(room).emit('paymentConfirmed', {
+              id: paymentId,
+              prefId,
+              amount: payment.transaction_amount || 0,
+              payer: payment.payer?.email || 'Pagador Desconhecido',
+              status: payment.status,
+              time: Date.now()
+            });
+            
+            await paymentsStore.updateByPreferenceId(prefId, { status: payment.status });
+          }
+        }
+      }
+      res.sendStatus(200);
+    } catch (err) {
+      console.error('Webhook MP error', err?.message || err);
+      res.sendStatus(500);
     }
 });
 
