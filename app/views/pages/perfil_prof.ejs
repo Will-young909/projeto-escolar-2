@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/perfilProf.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
     <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
     <style>
         .btn-secondary {
@@ -36,7 +37,7 @@
         }
 
         .modal-content {
-            background-color: #fefefe;
+            background-color: var(--color-background);
             margin: auto;
             padding: 20px;
             border: 1px solid #888;
@@ -47,6 +48,7 @@
         }
 
         .modal-header {
+            background: var(--color-background);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -153,11 +155,8 @@
             </svg>
         </button>
         <ul class="nav-links">
-            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
-                        fill="#fff">
-                        <path
-                            d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z" />
-                    </svg>Home</a></li>
+            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z" /></svg>Home</a></li>
+            <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
             <% if (session.user_prof) { %>
                 <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
                             viewBox="0 -960 960 960" width="24px" fill="#fff">
@@ -192,7 +191,6 @@
         <section class="perfil-info card">
             <section class="profile-header">
                 <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do Professor" class="foto-perfil">
-
                 <h1>
                     <%= user.nome %>
                 </h1>
@@ -245,10 +243,16 @@
                 <% if (user.historicoAlunos && user.historicoAlunos.length> 0) { %>
                     <% user.historicoAlunos.forEach(aluno=> { %>
                         <li class="aluno-item" data-id="<%= aluno.id %>">
-                            <a href="/aluno/<%= aluno.id %>">
+                            <div class="aluno-info">
+                            <img src="<%= aluno.foto || '/imagens/imagem_perfil.jpg' %>" alt="">
+                            <p href="/aluno/<%= aluno.id %>">
                                 <%= aluno.nome %>
-                            </a>
-                        </li>
+                            </p>
+                            </div>
+                            <a href="/denuncia?denunciado_id=<%= aluno.id %>" class="btn-denuncia" title="Denunciar Aluno">
+                                <i class="fas fa-exclamation-triangle"></i> Denunciar
+                            </a> 
+                        </li>                     
                         <% }) %>
                             <% } else { %>
                                 <li class="empty-state">Nenhum aluno registrado.</li>
@@ -272,7 +276,8 @@
             </footer>
         </article>
     </dialog>
-
+    
+    <script src="../js/accessibility.js"></script>
     <script>
         // --- Menu lateral (código original preservado) ---
         const menuBtn = document.getElementById('menu-btn');

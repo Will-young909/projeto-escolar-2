@@ -29,7 +29,7 @@ body {
 
 /* ================== HEADER ================== */
 header {
-  background: var(--color-text-light);
+  background: #fff;
   border-bottom: 2px solid var(--color-primary);
   padding: var(--spacing-sm) var(--spacing-md);
   display: flex;
@@ -53,7 +53,7 @@ header {
   background: none;
   border: none;
   font-size: 1.8rem;
-  color: var(--color-primary);
+  color: #800020;
   cursor: pointer;
 }
 
@@ -85,7 +85,7 @@ nav.active {
 .nav-links a {
   display: block;
   padding: var(--spacing-md);
-  color: var(--color-text-light);
+  color: #fff;
   text-decoration: none;
   transition: background 0.3s;
 }
@@ -100,7 +100,7 @@ nav.active {
   right: 15px;
   background: none;
   border: none;
-  color: var(--color-text-light);
+  color: #fff;
   font-size: 2rem;
   cursor: pointer;
 }
@@ -128,7 +128,7 @@ nav.active {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--color-primary);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;
@@ -209,7 +209,7 @@ footer svg {
 }
 
 a {
-  color: #800020;
+  color: var(--color-primary);
 }
 
 footer a {

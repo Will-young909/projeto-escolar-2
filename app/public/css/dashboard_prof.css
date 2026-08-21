@@ -31,7 +31,7 @@ body.no-scroll {
 
 /* ========== HEADER ========== */
 header {
-  background: var(--branco);
+  background: #fff;
   box-shadow: var(--sombra);
   display: flex;
   justify-content: space-between;
@@ -68,7 +68,7 @@ nav {
   left: -260px; /* Largura base aumentada para 260px */
   width: 260px;
   height: 100vh;
-  background: #800020;
+  background: var(--bordo);
   padding-top: 60px; /* Espaço para o header */
   transition: 0.3s;
   z-index: 1002;
@@ -84,11 +84,11 @@ nav.active {
     margin: 0;
 }
 
-.nav-links li {
+.nav-links li, button {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-nav a {
+nav a, nav li button {
   color: #fff;
   text-decoration: none;
   padding: 8px 24px;
@@ -98,7 +98,7 @@ nav a {
 }
 
 nav a:hover {
-  background: #b22222;
+  background: var(--bordo-claro);
 }
 
 #close-menu {
@@ -120,7 +120,7 @@ nav a:hover {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--bordo);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;
@@ -166,7 +166,7 @@ main {
 
 .welcome {
   background: linear-gradient(135deg, var(--bordo), var(--bordo-claro));
-  color: var(--branco);
+  color: #fff;
   padding: 1.8rem 1.4rem;
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
@@ -196,7 +196,7 @@ main {
 
 .card {
   background: var(--branco);
-  padding: 0.9rem;
+  padding: 1.3rem;
   border-radius: var(--radius);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s;
@@ -230,7 +230,13 @@ main {
   margin-top: 0.4rem;
 }
 
-.hidden-btn {
+.manage p {
+  font-size: 0.95rem;
+  color: var(--cinza-texto);
+  margin-bottom: 0.8rem;
+}
+
+.card .hidden-btn {
   border: none; 
   background: none; 
   padding: 0; 
@@ -260,7 +266,8 @@ main {
 }
 
 .popup {
-  background: #ffffff;
+  color: var(--cinza-texto);
+  background: var(--branco);
   border-radius: 18px;
   max-width: 420px;
   width: 90%;
@@ -278,8 +285,13 @@ main {
 
 .popup p {
   font-size: 0.95rem;
-  color: #4b5563;
+  color: var(--cinza-texto);
   margin-bottom: 0.8rem;
+}
+
+.value {
+  color: var(--bordo);
+  font-weight: 600;
 }
 
 .popup-list {
@@ -289,12 +301,12 @@ main {
 }
 .popup-list li {
   font-size: 0.95rem;
-  color: #374151;
+  color: var(--cinza-texto);
   margin-bottom: 0.35rem;
 }
 
 .popup-list strong {
-  color: #800020;
+  color: var(--bordo);
 }
 
 .popup-action {
@@ -302,8 +314,8 @@ main {
   border: none;
   border-radius: 999px;
   padding: 0.8rem 1rem;
-  background: #800020;
-  color: #ffffff;
+  background: var(--bordo);
+  color: #fff;
   font-weight: 600;
   cursor: pointer;
   font-size: 0.95rem;
@@ -390,7 +402,7 @@ main {
 
 .btn.secondary {
   background: #004c4c;
-  color: #fff;
+  color: var(--branco);
   text-decoration: none;
 }
 

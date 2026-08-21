@@ -7,8 +7,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/dashboard_aluno.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
   <style>
+    .logo {
+  margin-top: 10px;
+  margin-left: -15px;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
+}
+
     .btn.disabled, .btn.disabled:hover, .btn:disabled {
         background-color: #ccc;
         border-color: #ccc;
@@ -19,6 +28,22 @@
     .btn.disabled:hover {
       filter: brightness(1.1);
       transform: scale(1.02);
+    }
+
+    .notification-item {
+      border: solid 1px var(--bordo);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .logo {
+    position: absolute;
+    top: -10px;
+    left: 265px;
+    width: 175px;
+  }
     }
   </style>
 </head>
@@ -45,6 +70,7 @@
 
     <ul class="nav-links">
       <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+      <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
 
       <% if (session.user_aluno) { %>
           <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
@@ -114,8 +140,8 @@
           <h2><i class="fas fa-user-graduate"></i> Professores recomendados para você</h2>
           <p>Baseado nos seus últimos resultados e nas habilidades que mais precisam de reforço.</p>
         </div>
-        <a href="/pesquisar_profs?recomendados=1" class="link">Ver recomendações <i class="fas fa-arrow-right"></i></a>
       </section>
+      <a href="/pesquisar_profs?recomendados=1" class="link">Ver recomendações <i class="fas fa-arrow-right"></i></a>
 
       <% if (recsProfessores.focos && recsProfessores.focos.length > 0) { %>
         <section class="recommendation-focuses" aria-label="Habilidades priorizadas">
@@ -146,26 +172,34 @@
 
     
     <section class="notifications card">
-      <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
-      <% const notificacoes = user.notificacoes || []; %>
-      <% if (notificacoes.length > 0) { %>
-          <ul class="notification-list">
-              <% notificacoes.slice(0, 5).forEach(notif => { %>
-                  <li class="notification-item <%= notif.tipo %>">
-                      <section class="notification-header">
-                          <strong class="prof-nome"><%= notif.professor %></strong>
-                          <p>cancelou a aula de <%= notif.aula.data %> às <%= notif.aula.hora %>.</p>
-                      </section>
-                      <% if (notif.motivo) { %>
-                          <p class="motivo"><strong>Motivo:</strong> <%= notif.motivo %></p>
-                      <% } %>
-                      <small class="timestamp"><%= new Date(notif.data).toLocaleString('pt-BR') %></small>
-                  </li>
-              <% }); %>
-          </ul>
-      <% } else { %>
-          <p class="empty-state">Nenhuma notificação recente.</p>
-      <% } %>
+        <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
+        <% const notificacoes = user.notificacoes || []; %>
+        <% if (notificacoes.length > 0) { %>
+            <ul class="notification-list">
+                <% notificacoes.slice(0, 5).forEach(notif => { %>
+                    <li class="notification-item notification-type-<%= notif.tipo %>">
+                        <% if (notif.tipo === 'aula_cancelada') { %>
+                            <div class="notification-icon"><i class="fas fa-calendar-times"></i></div>
+                            <div class="notification-content">
+                                <p><strong>Aula Cancelada:</strong> A aula com <strong><%= notif.professor %></strong> no dia <%= new Date(notif.aula.data).toLocaleDateString('pt-BR') %> às <%= notif.aula.hora %> foi cancelada.</p>
+                                <% if (notif.motivo) { %>
+                                    <p class="motivo"><strong>Motivo:</strong> <%= notif.motivo %></p>
+                                <% } %>
+                                <small class="timestamp"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></small>
+                            </div>
+                        <% } else { %>
+                             <div class="notification-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                            <div class="notification-content">
+                                <%- notif.mensagem.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') %>
+                                <small class="timestamp"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></small>
+                            </div>
+                        <% } %>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p class="empty-state">Nenhuma notificação recente.</p>
+        <% } %>
     </section>
 
     <% 
@@ -204,21 +238,22 @@
           <p>Encontrar Professores</p>
         </a>
         <a href="/historico_aulas" class="manage-item">
-          <i class="fa-solid fa-chalkboard-user fa-lg" style="color: #800020;"></i>
+          <i class="fa-solid fa-chalkboard-user fa-lg"></i>
           <p>Histórico de Aulas</p>
         </a>
         <a href="/trilha" class="manage-item">
-          <i class="fa-solid fa-dumbbell" style="color: #800020;"></i>
+          <i class="fa-solid fa-dumbbell"></i>
           <p>Trilha</p>
         </a>
         <a href="/-progressomeu" class="manage-item">
-          <i class="fa-solid fa-arrow-up-right-dots" style="color: #800020;"></i>
+          <i class="fa-solid fa-arrow-up-right-dots"></i>
           <p>Progresso</p>
         </a>
       </section>
     </section>
   </main>
 
+  <script src="../js/accessibility.js"></script>
   <script>
       document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById('menu-btn');

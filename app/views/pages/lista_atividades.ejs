@@ -6,7 +6,21 @@
     <title>Lista de Atividades | RegiMath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
     <style>
+    :root {
+  --bordo: #800020;
+  --bordo-claro: #a83244;
+  --dourado: #ffd700;
+  --branco: #fff;
+  --cinza-fundo: #f7f8fa;
+  --cinza-texto: #555;
+  --verde: #27ae60;
+  --laranja: #f39c12;
+  --radius: 12px;
+  --font: "Poppins", sans-serif;
+}
+
         *,
 *::before,
 *::after {
@@ -37,22 +51,22 @@ header {
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            background-color: var(--cinza-fundo);
+            color: var(--cinza-texto);
             margin: 0;
         }
         .container {
             max-width: 800px;
             
             margin: 20px auto;
-            background-color: #fff;
+            background-color: var(--branco);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h2 {
             color: #4a4a4a;
-            border-bottom: 2px solid #800020;
+            border-bottom: 2px solid var(--bordo);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
@@ -60,16 +74,19 @@ header {
             list-style-type: none;
             padding: 0;
         }
-        li {
-            background-color: #fafafa;
+        .li {
+            background-color: var(--cinza-fundo);
             border: 1px solid #ddd;
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         h3 {
             margin: 0 0 5px 0;
-            color: #800020;
+            color: var(--bordo);
         }
         p {
             margin: 0;
@@ -80,24 +97,34 @@ header {
         }
         .btn-primary {
             display: inline-block;
-            background-color: #800020;
+            background-color: var(--bordo);
             color: #fff;
             padding: 10px 20px;
             border-radius: 5px;
             text-decoration: none;
             margin-top: 20px;
         }
+        .btn-edit {
+            background-color: var(--bordo);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+        }        
         .nav-links {
             margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
         }
         .nav-links a {
             text-decoration: none;
-            color: #800020;
+            color: var(--bordo);
             margin-right: 15px;
         }
     </style>
 </head>
 <body>
+    <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header>
         <a href="/">
            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -112,9 +139,12 @@ header {
         <% if (locals.activities && locals.activities.length > 0) { %>
             <ul>
                 <% locals.activities.forEach(activity => { %>
-                    <li>
-                        <h3><%= activity.title %></h3>
-                        <p><%= activity.description %></p>
+                    <li class="li">
+                        <div>
+                            <h3><%= activity.title %></h3>
+                            <p><%= activity.description %></p>
+                        </div>
+                        <a href="/atividades/editar/<%= activity.id %>" class="btn-edit">Editar</a>
                     </li>
                 <% }); %>
             </ul>
@@ -123,5 +153,6 @@ header {
         <% } %>
         <a href="/atividades" class="btn-primary">Criar Nova Atividade</a>
         </main>
+        <script src="../js/accessibility.js"></script>
 </body>
 </html>

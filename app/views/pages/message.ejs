@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensagem do Sistema - Regimath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="/css/cadastro.css">
+    <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" />
+    <style>
+        .message-card {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .message-card h2 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .message-card p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .message-card a {
+            text-decoration: none;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/">
+            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+        </a>
+    </header>
+
+    <main>
+        <div class="message-card">
+            <h2>Mensagem do Sistema</h2>
+            <p><%= (typeof message !== 'undefined' && message) ? message : 'Ocorreu um erro inesperado.' %></p>
+            <a href="/login" class="btn-primary">Ir para o Login</a>
+        </div>
+    </main>
+
+</body>
+</html>

@@ -8,15 +8,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="/css/chat.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
     <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 
 <body>
+    <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header class="chat-header">
         <section class="chat-header-content">
             <a onclick="history.back()" class="btn-back" aria-label="Voltar">
                 <i class="fas fa-arrow-left"></i>
-            </a>
+            </a><br>
             <h3>Conversa com <%= interlocutorName %></h3>
         </section>
         <a href="/video/<%= room %>" class="btn-video" aria-label="Acessar Sala de Vídeo">
@@ -42,6 +44,7 @@
         </button>
     </form>
 
+    <script src="../js/accessibility.js"></script>
     <script>
         const CHAT_USER_DATA = JSON.parse('<%- JSON.stringify(user || {}) %>');
         const CHAT_USER = {

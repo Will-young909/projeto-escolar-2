@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Criar Atividade | RegiMath</title>
+  <title><%= locals.activity ? 'Editar Atividade' : 'Criar Atividade' %> | RegiMath</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/atividades.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 <body>
+  <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; left: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" ><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
 
   <header class="header">
     <a href="/">
@@ -52,20 +54,20 @@
      <button class="nivel" style="background: none; border: none; align-self: center; justify-self: center;"><a href="/nivel_escolar" style="text-decoration: none; margin-top: 10px; margin-bottom: 10px;" class="btn-primary">Gerar por Nível Escolar</a></button>
   </div>
 
-  <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="/atividades">
+  <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="<%= locals.activity ? '/atividades/editar/' + activity.id : '/atividades' %>">
     <header class="form-header">
       <input 
         type="text" 
         id="activity-title" 
         name="title"
         placeholder="Título da Atividade" 
-        value="Atividade sem título"
+        value="<%= locals.activity ? activity.title : 'Atividade sem título' %>"
         required>
       
       <textarea 
         id="activity-description" 
         name="description"
-        placeholder="Descrição da atividade"></textarea>
+        placeholder="Descrição da atividade"><%= locals.activity ? activity.description : '' %></textarea>
     </header>
 
     <section id="questions-container" aria-label="Lista de questões">
@@ -73,11 +75,12 @@
     </section>
 
     <button id="save-activity" class="btn-primary" type="submit">
-      Salvar Atividade
+      <%= locals.activity ? 'Atualizar Atividade' : 'Salvar Atividade' %>
     </button>
   </form>
 </main>
 
+<script src="../js/accessibility.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const questionsContainer = document.getElementById('questions-container');
@@ -86,8 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const iaPromptTextarea = document.getElementById('ia-prompt');
   const activityForm = document.getElementById('activity-form');
   let questionCounter = 0;
+  const activity = <%- locals.activity ? JSON.stringify(activity) : 'null' %>;
 
-  const createQuestionBlock = () => {
+  const createQuestionBlock = (questionData = null) => {
     questionCounter++;
     const questionId = `question-${questionCounter}`;
 
@@ -102,15 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
           type="text" 
           placeholder="Pergunta" 
           name="questions[${questionCounter}][title]"
+          value="${questionData && questionData.title ? questionData.title : ''}"
           required>
         
         <select 
           class="question-type-selector" 
           name="questions[${questionCounter}][type]"
           aria-label="Tipo de questão">
-          <option value="multiple_choice">Múltipla escolha</option>
-          <option value="short_text">Resposta curta</option>
-          <option value="long_text">Parágrafo</option>
+          <option value="multiple_choice" ${questionData && questionData.type === 'multiple_choice' ? 'selected' : ''}>Múltipla escolha</option>
+          <option value="short_text" ${questionData && questionData.type === 'short_text' ? 'selected' : ''}>Resposta curta</option>
+          <option value="long_text" ${questionData && questionData.type === 'long_text' ? 'selected' : ''}>Parágrafo</option>
         </select>
       </div>
 
@@ -130,27 +135,42 @@ document.addEventListener('DOMContentLoaded', () => {
     questionsContainer.appendChild(block);
 
     const typeSelector = block.querySelector('.question-type-selector');
-    typeSelector.addEventListener('change', () => updateQuestionContent(typeSelector));
+    typeSelector.addEventListener('change', () => updateQuestionContent(typeSelector, null));
 
     const deleteBtn = block.querySelector('.btn-delete-question');
     deleteBtn.addEventListener('click', () => block.remove());
 
-    updateQuestionContent(typeSelector);
+    updateQuestionContent(typeSelector, questionData);
 
     return block;
   };
 
-  const updateQuestionContent = (selector) => {
+  const updateQuestionContent = (selector, questionData = null) => {
     const questionBlock = selector.closest('.question-block');
     const contentDiv = questionBlock.querySelector('.question-content');
     const type = selector.value;
-    const questionId = questionBlock.id.split('-')[1]; // Pega o contador da questão
+    const questionId = questionBlock.id.split('-')[1];
 
     contentDiv.innerHTML = '';
 
     if (type === 'multiple_choice') {
-      contentDiv.innerHTML = `
-        <div class="options-container">
+      let optionsHtml = '';
+      if (questionData && questionData.options && questionData.options.length > 0) {
+        let optionIndex = 1;
+        for(const optionValue of questionData.options) {
+          optionsHtml += `
+            <div class="option-item">
+              <input type="radio" name="questions[${questionId}][correct]" value="${optionIndex}" ${questionData.correct == optionIndex ? 'checked' : ''} aria-label="Alternativa correta ${optionIndex}">
+              <input type="text" name="questions[${questionId}][options][${optionIndex}]" placeholder="Opção ${optionIndex}" value="${optionValue}">
+              <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          `;
+          optionIndex++;
+        }
+      } else {
+          optionsHtml = `
           <div class="option-item">
             <input type="radio" name="questions[${questionId}][correct]" value="1" aria-label="Alternativa correta 1">
             <input type="text" name="questions[${questionId}][options][1]" placeholder="Opção 1">
@@ -158,6 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
               <i class="fas fa-times"></i>
             </button>
           </div>
+          `;
+      }
+        
+      contentDiv.innerHTML = `
+        <div class="options-container">
+          ${optionsHtml}
         </div>
         <button class="btn-add-option" type="button">Adicionar opção</button>
       `;
@@ -167,7 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
           type="text" 
           name="questions[${questionId}][correctAnswer]" 
           placeholder="Gabarito ou palavras-chave para a resposta..."
-          class="correct-answer-input">
+          class="correct-answer-input"
+          value="${questionData && questionData.correctAnswer ? questionData.correctAnswer : ''}">
       `;
     }
   };
@@ -274,7 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok) {
-        throw new Error('A resposta do servidor não foi OK.');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'A resposta do servidor não foi OK.');
       }
 
       const data = await response.json();
@@ -287,49 +315,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.questions && data.questions.length > 0) {
         data.questions.forEach(q => {
-          const newQuestionBlock = createQuestionBlock();
-          const titleInput = newQuestionBlock.querySelector('input[placeholder="Pergunta"]');
-          const typeSelector = newQuestionBlock.querySelector('.question-type-selector');
-
-          if (titleInput) titleInput.value = q.title;
-          
-          if (typeSelector) {
-            typeSelector.value = q.type;
-            updateQuestionContent(typeSelector);
-
-            const contentDiv = newQuestionBlock.querySelector('.question-content');
-            const currentQuestionId = questionCounter;
-
-            if (q.type === 'multiple_choice') {
-              const optionsContainer = contentDiv.querySelector('.options-container');
-              optionsContainer.innerHTML = ''; 
-
-              Object.keys(q.options).forEach(key => {
-                const newOption = document.createElement('div');
-                newOption.classList.add('option-item');
-                newOption.innerHTML = `
-                  <input 
-                    type="radio" 
-                    name="questions[${currentQuestionId}][correct]" 
-                    value="${key}" 
-                    ${String(q.correct) === key ? 'checked' : ''}>
-                  <input 
-                    type="text" 
-                    name="questions[${currentQuestionId}][options][${key}]" 
-                    value="${q.options[key]}" 
-                    placeholder="Opção ${key}">
-                  <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
-                    <i class="fas fa-times"></i>
-                  </button>
-                `;
-                optionsContainer.appendChild(newOption);
-              });
-
-            } else if (q.type === 'short_text' || q.type === 'long_text') {
-              const answerInput = contentDiv.querySelector('.correct-answer-input');
-              if (answerInput) answerInput.value = q.correctAnswer || '';
-            }
-          }
+          const adaptedQuestion = {
+            title: q.title,
+            type: q.options ? 'multiple_choice' : 'short_text',
+            options: q.options ? Object.values(q.options) : [],
+            correct: q.correct,
+            correctAnswer: q.correctAnswer || ''
+          };
+          createQuestionBlock(adaptedQuestion);
         });
       }
     } catch (error) {
@@ -341,7 +334,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  createQuestionBlock();
+  if (activity) {
+      if (activity.questions && Array.isArray(activity.questions)) {
+        activity.questions.forEach(question => {
+            createQuestionBlock(question)
+        });
+      }
+  } else {
+    createQuestionBlock();
+  }
 });
 </script>
 

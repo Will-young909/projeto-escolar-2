@@ -1,6 +1,6 @@
 :root {
   --vinho: #800020;
-  --vinho-escuro: #520d23;
+  --vinho-escuro: #b22222;
   --dourado: #e7b416;
   --cinza: #555;
   --fundo: #f7f8fa;
@@ -36,7 +36,7 @@ body.no-scroll {
 
 /* Header */
 .topbar {
-  background: var(--branco);
+  background: #fff;
   box-shadow: var(--sombra);
   display: flex;
   justify-content: space-between;
@@ -47,6 +47,7 @@ body.no-scroll {
   z-index: 100;
   border-bottom: 2px solid var(--vinho);
   height: 60px;
+  width: 100%;
 }
 .logo {
   margin-top: 10px;
@@ -70,7 +71,7 @@ nav {
   left: -260px; /* Largura base aumentada para 260px */
   width: 260px;
   height: 100vh;
-  background: #800020;
+  background: var(--vinho);
   padding-top: 60px; /* Espaço para o header */
   transition: 0.3s;
   z-index: 1002;
@@ -86,11 +87,11 @@ nav.active {
     margin: 0;
 }
 
-.nav-links li {
+.nav-links li, button {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-nav a {
+nav a, nav li button {
   color: #fff;
   text-decoration: none;
   padding: 8px 24px;
@@ -100,7 +101,7 @@ nav a {
 }
 
 nav a:hover {
-  background: #b22222;
+  background: var(--vinho-escuro);
 }
 
 #close-menu {
@@ -122,7 +123,7 @@ nav a:hover {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--vinho);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;
@@ -170,6 +171,7 @@ svg {
 
 /* Card */
 .card {
+  color: var(--vinho);
   background: var(--branco);
   border-radius: var(--raio);
   box-shadow: var(--sombra);
@@ -205,6 +207,7 @@ label {
 }
 
 input, textarea, #changePasswordForm input {
+  background: var(--branco);
   padding: 14px;
   border: 1.5px solid #ccc;
   border-radius: 12px;
@@ -220,7 +223,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 
 /* Upload */
 .foto-upload {
-  background: #fafafa;
+  background: var(--branco);
   border-radius: var(--raio);
   padding: 20px;
   align-items: center;
@@ -263,7 +266,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 
 .btn-salvar, #btn-change-password, .btn-alterar-senha {
   background: var(--vinho);
-  color: var(--branco);
+  color: #fff;
   padding: 14px 10px;
   border-radius: 30px;
   font-weight: 700;
@@ -280,7 +283,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 .remove-discipline, .btn-add, #btn-cancel-change {
   font-size: 1rem;
   background: none;
-  color: #800020;
+  color: var(--vinho);
   padding: 10px 18px;
   border-radius: 30px;
   font-weight: 600;
@@ -306,7 +309,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 }
 
 .btn-cancelar:hover {
-  color: #520d23;
+  color: var(--vinho-escuro);
 }
 
 /* Security Card */
@@ -320,8 +323,8 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 }
 
 .btn-alterar-senha {
-  background: var(--cinza);
-  color: var(--branco);
+  background: var(--vinho);
+  color: var(--cinza);
   padding: 12px 28px;
   border-radius: 30px;
   font-weight: 700;
@@ -331,7 +334,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 }
 
 .btn-alterar-senha:hover {
-  background: #444;
+  background: var(--vinho-escuro);
 }
 
 /* Alertas */
@@ -451,6 +454,8 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 }
 
 select {
+  background-color: var(--branco);
+  color: var(--cinza);
     width: 100%;
     padding: 10px 12px;
     border: 1px solid #ddd;

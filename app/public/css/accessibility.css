@@ -9,7 +9,7 @@
 } 
 
 .high-contrast .a11y-fab {
-    background-color: #0056b3;
+    background-color: var(--color-primary);
 }
 
 .a11y-fab:hover {
@@ -17,7 +17,7 @@
 }
 
 .high-contrast .a11y-fab:hover {
-    background-color: #004494;
+    background-color: var(--color-secondary);
 }
 
 /* === Accessibility Modal === */
@@ -220,16 +220,38 @@
 /* === High Contrast Adjustments === */
 .high-contrast {
     --color-primary: #8000b3;
+    --bordo: #8000b3;
+    --vinho: #8000b3;
+    --roxo: #8000b3;
+    --roxo-escuro: #0088cc;
     --color-secondary: #0088cc;
+    --bordo-claro: #0088cc;
+    --color-primary-alt: #0088cc;
+    --vinho-escuro: #0088cc;
   
     --color-background: #000;
+    --cinza-fundo: #000;
+    --fundo: #000;
+    --color-input-bg: #000;
+    --color-chat-bg: #111;
+    --card: #111;
     --color-card-bg: #111;
+    --color-card: #111;
+    --branco: #111;
+    --color-header-bg: #222;
   
     --color-text-dark: #fff;
+    --cinza: #fff;
+    --cinza-texto: #fff;
+    --cinza-escuro: #fff;
     --color-text-secondary: #ddd;
     --color-text-light: #fff;
+    --color-text: #fff;
+    --texto: #fff;
+    --texto-claro: #fff;
   
     --color-star: #ffff00;
+    --amarelo: #ffff00;
     --color-accent: #00ffff;
 }
 
@@ -247,12 +269,6 @@
   background: #111;
   color: #fff;
   border: 1px solid #888;
-}
-
-.high-contrast button {
-    background: #004494;
-    color: #fff;
-    border: 1px solid #888;
 }
 
 .high-contrast img:not(.logo) {

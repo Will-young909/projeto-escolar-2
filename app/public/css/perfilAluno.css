@@ -39,7 +39,7 @@ a {
 
 /* ===== Header ===== */
 header {
-  background: var(--branco);
+  background: #fff;
   box-shadow: var(--sombra);
   display: flex;
   justify-content: space-between;
@@ -75,7 +75,7 @@ nav {
   left: -260px; /* Largura base aumentada para 260px */
   width: 260px;
   height: 100vh;
-  background: #800020;
+  background: var(--vinho);
   padding-top: 60px; /* Espaço para o header */
   transition: 0.3s;
   z-index: 1002;
@@ -91,11 +91,11 @@ nav.active {
     margin: 0;
 }
 
-.nav-links li {
+.nav-links li, button {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-nav a {
+nav a, nav li button {
   color: #fff;
   text-decoration: none;
   padding: 8px 24px;
@@ -105,7 +105,7 @@ nav a {
 }
 
 nav a:hover {
-  background: #b22222;
+  background: var(--vinho-escuro);
 }
 
 #close-menu {
@@ -127,7 +127,7 @@ nav a:hover {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--vinho);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;
@@ -181,6 +181,13 @@ svg {
   padding: 30px 20px; /* Padding vertical maior */
   text-align: center;
   border-top: 5px solid var(--vinho); /* Destaque do cartão com linha dourada */
+}
+
+.conteudo-principal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .foto-perfil {
@@ -262,6 +269,7 @@ svg {
     margin-bottom: 10px;
     background: var(--cinza-fundo);
     border: var(--borda-fina);
+    color: var(--cinza-texto);
 }
 .data-item dt {
     font-weight: 600;
@@ -273,16 +281,19 @@ svg {
     font-weight: 400;
     flex: 2;
     text-align: right;
+    color: var(--cinza-texto);
 }
 .highlight-data {
     color: #000;
     font-weight: 500 !important; /* Destaque visual */
 }
 
-/* Histórico de Atividades (ul) */
+/* Histórico (Geral) */
 .historico-list {
     list-style: none;
+    padding: 0; /* Remove padding for the list */
 }
+
 .historico-item {
     background: var(--cinza-fundo);
     padding: 12px 14px;
@@ -293,30 +304,64 @@ svg {
     color: var(--cinza-texto);
 }
 
-.historico-item:hover {
-  background: #ebebeb;
+/* Histórico de Professores (Específico) */
+.professor-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Alinha os itens com espaço entre eles */
+    gap: 15px; /* Espaço entre a foto e o nome */
 }
 
-.aula-data {
+.professor-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.historico-foto {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--vinho);
+}
+
+.historico-link {
     font-weight: 600;
     color: var(--vinho-escuro);
-    margin-right: 5px;
+    font-size: 1rem;
+    text-decoration: none;
 }
 
-.aula-conteudo {
-    font-style: italic;
-    color: #222;
+.btn-denuncia {
+    background: #fff;
+    color: var(--vinho);
+    border: 1px solid var(--vinho);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-denuncia:hover {
+    background: var(--vinho);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(128, 0, 32, 0.3);
 }
 
 .empty-state {
-  color: var(--cinza-texto);
-  font-style: italic;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 0;
-  border: var(--borda-fina);
-  border-radius: var(--raio);
+    color: var(--cinza-texto);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border: 1px dashed #ccc;
+    border-radius: var(--raio);
+    text-align: center;
 }
 
 /* ===== Animação ===== */
@@ -395,13 +440,6 @@ svg {
 
   .perfil-card {
     flex: 0 0 300px; /* Cartão ligeiramente mais largo */
-  }
-
-  .conteudo-principal {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
   }
   
   .logo {

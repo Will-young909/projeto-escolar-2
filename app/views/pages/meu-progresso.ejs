@@ -6,7 +6,9 @@
   <title>Meu Progresso</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/accessibility.css">
   <style>
     :root {
       --bordo: #800020;
@@ -39,7 +41,7 @@
 
     body {
       font-family: "Poppins", sans-serif;
-      background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+      background: var(--fundo);
       color: var(--texto);
       line-height: 1.6;
     }
@@ -94,7 +96,7 @@ nav {
   left: -260px; /* Largura base aumentada para 260px */
   width: 260px;
   height: 100vh;
-  background: #800020;
+  background: var(--bordo);
   padding-top: 60px; /* Espaço para o header */
   transition: 0.3s;
   z-index: 1002;
@@ -110,11 +112,11 @@ nav.active {
     margin: 0;
 }
 
-.nav-links li {
+.nav-links li, button {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-nav a {
+nav a, nav li button {
   color: #fff;
   text-decoration: none;
   padding: 8px 24px;
@@ -124,7 +126,7 @@ nav a {
 }
 
 nav a:hover {
-  background: #b22222;
+  background: var(--bordo-claro);
 }
 
 #close-menu {
@@ -146,7 +148,7 @@ nav a:hover {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--bordo);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;
@@ -222,6 +224,7 @@ svg {
       box-shadow: var(--sombra);
       transition: transform var(--transicao), box-shadow var(--transicao);
       overflow: hidden;
+      margin-bottom: 1.5rem;
     }
 
     .card:hover {
@@ -241,7 +244,7 @@ svg {
     }
 
     .info-box {
-      background: linear-gradient(180deg, #fff, #fafafa);
+      background: var(--fundo);
       border: 1px solid rgba(128, 0, 32, 0.08);
       border-radius: var(--raio-sm);
       padding: 1rem;
@@ -266,7 +269,7 @@ svg {
     .progress {
       height: 14px;
       border-radius: 999px;
-      background: #e5e7eb;
+      background: var(--card);
       overflow: hidden;
     }
 
@@ -289,7 +292,7 @@ svg {
       display: flex;
       align-items: center;
       gap: 0.85rem;
-      background: linear-gradient(135deg, rgba(255, 243, 205, 0.5), rgba(255, 255, 255, 0.95));
+      background: var(--fundo);
       border: 1px solid rgba(244, 197, 66, 0.25);
       border-radius: var(--raio-sm);
       padding: 1rem;
@@ -301,7 +304,7 @@ svg {
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: rgba(244, 197, 66, 0.18);
+      background: var(--texto-claro);
       font-size: 1.4rem;
       flex: 0 0 auto;
     }
@@ -328,7 +331,7 @@ svg {
     }
 
     .skill-column {
-      background: linear-gradient(180deg, #fff, #fcfcfd);
+      background: var(--fundo);
       border: 1px solid rgba(128, 0, 32, 0.08);
       border-radius: var(--raio-sm);
       padding: 1rem;
@@ -364,7 +367,7 @@ svg {
       border-radius: 12px;
       font-weight: 600;
       font-size: 0.92rem;
-      background: #f8fafc;
+      background: var(--card);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -388,7 +391,7 @@ svg {
     .empty-state {
       padding: 1rem;
       border-radius: 12px;
-      background: #f8fafc;
+      background: var(--card);
       color: var(--texto-claro);
       font-size: 0.92rem;
       text-align: center;
@@ -498,7 +501,6 @@ svg {
   </style>
 </head>
 <body>
-
   <header>
     <a href="/">
       <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -520,6 +522,7 @@ svg {
 
     <ul class="nav-links">
       <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+      <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
 
       <% if (session.user_aluno) { %>
           <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
@@ -567,7 +570,7 @@ svg {
             </div>
 
             <div class="streak-box">
-              <div class="streak-emoji"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#800020"><path d="M240-400q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-39 33-69 68.5t-50.5 72Q261-513 250.5-475T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Zm0-492v132q0 34 23.5 57t57.5 23q18 0 33.5-7.5T622-658l18-22q74 42 117 117t43 163q0 134-93 227T480-80q-134 0-227-93t-93-227q0-129 86.5-245T480-840Z"/></svg></div>
+              <div class="streak-emoji"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--card)"><path d="M240-400q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-39 33-69 68.5t-50.5 72Q261-513 250.5-475T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Zm0-492v132q0 34 23.5 57t57.5 23q18 0 33.5-7.5T622-658l18-22q74 42 117 117t43 163q0 134-93 227T480-80q-134 0-227-93t-93-227q0-129 86.5-245T480-840Z"/></svg></div>
               <div>
                 <p><strong>Streak de estudo:</strong> <%= dashboard.aluno.streak %> dias</p>
                 <small class="text-muted">Continue estudando todos os dias para não perder sua sequência!</small>
@@ -625,6 +628,7 @@ svg {
     </div>
   </main>
 
+  <script src="../js/accessibility.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script>

@@ -6,133 +6,88 @@
     <title>Explorar Atividades | RegiMath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
     <style>
-        * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+        :root {
+            --bordo: #800020;
+            --bordo-claro: #a83244;
+            --dourado: #ffd700;
+            --branco: #fff;
+            --cinza-fundo: #f7f8fa;
+            --cinza-texto: #555;
+            --verde: #27ae60;
+            --laranja: #f39c12;
+            --radius: 12px;
+            --font: "Poppins", sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--cinza-fundo); color: #333; margin: 0; }
+        body.no-scroll { overflow: hidden; }
+        header { background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--bordo); height: 60px; }
+        .logo { margin-top: 10px; margin-left: -15px; width: 120px; height: 70px; object-fit: contain; }
+        .subheader__back { border: none; background: none; color: var(--bordo); font-weight: 600; font-size: 0.9rem; padding: 0.35rem 0.6rem; border-radius: 999px; cursor: pointer; transition: 0.25s ease; }
+        .subheader__back:hover { background: rgba(128, 0, 32, 0.06); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .search-container { margin-bottom: 30px; text-align: center; }
+        .search-container input { width: 100%; padding: 12px 20px; border-radius: 25px; border: 1px solid #ddd; font-size: 16px; }
+        .activities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .activity-card { background-color: var(--branco); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; display: flex; flex-direction: column; transition: transform 0.2s; }
+        .activity-card:hover { transform: translateY(-5px); }
+        .activity-card h3 { margin: 0 0 10px 0; color: var(--bordo); }
+        .activity-card p { margin: 0 0 15px 0; flex-grow: 1; color: var(--cinza-texto); }
+        .activity-card .author { font-size: 14px; color: var(--cinza-texto); margin-bottom: 15px; }
+        .activity-card .btn-primary { display: inline-block; background-color: var(--bordo); color: #fff; padding: 10px 15px; border-radius: 5px; text-decoration: none; text-align: center; position: relative; }
+        .no-activities { text-align: center; color: var(--bordo-claro); width: 100%; }
+        h2 { text-align: center; margin-bottom: 30px; }
 
-html {
-  scroll-behavior: smooth;
-}
+        .daily-limit-container { background-color: #fff; border-radius: 8px; padding: 15px 20px; margin-bottom: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
+        .limit-text { font-size: 1rem; font-weight: 500; color: #555; margin-bottom: 8px; }
+        .limit-text-small { font-size: 0.85rem; color: #777; margin-top: 4px; }
+        .progress-bar { width: 100%; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: var(--bordo); border-radius: 5px; transition: width 0.3s ease-in-out; }
 
+        .disabled-link { background-color: #a8a8a8 !important; cursor: pointer !important; }
+        .tooltip { visibility: hidden; width: 200px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px 0; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -100px; opacity: 0; transition: opacity 0.2s; }
+        .disabled-link:hover .tooltip { visibility: visible; opacity: 1; }
 
+        /* Estilos do Botão Gerador de IA */
+        .open-ai-generator-wrapper { text-align: center; margin-bottom: 30px; }
+        #open-ai-modal-btn { background: linear-gradient(135deg, #800020, #a83244); color: white; border: none; padding: 15px 30px; font-size: 1.2rem; font-weight: 600; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(128, 0, 32, 0.2); }
+        #open-ai-modal-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(128, 0, 32, 0.3); }
+        #open-ai-modal-btn i { margin-right: 10px; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            margin: 0;
-        }
-        body.no-scroll {
-    overflow: hidden;
-}
-header {
-  background: #fff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px; /* Padding ajustado */
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 2px solid #800020;
-  height: 60px;
-}
+        /* Estilos do Modal de IA */
+        .modal-body .ai-pass-info { font-size: 0.9rem; margin-top: 15px; text-align: center; color: var(--cinza-texto); }
+        .modal-body .ai-pass-info a { color: var(--bordo); font-weight: 600; text-decoration: none; }
+        .modal-body textarea { width: 100%; height: 100px; border-radius: 8px; border: 1px solid #ddd; padding: 15px; font-family: var(--font); font-size: 1rem; margin-bottom: 15px; resize: vertical; }
+        .btn-ai-generate { display: block; width: 100%; background-color: var(--dourado); color: var(--bordo); font-weight: 700; font-size: 1.2rem; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        .btn-ai-generate:hover:not(:disabled) { background-color: #ffed4a; }
+        .btn-ai-generate:disabled { background-color: #ccc; color: #888; cursor: not-allowed; }
 
-.logo {
-  margin-top: 10px;
-  margin-left: -15px;
-  width: 120px;
-  height: 70px;
-  object-fit: contain;
-}
-
-.subheader__back {
-  border: none;
-  background: none;
-  color: #800020;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
-.subheader__back:hover {
-  background: rgba(128, 0, 32, 0.06);
-}
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .search-container {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .search-container input {
-            width: 50%;
-            padding: 12px 20px;
-            border-radius: 25px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-        }
-        .activities-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .activity-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s;
-        }
-        .activity-card:hover {
-            transform: translateY(-5px);
-        }
-        .activity-card h3 {
-            margin: 0 0 10px 0;
-            color: #800020; 
-        }
-        .activity-card p {
-            margin: 0 0 15px 0;
-            flex-grow: 1;
-        }
-        .activity-card .author {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 15px;
-        }
-        .activity-card .btn-primary {
-            display: inline-block;
-            background-color: #800020;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
-        }
-        .no-activities {
-            text-align: center;
-            color: #777;
-            width: 100%;
-        }
-         h2 {
-            color: #4a4a4a;
-            text-align: center;
-            margin-bottom: 30px;
-        }
+        /* Estilos do Modal Genérico */
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .modal { background: white; border-radius: var(--radius); box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 500px; animation: slide-down 0.3s ease-out; }
+        .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin-bottom: 0; color: var(--bordo); font-size: 1.5rem; }
+        .close-button { background: none; border: none; font-size: 2rem; cursor: pointer; color: #888; }
+        .modal-body { padding: 20px 25px; }
+        .modal-body > p.modal-intro-text { margin-bottom: 20px; text-align: center; font-size: 1.1rem; color: var(--cinza-texto); }
+        .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .pass-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; transition: all 0.2s ease; }
+        .pass-card:hover, .pass-card.featured { border-color: var(--bordo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
+        .pass-card.featured { border-width: 2px; position: relative; }
+        .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--bordo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+        .pass-card h4 { font-size: 1.4rem; color: var(--bordo-claro); margin-bottom: 10px; }
+        .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
+        .pass-card p { font-size: 0.9rem; color: var(--cinza-texto); min-height: 54px; }
+        .btn-purchase { display: block; background: var(--verde); color: white; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-purchase:hover { background: #2ecc71; }
+        @keyframes slide-down { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
+    <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header>
        <a href="/">
           <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -140,9 +95,40 @@ header {
         <button class="subheader__back" onclick="history.back()">
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
-      </header>
+    </header>
+
     <div class="container">
-        <h2><i class="fas fa-search"></i> Explorar Atividades</h2>
+        <h2><i class="fas fa-compass"></i> Explorar Atividades</h2>
+        
+        <% if (user && user.tipo === 'aluno') { %>
+            <div class="open-ai-generator-wrapper">
+                <button id="open-ai-modal-btn"><i class="fas fa-magic"></i> Criar Atividade com IA</button>
+            </div>
+
+            <div class="daily-limit-container">
+                <% if (passeAtivo && passeAtivo.passeAtivo) { %>
+                    <% if (passeAtivo.tipo === 'quantidade') { %>
+                        <% if (limiteDiario.limiteAtingido) { %>
+                            <p class="limit-text"><i class="fas fa-ticket-alt"></i> Você está usando seu <strong>Passe de Atividades!</strong></p>
+                            <p class="limit-text-small">Restam <strong><%= passeAtivo.atividadesRestantes %> atividades</strong> no seu passe.</p>
+                        <% } else { %>
+                            <p class="limit-text">Você completou <strong><%= limiteDiario.contagem %> de <%= limiteDiario.limite %></strong> atividades diárias gratuitas.</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></div>
+                            </div>
+                            <p class="limit-text-small">Após o limite, você usará seu <strong>Passe de Atividades</strong> (<%= passeAtivo.atividadesRestantes %> restantes).</p>
+                        <% } %>
+                    <% } else { %>
+                        <p class="limit-text"><i class="fas fa-infinity"></i> Você tem um <strong>Passe de Tempo</strong> ativo! Acesso ilimitado.</p>
+                    <% } %>
+                <% } else { %>
+                    <p class="limit-text">Você completou <strong><%= limiteDiario.contagem %> de <%= limiteDiario.limite %></strong> atividades diárias.</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></div>
+                    </div>
+                <% } %>
+            </div>
+        <% } %>
 
         <div class="search-container">
             <input type="text" id="search-box" placeholder="Pesquisar por título, descrição ou professor...">
@@ -150,12 +136,23 @@ header {
 
         <% if (locals.activities && locals.activities.length > 0) { %>
             <div class="activities-grid">
+                <% 
+                const shouldBlockAndShowModal = user && user.tipo === 'aluno' && limiteDiario.limiteAtingido && (!passeAtivo || !passeAtivo.passeAtivo);
+                %> 
                 <% locals.activities.forEach(activity => { %>
                     <div class="activity-card">
                         <h3><%= activity.title %></h3>
                         <p><%= activity.description %></p>
-                        <p class="author">Criado por: <strong><%= activity.professorNome || 'Professor Anônimo' %></strong></p>
-                        <a href="/ver_atividade/<%= activity.id %>" class="btn-primary">Ver Atividade</a>
+                        <p class="author">Criado por: <strong><%= activity.professorNome || 'Usuário Desconhecido' %></strong></p>
+                        
+                        <% if (shouldBlockAndShowModal) { %>
+                            <a href="#" class="btn-primary disabled-link" onclick="openPurchaseModal(event)">
+                                Ver Atividade
+                                <span class="tooltip">Limite atingido. Compre um passe!</span>
+                            </a>
+                        <% } else { %>
+                            <a href="/ver_atividade/<%= activity.id %>" class="btn-primary">Ver Atividade</a>
+                        <% } %>
                     </div>
                 <% }); %>
             </div>
@@ -164,20 +161,154 @@ header {
         <% } %>
     </div>
 
+    <% if (user && user.tipo === 'aluno') { %>
+        <!-- Modal de Compra de Passe -->
+        <div id="purchaseModal" class="modal-backdrop" style="display: none;">
+            <div class="modal" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h2>Limite Atingido!</h2>
+                    <button class="close-button" onclick="closePurchaseModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-intro-text">Você alcançou seu limite de atividades gratuitas. Adquira um Passe de Estudos para continuar aprendendo!</p>
+                    <div class="pass-options">
+                        <div class="pass-card">
+                            <h4>Passe +10</h4>
+                            <p>+10 atividades para usar quando quiser.</p>
+                            <p class="price">R$ 10,00</p>
+                            <a href="/comprar-passe/quantidade_10" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                        <div class="pass-card featured">
+                            <h4>Passe Diário</h4>
+                            <p>Atividades ilimitadas pelas próximas 24 horas.</p>
+                            <p class="price">R$ 15,00</p>
+                            <a href="/comprar-passe/diario" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                        <div class="pass-card">
+                            <h4>Passe Semanal</h4>
+                            <p>Atividades ilimitadas por 7 dias.</p>
+                            <p class="price">R$ 25,00</p>
+                            <a href="/comprar-passe/semanal" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal do Gerador de IA -->
+        <div id="aiGeneratorModal" class="modal-backdrop" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2><i class="fas fa-magic"></i> Criar com IA</h2>
+                    <button class="close-button" onclick="closeAiModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-intro-text">Descreva o que você quer praticar e a IA criará uma atividade para você.</p>
+                    <textarea id="ai-prompt" placeholder="Ex: 5 questões de múltipla escolha sobre equações de segundo grau, com alternativas e respostas."></textarea>
+                    <button id="btn-generate-ai" class="btn-ai-generate" <%= !(passeAtivo && passeAtivo.passeAtivo) ? 'disabled' : '' %>>
+                        <i class="fas fa-bolt"></i> Gerar Atividade
+                    </button>
+                    <% if (!(passeAtivo && passeAtivo.passeAtivo)) { %>
+                        <p class="ai-pass-info">Você precisa de um <a href="#" onclick="openPurchaseModal(event); closeAiModal();">Passe de Estudos</a> para usar esta função.</p>
+                    <% } else if (passeAtivo.tipo === 'quantidade') { %>
+                        <p class="ai-pass-info">Isso consumirá <strong>1 atividade</strong> do seu passe (<%= passeAtivo.atividadesRestantes %> restantes).</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <script src="../js/accessibility.js"></script>
     <script>
-        document.getElementById('search-box').addEventListener('keyup', function() {
-            let filter = this.value.toLowerCase();
-            let cards = document.querySelectorAll('.activity-card');
-            cards.forEach(card => {
-                let title = card.querySelector('h3').textContent.toLowerCase();
-                let description = card.querySelector('p').textContent.toLowerCase();
-                let author = card.querySelector('.author').textContent.toLowerCase();
-                if (title.includes(filter) || description.includes(filter) || author.includes(filter)) {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Search box logic
+            const searchBox = document.getElementById('search-box');
+            if(searchBox) {
+                searchBox.addEventListener('keyup', function() {
+                    let filter = this.value.toLowerCase();
+                    let cards = document.querySelectorAll('.activity-card');
+                    cards.forEach(card => {
+                        let title = card.querySelector('h3').textContent.toLowerCase();
+                        let description = card.querySelector('p').textContent.toLowerCase();
+                        let author = card.querySelector('.author').textContent.toLowerCase();
+                        if (title.includes(filter) || description.includes(filter) || author.includes(filter)) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // AI Generator Logic
+            const generateBtn = document.getElementById('btn-generate-ai');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', async function() {
+                    const promptText = document.getElementById('ai-prompt').value.trim();
+                    if (!promptText) {
+                        alert('Por favor, descreva a atividade que você deseja criar.');
+                        return;
+                    }
+
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+
+                    try {
+                        const response = await fetch('/atividades/gerar-com-ia', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ prompt: promptText })
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(result.message || 'Falha ao gerar atividade.');
+                        }
+
+                        window.location.href = `/ver_atividade/${result.activityId}`;
+
+                    } catch (error) {
+                        alert(`Erro: ${error.message}`);
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-bolt"></i> Gerar Atividade';
+                    }
+                });
+            }
+
+            // Purchase Modal Logic
+            const purchaseModal = document.getElementById('purchaseModal');
+            window.openPurchaseModal = function(event) {
+                if (event) event.preventDefault();
+                if (purchaseModal) purchaseModal.style.display = 'flex';
+            }
+            window.closePurchaseModal = function() {
+                if (purchaseModal) purchaseModal.style.display = 'none';
+            }
+            if (purchaseModal) {
+                const closeBtn = purchaseModal.querySelector('.close-button');
+                if (closeBtn) closeBtn.addEventListener('click', closePurchaseModal);
+                purchaseModal.addEventListener('click', e => e.target === purchaseModal && closePurchaseModal());
+            }
+
+            // AI Modal Logic
+            const aiModal = document.getElementById('aiGeneratorModal');
+            const openAiBtn = document.getElementById('open-ai-modal-btn');
+            window.openAiModal = function(event) {
+                if (event) event.preventDefault();
+                if (aiModal) aiModal.style.display = 'flex';
+            }
+            window.closeAiModal = function() {
+                if (aiModal) aiModal.style.display = 'none';
+            }
+            if (openAiBtn) {
+                openAiBtn.addEventListener('click', openAiModal);
+            }
+            if (aiModal) {
+                const closeBtn = aiModal.querySelector('.close-button');
+                if (closeBtn) closeBtn.addEventListener('click', closeAiModal);
+                aiModal.addEventListener('click', e => e.target === aiModal && closeAiModal());
+            }
         });
     </script>
 </body>

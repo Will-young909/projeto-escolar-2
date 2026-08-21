@@ -10,9 +10,8 @@ const MODEL_PATH = `file://${path.join(__dirname, '../../', MODEL_DIR, 'model.js
 
 let modeloCarregado = null;
 
-// Constantes para os gatilhos de intervenção
-const PROFICIENCIA_MINIMA_PARA_INTERVENCAO = 0.40; // Se a proficiência cair abaixo de 40%
-const ERROS_CONSECUTIVOS_PARA_INTERVENCAO = 3;    // Ou se o aluno errar 3x seguidas
+const PROFICIENCIA_MINIMA_PARA_INTERVENCAO = 0.40;
+const ERROS_CONSECUTIVOS_PARA_INTERVENCAO = 3;
 
 const AnalisePedagogicaService = {
 
@@ -39,7 +38,29 @@ const AnalisePedagogicaService = {
         }
     },
 
-    // ... (resto do código do serviço permanece o mesmo)
+    async reforcarHabilidade(pool, alunoId, habilidadeId, trilhaId, ordemCounter) {
+        console.log(`[Serviço de Análise] Reforçando habilidade ${habilidadeId} para o aluno ${alunoId}`);
+        const [sessaoResult] = await pool.query(
+            'INSERT INTO sessoes_adaptativas (aluno_id, habilidade_foco_id, tipo_sessao) VALUES (?, ?, ?)',
+            [alunoId, habilidadeId, 'reforco']
+        );
+        const sessaoId = sessaoResult.insertId;
+
+        const [questoes] = await pool.query(
+            'SELECT id FROM questoes WHERE habilidade_id = ? AND dificuldade = ? ORDER BY RAND() LIMIT 2',
+            [habilidadeId, 'facil']
+        );
+
+        let currentOrder = ordemCounter;
+        for (const questao of questoes) {
+            await pool.query(
+                'INSERT INTO trilha_itens (trilha_id, sessao_id, questao_id, status, ordem, bloco) VALUES (?, ?, ?, ?, ?, ?)',
+                [trilhaId, sessaoId, questao.id, 'pendente', currentOrder, 'revisao']
+            );
+            currentOrder++;
+        }
+    },
+
     async preverChanceDeErro(alunoId, habilidadeId) {
         try {
             if (!modeloCarregado) {

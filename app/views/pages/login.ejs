@@ -71,21 +71,6 @@
                 </p>
             </section>
 
-            <section class="form-group">
-                <label for="tipo"><i class="fas fa-graduation-cap"></i> Eu sou: *</label>
-                <select id="tipo" name="tipo" required
-                    class="<%= erros?.tipo ? 'invalid' : '' %>"
-                    aria-invalid="<%= erros?.tipo ? 'true' : 'false' %>"
-                    aria-describedby="err-tipo">
-                    <option value="" disabled <%= !dados?.tipo ? 'selected' : '' %>>Selecione se é Aluno ou Professor</option>
-                    <option value="aluno" <%= dados?.tipo === 'aluno' ? 'selected' : '' %>>Aluno</option>
-                    <option value="professor" <%= dados?.tipo === 'professor' ? 'selected' : '' %>>Professor</option>
-                </select>
-                <p id="err-tipo" class="error-feedback" aria-live="polite">
-                    <%= erros?.tipo?.msg || '' %>
-                </p>
-            </section>
-
             <button type="submit" class="btn-primary" id="btn-submit">
                 <i class="fas fa-sign-in-alt"></i> Fazer Login
             </button>
@@ -99,11 +84,9 @@
     </main>
     <script>
         (function () {
-            // Alterado o ID do formulário para 'loginForm' e a variável para 'form'
             const form = document.getElementById('loginForm');
             const submitButton = document.getElementById('btn-submit');
             
-            // Reutilizando a função de validação (mantendo a lógica original do submit)
             function validateField(input) {
                 let errorMsg = '';
                 let isValid = true;
@@ -116,11 +99,7 @@
                         errorMsg = 'Por favor, insira um email válido.';
                         isValid = false;
                     }
-                } else if (input.id === 'tipo' && !input.value) {
-                    errorMsg = 'Selecione um tipo (Aluno ou Professor).';
-                    isValid = false;
                 }
-                // Nota: A validação de minlength (6) para a senha é tratada pela tag HTML minlength
                 
                 return { isValid, errorMsg };
             }
@@ -128,27 +107,23 @@
             form.addEventListener('submit', function (e) {
                 const campos = {
                     email: document.getElementById('email'),
-                    senha: document.getElementById('senha'),
-                    tipo: document.getElementById('tipo')
+                    senha: document.getElementById('senha')
                 };
 
-                // Limpa mensagens e estilos anteriores
                 Object.values(campos).forEach(el => el && el.classList && el.classList.remove('invalid', 'valid'));
-                ['err-email', 'err-senha', 'err-tipo'].forEach(id => {
+                ['err-email', 'err-senha'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = '';
                 });
 
                 let hasErrors = false;
                 
-                // Validações
                 Object.keys(campos).forEach(key => {
                     const input = campos[key];
                     if (!input) return;
 
                     const { isValid, errorMsg } = validateField(input);
                     
-                    // Validação extra para senha (minlength)
                     if (key === 'senha' && input.value.length > 0 && input.value.length < 6) {
                         hasErrors = true;
                         input.classList.add('invalid');
@@ -176,21 +151,18 @@
                     return;
                 }
 
-                // Bloqueia múltiplos envios
                 if (submitButton) {
                     submitButton.disabled = true;
                     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
                 }
             });
 
-            // Feedback visual dinâmico
             form.querySelectorAll('input, textarea, select').forEach(input => {
                 input.addEventListener('input', () => {
                     const { isValid, errorMsg } = validateField(input);
                     const feedback = document.getElementById('err-' + input.id);
                     input.classList.remove('invalid', 'valid');
 
-                    // Lógica para senha (minlength)
                     let isSenhaInvalid = false;
                     if (input.id === 'senha' && input.value.length > 0 && input.value.length < 6) {
                         isSenhaInvalid = true;
@@ -198,14 +170,13 @@
 
                     if ((!isValid || isSenhaInvalid) && input.value.trim() !== '') {
                         input.classList.add('invalid');
-                         // Exibe a mensagem de erro específica para senha
                         if(isSenhaInvalid && feedback) feedback.textContent = 'A senha deve ter pelo menos 6 caracteres.';
                         else if(feedback) feedback.textContent = errorMsg;
                     } else if (isValid && input.value.trim() !== '') {
                         input.classList.add('valid');
                         if (feedback) feedback.textContent = '';
                     } else {
-                        if (feedback) feedback.textContent = ''; // Limpa quando vazio
+                        if (feedback) feedback.textContent = '';
                     }
                 });
             });

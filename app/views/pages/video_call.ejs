@@ -9,12 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/video_call.css" />
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" type="image/png"/>
   <link rel="manifest" href="/manifest.json" />
   <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
 </head>
 
 <body>
+  <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
 
   <main class="video-container" role="main">
     <!-- Header com gestos swipe -->
@@ -101,6 +103,7 @@
     <div id="toastContainer" class="toast-container"></div>
   </main>
 
+  <script src="../js/accessibility.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();

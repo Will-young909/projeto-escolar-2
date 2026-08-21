@@ -7,9 +7,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/politica.css" />
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 <body>
+  <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
   <header>
     <a href="/" class="logo-link">
         <img src="/imagens/RM_bordo.png" alt="Logo RegiMath" class="logo">
@@ -113,6 +115,7 @@
     <p>Precisa de ajuda? <a href="mailto:regimath.equipe@gmail.com"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm320-280L160-640v400h640v-400L480-440Zm0-80 320-200H160l320 200ZM160-640v-80 480-400Z"/></svg> Contate-nos</a></p>
   </footer>
 
+  <script src="../js/accessibility.js"></script>
   <script>
     const menuBtn = document.getElementById('menu-btn');
     const menu = document.getElementById('menu');

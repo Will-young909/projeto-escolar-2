@@ -241,57 +241,85 @@
 
     <!-- MODERAÇÃO -->
     <section class="content-page" id="page-moderation">
-      <section class="card">
-        <h2 class="section-title">Denúncias Recebidas (<%= (denuncias || []).length %>)</h2>
-        <section class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Título</th>
-                <th>Prioridade</th>
-                <th>Status</th>
-                <th>Contato</th>
-                <th>Enviada em</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% if (denuncias && denuncias.length > 0) { %>
-                <% denuncias.forEach(denuncia => { %>
-                  <tr>
-                    <td>#<%= denuncia.id %></td>
-                    <td><%= denuncia.tipo %></td>
-                    <td>
-                      <strong><%= denuncia.titulo %></strong><br>
-                      <small><%= denuncia.descricao && denuncia.descricao.length > 120 ? denuncia.descricao.slice(0, 120) + '...' : denuncia.descricao %></small>
-                      <% if (denuncia.evidencia) { %><br><a href="<%= denuncia.evidencia %>" target="_blank" rel="noopener">Ver evidência</a><% } %>
-                    </td>
-                    <td><span class="status-badge status-<%= denuncia.prioridade %>"><%= denuncia.prioridade %></span></td>
-                    <td><span class="status-badge status-<%= denuncia.status %>"><%= denuncia.status %></span></td>
-                    <td><%= denuncia.anonimo ? 'Anônimo' : (denuncia.email || 'Não informado') %></td>
-                    <td><%= new Date(denuncia.criado_em).toLocaleString('pt-BR') %></td>
-                    <td class="actions-buttons">
-                      <form action="/admin/denuncias/<%= denuncia.id %>/status" method="POST" style="display:inline-flex; gap: 6px; align-items:center;">
-                        <select name="status" aria-label="Status da denúncia <%= denuncia.id %>">
-                          <option value="aberta" <%= denuncia.status === 'aberta' ? 'selected' : '' %>>Aberta</option>
-                          <option value="em_analise" <%= denuncia.status === 'em_analise' ? 'selected' : '' %>>Em análise</option>
-                          <option value="resolvida" <%= denuncia.status === 'resolvida' ? 'selected' : '' %>>Resolvida</option>
-                        </select>
-                        <button type="submit" class="btn btn-primary">Salvar</button>
-                      </form>
-                    </td>
-                  </tr>
-                <% }); %>
-              <% } else { %>
-                <tr><td colspan="8">Nenhuma denúncia recebida.</td></tr>
-              <% } %>
-            </tbody>
-          </table>
+        <section class="card">
+            <h2 class="section-title">Denúncias Recebidas (<%= (denuncias || []).length %>)</h2>
+            <section class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Título</th>
+                            <th>Status</th>
+                            <th>Enviada em</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (denuncias && denuncias.length > 0) { %>
+                            <% denuncias.forEach(denuncia => { %>
+                                <tr class="status-<%= denuncia.status.toLowerCase() %>">
+                                    <td>#<%= denuncia.id %></td>
+                                    <td><%= denuncia.tipo %></td>
+                                    <td><%= denuncia.titulo %></td>
+                                    <td><span class="status-badge status-<%= denuncia.status.toLowerCase().replace(' ', '-') %>"><%= denuncia.status %></span></td>
+                                    <td><%= new Date(denuncia.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
+                                    <td class="actions-buttons">
+                                        <button class="btn btn-primary" onclick='openDenunciaModal(<%- JSON.stringify(denuncia) %>)'>Ver Detalhes</button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr><td colspan="6">Nenhuma denúncia recebida.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </section>
         </section>
-      </section>
     </section>
+
+    <!-- MODAL DA DENÚNCIA -->
+    <div id="denuncia-modal" class="modal">
+        <div class="modal-content">
+            <div class="close-button-space">
+                <span class="close-button">&times;</span>
+            </div>
+            <h2 id="modal-title"></h2>
+            <div class="modal-body">
+                <p><strong>ID da Denúncia:</strong> <span id="modal-id"></span></p>
+                <p><strong>Status:</strong> <span id="modal-status" class="status-badge"></span></p>
+                <p><strong>Tipo:</strong> <span id="modal-tipo"></span></p>
+                <p><strong>Data:</strong> <span id="modal-data"></span></p>
+                <p><strong>Descrição:</strong></p>
+                <p id="modal-descricao" class="descricao-box"></p>
+                <p><strong>Item denunciado:</strong> <span id="modal-item-denunciado"></span></p>
+
+
+                <div id="denunciante-info"></div>
+                <div id="denunciado-info"></div>
+                <div id="conteudo-info"></div>
+
+                <p><strong>Conteúdo do Comentário:</strong></p>
+                <p id="modal-comment-content" class="descricao-box"></p>
+
+                <div id="evidencia-info"></div>
+
+                <hr>
+
+                <div id="historico-denuncia">
+                    <h4>Histórico de Ações</h4>
+                    <ul id="historico-lista"></ul>
+                </div>
+
+                <hr>
+
+                <div class="admin-actions">
+                    <h4>Ações de Moderação</h4>
+                    <form id="denuncia-actions-form"></form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- CONFIGURAÇÕES -->
     <section class="content-page" id="page-settings">
@@ -315,6 +343,179 @@
 
   <!-- Scripts -->
   <script>
+    async function openDenunciaModal(denuncia) {
+        document.getElementById('modal-title').innerText = `Detalhes da Denúncia: ${denuncia.titulo}`;
+        document.getElementById('modal-id').innerText = `#${denuncia.id}`;
+        document.getElementById('modal-tipo').innerText = denuncia.tipo;
+        document.getElementById('modal-descricao').innerText = denuncia.descricao;
+        
+        const statusEl = document.getElementById('modal-status');
+        statusEl.innerText = denuncia.status;
+        statusEl.className = `status-badge status-${denuncia.status.toLowerCase().replace(' ', '-')}`;
+
+        document.getElementById('modal-data').innerText = new Date(denuncia.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+        const getUserType = async (userId) => {
+            if (!userId) return null;
+            try {
+                const response = await fetch(`/api/user-type/${userId}`);
+                if (!response.ok) return null;
+                const data = await response.json();
+                return data.tipo;
+            } catch (error) {
+                console.error(`Erro ao buscar tipo do usuário ${userId}:`, error);
+                return null;
+            }
+        };
+
+        const denuncianteInfoEl = document.getElementById('denunciante-info');
+        denuncianteInfoEl.innerHTML = '<p><strong>Denunciante:</strong> Carregando...</p>';
+        if (denuncia.anonimo) {
+            denuncianteInfoEl.innerHTML = `<p><strong>Denunciante:</strong> Anônimo</p>`;
+        } else if (denuncia.denunciante_id) {
+            const userType = await getUserType(denuncia.denunciante_id);
+            let denuncianteHtml = `<p><strong>Denunciante:</strong> ${denuncia.denunciante_nome || 'Usuário não encontrado'} (Tipo: ${userType || 'N/A'})`;
+            if (userType === 'professor') {
+                denuncianteHtml += ` (<a href="/exibir_prof/${denuncia.denunciante_id}" target="_blank">Ver Perfil</a>)`;
+            }
+            denuncianteHtml += `</p>`;
+            denuncianteInfoEl.innerHTML = denuncianteHtml;
+        }
+
+        const denunciadoInfoEl = document.getElementById('denunciado-info');
+        denunciadoInfoEl.innerHTML = '';
+        if (denuncia.denunciado_id) {
+            denunciadoInfoEl.innerHTML = '<p><strong>Denunciado:</strong> Carregando...</p>';
+            const userType = await getUserType(denuncia.denunciado_id);
+            let denunciadoHtml = `<p><strong>Denunciado:</strong> ${denuncia.denunciado_nome || 'Usuário não encontrado'} (Tipo: ${userType || 'N/A'})`;
+            if (userType === 'professor') {
+                denunciadoHtml += ` (<a href="/exibir_prof/${denuncia.denunciado_id}" target="_blank">Ver Perfil</a>)`;
+            }
+            denunciadoHtml += `</p>`;
+            denunciadoInfoEl.innerHTML = denunciadoHtml;
+        }
+
+        const conteudoInfoEl = document.getElementById('conteudo-info');
+        if (denuncia.conteudo_info) {
+            try {
+                const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
+                let link = '';
+                if (info.tipo === 'comentario' && denuncia.professor_id) {
+                    link = `<a href="/exibir_prof/${denuncia.professor_id}#comentario-${info.id}" target="_blank">Ver comentário</a>`;
+                } else if (info.tipo === 'perfil' && denuncia.denunciado_id) {
+                    link = `<a href="/exibir_prof/${denuncia.denunciado_id}" target="_blank">Ver perfil denunciado</a>`;
+                }
+                conteudoInfoEl.innerHTML = `<p><strong>Contexto:</strong> ${info.tipo} (ID: ${info.id}) ${link}</p>`;
+                if (info.tipo === 'comentario') {
+                    document.getElementById('modal-item-denunciado').innerText = 'Comentário';
+                    const commentContentEl = document.getElementById('modal-comment-content');
+                    if (denuncia.comentario_texto) {
+                        commentContentEl.innerText = denuncia.comentario_texto;
+                        commentContentEl.style.display = 'block';
+                    } else {
+                        commentContentEl.style.display = 'none';
+                    }
+                } else {
+                    document.getElementById('modal-comment-content').style.display = 'none';
+                    if (info.tipo === 'perfil') document.getElementById('modal-item-denunciado').innerText = 'Perfil';
+                }
+            } catch(e) { console.error('Erro ao parsear conteudo_info:', e); conteudoInfoEl.innerHTML = ''; }
+        } else {
+            conteudoInfoEl.innerHTML = '';
+        }
+
+        const evidenciaInfoEl = document.getElementById('evidencia-info');
+        if (denuncia.evidencia) {
+            evidenciaInfoEl.innerHTML = `<p><strong>Evidência:</strong> <a href="${denuncia.evidencia}" target="_blank">Abrir link</a></p>`;
+        } else {
+            evidenciaInfoEl.innerHTML = '';
+        }
+
+        const historicoListaEl = document.getElementById('historico-lista');
+        historicoListaEl.innerHTML = '<li>Carregando histórico...</li>';
+        try {
+            const histRes = await fetch(`/admin/denuncias/${denuncia.id}/historico`);
+            if (!histRes.ok) {
+                const errorText = await histRes.text();
+                console.error('Falha ao buscar histórico da denúncia:', histRes.status, errorText);
+                throw new Error(`Servidor respondeu com status ${histRes.status}`);
+            }
+            const historico = await histRes.json();
+            if (Array.isArray(historico) && historico.length > 0) {
+                historicoListaEl.innerHTML = historico.map(h => {
+                    const dataAcao = h.criado_em ? new Date(h.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'data indisponível';
+                    return `<li><strong>${h.acao || 'Ação desconhecida'}</strong> por ${h.usuario_nome || 'Sistema'} em ${dataAcao}: <em>${h.detalhes || '(sem detalhes)'}</em></li>`;
+                }).join('');
+            } else {
+                historicoListaEl.innerHTML = '<li>Nenhuma ação registrada.</li>';
+            }
+        } catch(e) {
+            console.error('Erro ao processar o histórico da denúncia:', e);
+            historicoListaEl.innerHTML = '<li>Erro ao carregar histórico. Verifique o console para mais detalhes.</li>';
+        }
+
+        const actionsFormEl = document.getElementById('denuncia-actions-form');
+        actionsFormEl.innerHTML = `
+            <input type="hidden" name="denunciaId" value="${denuncia.id}">
+            <input type="hidden" name="userId" value="${denuncia.denunciado_id}">
+            
+            <div class="form-group-row">
+                <div class="form-group">
+                    <label>Mudar Status:</label>
+                    <select name="status">
+                        <option value="aberta" ${denuncia.status === 'aberta' ? 'selected' : ''}>Aberta</option>
+                        <option value="em_analise" ${denuncia.status === 'em_analise' ? 'selected' : ''}>Em Análise</option>
+                        <option value="resolvida" ${denuncia.status === 'resolvida' ? 'selected' : ''}>Resolvida</option>
+                        <option value="rejeitada" ${denuncia.status === 'rejeitada' ? 'selected' : ''}>Rejeitada</option>
+                    </select>
+                </div>
+                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/status" formmethod="POST" class="btn btn-primary">Atualizar</button>
+            </div>
+            <hr>
+            <div class="form-group">
+                <label>Advertir Usuário:</label>
+                <textarea name="message" placeholder="Mensagem de advertência para o usuário..."></textarea>
+                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/warn" formmethod="POST" class="btn btn-warning">Advertir</button>
+            </div>
+            <hr>
+            <div class="form-group">
+                <label>Suspender Usuário:</label>
+                <input type="number" name="duration" placeholder="Dias de suspensão (ex: 7)" min="1">
+                <textarea name="reason" placeholder="Motivo da suspensão para o usuário..."></textarea>
+                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/suspend" formmethod="POST" class="btn btn-danger">Suspender</button>
+            </div>
+            <hr>
+            <div class="form-group">
+                <label>Banir Usuário:</label>
+                <textarea name="reasonBan" placeholder="Motivo do banimento para o usuário..."></textarea>
+                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/ban" formmethod="POST" class="btn btn-danger">Banir Permanentemente</button>
+            </div>
+             <hr>
+            <div class="form-group">
+                <label>Adicionar Observação Interna:</label>
+                <textarea name="note" placeholder="Observação visível apenas para admins..."></textarea>
+                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/note" formmethod="POST" class="btn btn-primary">Salvar Nota</button>
+            </div>
+        `;
+        if (denuncia.conteudo_info) {
+            const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
+            if (info.tipo === 'comentario') {
+                const deleteButton = `<button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/delete-comment" formmethod="POST" class="btn btn-danger">Excluir Comentário</button>`;
+                actionsFormEl.innerHTML += deleteButton;
+            }
+        }
+
+        const modal = document.getElementById('denuncia-modal');
+        modal.style.display = 'block';
+
+        const closeButton = document.querySelector('#denuncia-modal .close-button');
+        closeButton.onclick = function() { modal.style.display = 'none'; }
+
+        window.onclick = function(event) {
+            if (event.target == modal) { modal.style.display = 'none'; }
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const menuBtn = document.getElementById('menu-btn');
       const menu = document.getElementById('menu');
@@ -326,7 +527,6 @@
       const pages = document.querySelectorAll('.content-page');
       const pageTitle = document.getElementById('page-title');
 
-      // === Menu Mobile (Existing Code) ===
       const toggleMobileMenu = () => {
         menu.classList.toggle('active');
         overlay.classList.toggle('active');
@@ -334,7 +534,6 @@
       };
       [menuBtn, overlay, closeBtn].forEach(el => el?.addEventListener('click', toggleMobileMenu));
 
-      // === Collapsible Menu (Existing Code) ===
       if (toggleBtn) {
         const isCollapsed = localStorage.getItem('adminMenuCollapsed') === 'true';
         if (isCollapsed) {
@@ -349,7 +548,6 @@
         });
       }
 
-      // === Page Switching (Existing Code) ===
       const showPage = (targetId) => {
         pages.forEach(p => p.classList.toggle('active', p.id === targetId.substring(1)));
         navLinks.forEach(l => {
@@ -357,7 +555,6 @@
           l.classList.toggle('active', active);
           if (active && pageTitle) pageTitle.textContent = l.querySelector('.label').textContent;
         });
-        // This check prevents the URL hash from being cleared on initial load
         if (window.location.hash !== targetId) {
             window.history.pushState(null, '', targetId);
         }
@@ -373,7 +570,6 @@
         });
       });
 
-      // === Fetch and Display Real-Time KPIs ===
       const formatCurrency = (value) => {
           return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
       };
@@ -388,10 +584,15 @@
               document.getElementById('kpi-pending-payments').textContent = formatCurrency(data.pendingPayments);
               document.getElementById('kpi-new-students').textContent = data.newStudents;
               document.getElementById('kpi-completed-classes').textContent = data.completedClasses;
-              document.getElementById('kpi-open-reports').textContent = data.openReports;
+              document.getElementById('kpi-open-reports').textContent = <%=openReports%>;
               
               const openReportsBadge = document.getElementById('open-reports-badge');
-              if(openReportsBadge) openReportsBadge.textContent = data.openReports;
+              if(openReportsBadge) openReportsBadge.textContent = <%=openReports%>;
+
+               const activityList = document.getElementById('recent-activity-list');
+              if(activityList && data.recentActivities){
+                activityList.innerHTML = data.recentActivities.map(act => `<li><i class="${act.icon}" style="color: ${act.color};"></i> ${act.message}</li>`).join('')
+              }
 
           } catch (error) {
               console.error('Error updating KPIs:', error);
@@ -399,9 +600,7 @@
           }
       };
 
-      // Load initial page and data
-      const currentHash = window.location.hash || '#page-dashboard';
-      // Ensure the correct page is shown on load, especially after form submission
+      const currentHash = window.location.hash || '#page-users';
       if (currentHash && document.querySelector(currentHash)) {
           showPage(currentHash);
       } else {

@@ -8,19 +8,110 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="/css/atividades.css">
     <style>
+        /* ESTILOS EXISTENTES */
         .question { margin-bottom: 20px; }
         .options label { display: block; margin-bottom: 10px; }
         .result { margin-top: 20px; font-weight: bold; }
         .correct { color: green; }
         .incorrect { color: red; }
+
+        /* NOVOS ESTILOS PARA DICAS E MODAIS */
+        :root {
+            --bordo: #800020;
+            --bordo-claro: #a83244;
+            --dourado: #ffd700;
+            --branco: #fff;
+            --cinza-fundo: #f7f8fa;
+            --cinza-texto: #555;
+            --verde: #27ae60;
+            --azul-dica: #3498db;
+            --radius: 12px;
+        }
+
+        body.no-scroll { overflow: hidden; }
+
+        /* Botão de Dica */
+        .btn-dica {
+            background-color: var(--azul-dica);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            margin-top: 15px;
+        }
+        .btn-dica:hover { background-color: #2980b9; }
+        .btn-dica:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-dica .fa-spinner { animation: spin 1s linear infinite; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Container da Dica */
+        .dica-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #eaf5fd;
+            border-radius: 8px;
+            border: 1px solid var(--azul-dica);
+            color: #2c3e50;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            display: none; /* Começa escondido */
+        }
+        .dica-container p { margin: 0; }
+        .dica-container::before {
+            content: "\f0eb";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 10px;
+            color: var(--azul-dica);
+        }
+
+        /* Estilos dos Modais */
+        .modal-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
+        }
+        .modal-backdrop.visible { opacity: 1; visibility: visible; }
+        .modal {
+            background: white; border-radius: var(--radius);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%; max-width: 500px;
+            transform: translateY(-30px);
+            transition: transform 0.3s ease-out;
+        }
+        .modal-backdrop.visible .modal { transform: translateY(0); }
+        .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin-bottom: 0; color: var(--bordo); }
+        .close-button { background: none; border: none; font-size: 2rem; cursor: pointer; color: #888; }
+        .modal-body { padding: 25px; text-align: center; }
+        .modal-body p { margin-bottom: 20px; font-size: 1.1rem; color: var(--cinza-texto); }
+        .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-modal { padding: 10px 20px; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-confirm { background-color: var(--verde); color: white; }
+        .btn-confirm:hover { background-color: #2ecc71; }
+        .btn-cancel { background-color: #eee; color: #333; }
+        .btn-cancel:hover { background-color: #ddd; }
+        .pass-options-modal { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; text-align: left; }
+        .pass-card-modal { border: 1px solid #ddd; border-radius: 8px; padding: 15px; transition: all 0.2s; text-decoration: none; color: inherit; display: block;}
+        .pass-card-modal:hover { border-color: var(--bordo); }
+        .pass-card-modal h4 { font-size: 1.2rem; color: var(--bordo-claro); margin-bottom: 5px; }
+        .pass-card-modal p { font-size: 0.9rem; margin: 0; }
     </style>
 </head>
 <body>
-    <header>
+    <header class="header">
         <a href="/">
            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
          </a>
-         </button>
        </header>
     <main class="atividades-container">
         <div class="form-builder-card" style="max-width: 800px; margin: auto;">
@@ -51,6 +142,16 @@
                                     <textarea name="answers[<%= index %>]" class="form-control" rows="4"></textarea>
                                 <% } %>
                             </div>
+
+                            <!-- INÍCIO DA INSERÇÃO: Botão de Dica -->
+                            <% if (locals.user && locals.user.tipo === 'aluno') { %>
+                                <button type="button" class="btn-dica" data-question-index="<%= index %>">
+                                    <i class="fas fa-lightbulb"></i> Solicitar Dica
+                                </button>
+                                <div class="dica-container" id="dica-container-<%= index %>"></div>
+                            <% } %>
+                            <!-- FIM DA INSERÇÃO: Botão de Dica -->
+
                         </div>
                     <% }); %>
                     <button type="submit" class="btn-primary">Finalizar Atividade</button>
@@ -68,9 +169,60 @@
         </div>
     </main>
 
+    <!-- INÍCIO DA INSERÇÃO: Modais para Dicas -->
+    <% if (locals.user && locals.user.tipo === 'aluno') { %>
+        <div id="activatePassModal" class="modal-backdrop">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-star"></i> Benefício Exclusivo</h3>
+                    <button type="button" class="close-button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>As dicas são um benefício para usuários com <strong>Passe de Estudos</strong>.</p>
+                    <p>Você tem um passe disponível! Deseja ativá-lo para esta atividade e ter acesso a todas as dicas?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-cancel">Agora não</button>
+                    <button type="button" id="confirmActivatePass" class="btn-modal btn-confirm">Sim, ativar!</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="purchasePassModal" class="modal-backdrop">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3><i class="fas fa-unlock-alt"></i> Desbloqueie as Dicas</h3>
+                    <button type="button" class="close-button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>As dicas são um benefício exclusivo dos <strong>Passes de Estudos</strong>. Adquira um para continuar!</p>
+                    <div class="pass-options-modal">
+                        <a href="/comprar-passe/quantidade_10" class="pass-card-modal">
+                            <h4>Passe +10 (R$ 10,00)</h4>
+                            <p>+10 atividades para usar quando quiser.</p>
+                        </a>
+                        <a href="/comprar-passe/diario" class="pass-card-modal">
+                            <h4>Passe Diário (R$ 15,00)</h4>
+                            <p>Atividades ilimitadas por 24 horas.</p>
+                        </a>
+                         <a href="/comprar-passe/semanal" class="pass-card-modal">
+                            <h4>Passe Semanal (R$ 25,00)</h4>
+                            <p>Atividades ilimitadas por 7 dias.</p>
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-cancel">Continuar sem dica</button>
+                </div>
+            </div>
+        </div>
+    <% } %>
+    <!-- FIM DA INSERÇÃO: Modais -->
+
     <script>
         const isTest = <%- JSON.stringify(activity.isTest || false) %>;
 
+        // SCRIPT ANTIGO E IMPORTANTE (INTOCADO)
         if (false && !isTest) {
             document.getElementById('activity-form')?.addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -115,13 +267,125 @@
                 document.getElementById('score').innerText = `Você acertou ${score} de ${totalQuestions} questões.`;
                 document.getElementById('result-container').style.display = 'block';
 
-                // Desabilita o formulário após a submissão
                 const formElements = document.getElementById('activity-form').elements;
                 for (let i = 0; i < formElements.length; i++) {
                     formElements[i].disabled = true;
                 }
             });
         }
+
+        // INÍCIO DA INSERÇÃO: Novo Script para Dicas
+        const user = <%- JSON.stringify(locals.user || null) %>;
+        if (user && user.tipo === 'aluno') {
+            const pageData = {
+                activityId: '<%= activity.id %>',
+                isUsingPass: <%= locals.usouPasseNaAtividade || false %>,
+                hasAvailablePass: <%- JSON.stringify(locals.passeDisponivel || { passeAtivo: false }) %>,
+                hintsUnlocked: <%= locals.usouPasseNaAtividade || false %>
+            };
+
+            let activeQuestionIndex = null;
+
+            function openModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.add('visible');
+                    document.body.classList.add('no-scroll');
+                }
+            }
+
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if(modal) {
+                    modal.classList.remove('visible');
+                    document.body.classList.remove('no-scroll');
+                }
+            }
+
+            async function fetchHint(questionIndex) {
+                const button = document.querySelector(`.btn-dica[data-question-index="${questionIndex}"]`);
+                const hintContainer = document.getElementById(`dica-container-${questionIndex}`);
+                
+                if (!button || !hintContainer) return;
+
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner"></i> Gerando...';
+
+                try {
+                    const response = await fetch(`/api/atividade/${pageData.activityId}/dica/${questionIndex}`);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: 'Não foi possível obter a dica.' }));
+                        throw new Error(errorData.message);
+                    }
+                    const data = await response.json();
+
+                    hintContainer.innerHTML = `<p>${data.dica}</p>`;
+                    hintContainer.style.display = 'block';
+                    button.style.display = 'none';
+
+                } catch (error) {
+                    console.error("Erro ao buscar dica:", error);
+                    hintContainer.innerHTML = `<p><strong>Erro:</strong> ${error.message}</p>`;
+                    hintContainer.style.display = 'block';
+                    button.innerHTML = '<i class="fas fa-lightbulb"></i> Tentar Novamente';
+                    button.disabled = false;
+                }
+            }
+
+            document.querySelectorAll('.btn-dica').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const questionIndex = event.currentTarget.dataset.questionIndex;
+                    activeQuestionIndex = questionIndex;
+
+                    if (pageData.hintsUnlocked) {
+                        fetchHint(questionIndex);
+                    } else if (pageData.hasAvailablePass.passeAtivo) {
+                        openModal('activatePassModal');
+                    } else {
+                        openModal('purchasePassModal');
+                    }
+                });
+            });
+
+            document.getElementById('confirmActivatePass')?.addEventListener('click', async () => {
+                const button = document.getElementById('confirmActivatePass');
+                button.disabled = true;
+                button.textContent = 'Ativando...';
+
+                try {
+                    const response = await fetch('/api/passe/ativar-para-dicas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ activityId: pageData.activityId })
+                    });
+
+                    if (!response.ok) throw new Error('Falha ao ativar o passe.');
+
+                    pageData.hintsUnlocked = true;
+                    closeModal('activatePassModal');
+                    
+                    if (activeQuestionIndex !== null) {
+                        fetchHint(activeQuestionIndex);
+                    }
+                } catch (error) {
+                    console.error("Erro ao ativar passe:", error);
+                    alert('Ocorreu um erro ao ativar seu passe. Por favor, recarregue a página e tente novamente.');
+                    button.disabled = false;
+                    button.textContent = 'Sim, ativar!';
+                }
+            });
+
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+                backdrop.addEventListener('click', function(event) {
+                    if (event.target === this) closeModal(this.id);
+                });
+                const closeButton = backdrop.querySelector('.close-button, .btn-cancel');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => closeModal(backdrop.id));
+                }
+            });
+        }
+        // FIM DA INSERÇÃO: Novo Script para Dicas
     </script>
 </body>
 </html>

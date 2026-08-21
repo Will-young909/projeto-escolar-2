@@ -33,7 +33,7 @@ body.no-scroll {
 
 /* ===== HEADER ===== */
 header {
-  background: var(--color-card);
+  background: #fff;
   box-shadow: var(--shadow);
   display: flex;
   justify-content: space-between;
@@ -70,7 +70,7 @@ nav {
   left: -260px; /* Largura base aumentada para 260px */
   width: 260px;
   height: 100vh;
-  background: #800020;
+  background: var(--color-primary);
   padding-top: 60px; /* Espaço para o header */
   transition: 0.3s;
   z-index: 1002;
@@ -86,11 +86,11 @@ nav.active {
     margin: 0;
 }
 
-.nav-links li {
+.nav-links li, button {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-nav a {
+nav a, nav li button {
   color: #fff;
   text-decoration: none;
   padding: 8px 24px;
@@ -100,7 +100,7 @@ nav a {
 }
 
 nav a:hover {
-  background: #b22222;
+  background: var(--color-secondary);
 }
 
 #close-menu {
@@ -122,7 +122,7 @@ nav a:hover {
   width: 42px;
   height: 42px;
   border-radius: 8px;
-  background: #800020;
+  background: var(--color-primary);
   border: 2px solid rgba(255,255,255,0.2);
   display: none; 
   align-items: center;

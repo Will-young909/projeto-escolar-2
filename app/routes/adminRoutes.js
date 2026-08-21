@@ -20,7 +20,7 @@ const AdminDenunciaController = require('../controllers/AdminDenunciaController'
 router.get('/denuncias', requireAdmin, AdminDenunciaController.getDenuncias);
 router.post('/denuncias/:id/atribuir', requireAdmin, AdminDenunciaController.atribuirDenuncia);
 router.post('/denuncias/:id/status', requireAdmin, AdminDenunciaController.updateStatusDenuncia);
-router.post('/denuncias/:id/resolver', requireAdmin, AdminDenunciaController.resolverDenuncia);
+router.post('/denuncias/:id/resolver', requireAdmin, AdminDenunciaController.approveDenuncia);
 router.get('/denuncias/:id/historico', requireAdmin, AdminDenunciaController.getDenunciaHistorico);
 
 // Financeiro

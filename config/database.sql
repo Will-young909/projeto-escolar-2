@@ -47,6 +47,8 @@ CREATE TABLE alunos (
     nome                    VARCHAR(150) NOT NULL,
     email                   VARCHAR(255) NOT NULL UNIQUE,
     senha                   CHAR(60) NOT NULL,
+    status                  ENUM('ativo', 'suspenso', 'banido') NOT NULL DEFAULT 'ativo',
+    suspenso_ate            TIMESTAMP NULL DEFAULT NULL,
 
     xp_total                INT NOT NULL DEFAULT 0,
     nivel                   INT NOT NULL DEFAULT 1,
@@ -60,6 +62,17 @@ CREATE TABLE alunos (
     atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                 ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+CREATE TABLE passes_estudo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id VARCHAR(255) NOT NULL,
+    tipo ENUM('quantidade', 'diario', 'semanal') NOT NULL,
+    atividades_restantes INT DEFAULT NULL,
+    data_compra TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_validade TIMESTAMP NULL DEFAULT NULL,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id)
+);
+
 
 -- ============================================================
 -- TABELA: PROFESSORES
@@ -78,9 +91,10 @@ CREATE TABLE professores (
                                 'disponivel',
                                 'indisponivel'
                              ) DEFAULT 'disponivel',
-    aprovacao_status        ENUM('pending', 'approved', 'rejected', 'suspended') NOT NULL DEFAULT 'pending',
+    aprovacao_status        ENUM('pending', 'approved', 'rejected', 'suspended', 'banned') NOT NULL DEFAULT 'pending',
     aprovado_por            VARCHAR(255) NULL,
     aprovado_em             TIMESTAMP NULL,
+    suspenso_ate            TIMESTAMP NULL DEFAULT NULL,
     motivo_reprovacao       TEXT NULL,
     pagamentos_bloqueados   BOOLEAN DEFAULT FALSE,
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -88,6 +102,15 @@ CREATE TABLE professores (
                                 ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_prof_aprovado_por FOREIGN KEY (aprovado_por) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id VARCHAR(255) NOT NULL,
+  user_type ENUM(\'aluno\', \'professor\') NOT NULL,
+  token_hash VARCHAR(255) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 -- ============================================================
 -- TABELA: DISCIPLINAS
@@ -333,7 +356,7 @@ CREATE TABLE sessoes_adaptativas (
 -- TABELA: TENTATIVAS DE TESTE
 -- ============================================================
 
-CREATE TABLE tentativas_teste (
+CREATE TABLE IF NOT EXISTS tentativas_teste (
     id                          INT AUTO_INCREMENT PRIMARY KEY,
 
     aluno_id                    VARCHAR(255) NOT NULL,
@@ -355,7 +378,9 @@ CREATE TABLE tentativas_teste (
 
     erros                       INT
                                     NOT NULL DEFAULT 0,
-    data_conclusao TIMESTAMP,
+    data_conclusao              TIMESTAMP,
+    trilha_gerada               BOOLEAN NOT NULL DEFAULT FALSE,
+    usou_passe                  BOOLEAN NOT NULL DEFAULT FALSE,
 
     criado_em                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -838,6 +863,8 @@ CREATE TABLE comentarios (
 
     criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    respondido BOOLEAN DEFAULT FALSE,
+
     CONSTRAINT fk_comentario_professor
         FOREIGN KEY (professor_id)
         REFERENCES professores(id)
@@ -849,15 +876,28 @@ CREATE TABLE comentarios (
         ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE respostas_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    feedback_id INT,
+    professor_id VARCHAR(255),
+    texto_resposta TEXT,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (feedback_id) REFERENCES comentarios(id),
+    FOREIGN KEY (professor_id) REFERENCES professores(id)
+);
+
 -- ============================================================
 -- TABELA: DENÚNCIAS
 -- ============================================================
 
 CREATE TABLE denuncias (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
+    denunciante_id                  VARCHAR(255) NULL,
+    denunciado_id                   VARCHAR(255) NULL, -- ID do usuário (aluno ou professor) que está sendo denunciado
     tipo                            VARCHAR(100) NOT NULL,
     titulo                          VARCHAR(300) NOT NULL,
     descricao                       TEXT NOT NULL,
+    conteudo_info                   JSON NULL, -- Ex: { "tipo": "comentario", "id": 123 }
     email                           VARCHAR(255),
     evidencia                       VARCHAR(500),
     anonimo                         BOOLEAN DEFAULT FALSE,
@@ -945,6 +985,8 @@ CREATE TABLE notificacoes (
     mensagem                        TEXT NOT NULL,
 
     lida                            BOOLEAN DEFAULT FALSE,
+
+    link_relacionado VARCHAR(255) DEFAULT NULL,
 
     criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;

@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
+
   <style>
     :root {
       --roxo: #800020;
@@ -32,7 +35,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: "Poppins", sans-serif;
-      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      background: var(--fundo);
       color: var(--texto);
       min-height: 100vh;
       padding: 1rem;
@@ -52,19 +55,19 @@
 
     .revisao-indicator { display: inline-flex; align-items: center; gap: 0.55rem; background: linear-gradient(135deg, #fff7ed, var(--amarelo-claro)); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.25); padding: 0.75rem 0.95rem; border-radius: 999px; font-size: 0.9rem; font-weight: 700; margin: 1rem 0 1.25rem; box-shadow: 0 8px 18px rgba(245, 158, 11, 0.10); }
     .skill-badge { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(124, 58, 237, 0.08); color: var(--roxo-escuro); border: 1px solid rgba(124, 58, 237, 0.12); padding: 0.55rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin-bottom: 1rem; }
-    .question-box { background: linear-gradient(180deg, #ffffff, #fcfcff); border: 1px solid rgba(124, 58, 237, 0.08); border-radius: var(--raio-sm); padding: 1rem; margin-bottom: 1.25rem; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }
+    .question-box { background: var(--fundo); border: 1px solid rgba(124, 58, 237, 0.08); border-radius: var(--raio-sm); padding: 1rem; margin-bottom: 1.25rem; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }
     .question-box p { font-size: 1rem; line-height: 1.75; color: var(--texto); }
     .options-group { display: grid; gap: 0.85rem; margin-top: 1rem; }
     .option-card { position: relative; }
     .option-card input { position: absolute; opacity: 0; pointer-events: none; }
-    .option-card label { display: flex; align-items: flex-start; gap: 0.85rem; background: #f8fafc; border: 1px solid #e5e7eb; padding: 0.95rem 1rem; border-radius: 14px; cursor: pointer; transition: all var(--transicao); line-height: 1.5; font-size: 0.96rem; }
-    .option-card label:hover { transform: translateY(-2px); border-color: rgba(124, 58, 237, 0.30); box-shadow: var(--sombra-hover); background: #fff; }
+    .option-card label { display: flex; align-items: flex-start; gap: 0.85rem; background: var(--card); border: 1px solid #e5e7eb; padding: 0.95rem 1rem; border-radius: 14px; cursor: pointer; transition: all var(--transicao); line-height: 1.5; font-size: 0.96rem; }
+    .option-card label:hover { transform: translateY(-2px); border-color: rgba(124, 58, 237, 0.30); box-shadow: var(--sombra-hover); background: var(--fundo); }
     .option-card input:checked + label { border-color: var(--roxo); background: rgba(124, 58, 237, 0.08); box-shadow: 0 10px 20px rgba(124, 58, 237, 0.10); }
     .option-card label.correta { border-color: var(--verde); background: #f0fdf4; }
     .option-card label.incorreta { border-color: var(--vermelho); background: #fef2f2; }
     .option-letter { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: white; color: var(--roxo-escuro); font-weight: 800; flex: 0 0 auto; border: 1px solid rgba(124, 58, 237, 0.15); margin-top: 1px; }
     .actions { margin-top: 1.25rem; display: grid; gap: 0.75rem; }
-    .submit-btn { width: 100%; border: none; border-radius: 14px; padding: 0.95rem 1.1rem; background: linear-gradient(135deg, var(--roxo), var(--roxo-claro)); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25); transition: all var(--transicao); }
+    .submit-btn { width: 100%; border: none; border-radius: 14px; padding: 0.95rem 1.1rem; background: var(--roxo); color: white; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 10px 25px rgba(124, 58, 237, 0.25); transition: all var(--transicao); }
     .submit-btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-hover); filter: brightness(1.02); }
     .submit-btn.continuar { background: linear-gradient(135deg, var(--amarelo), #f59e0b); }
 
@@ -88,6 +91,7 @@
   </style>
 </head>
 <body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
   <div class="page-shell">
     <div class="container">
 
@@ -96,7 +100,7 @@
         <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO'].includes(tarefa.tarefaTipo)) { %>
           <% const questao = tarefa.proximaQuestao; %>
           <header class="page-header">
-            <h1 class="page-title"><i class="fa-regular fa-circle-question" style="color: #800020;"></i> Trilha de Aprendizagem</h1>
+            <h1 class="page-title"><i class="fa-regular fa-circle-question" style="color: var(--roxo);"></i> Trilha de Aprendizagem</h1>
             <p class="page-subtitle">Resolva a questão para avançar ou revise um conceito importante.</p>
           </header>
 
@@ -166,6 +170,7 @@
     </div>
   </div>
 
+<script src="../js/accessibility.js"></script>  
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const userId = '<%= user.id %>'; // Injeta o ID do usuário no script

@@ -40,12 +40,23 @@ const DenunciaModel = {
     return rows[0] || null;
   },
 
+  async findByUser(userId) {
+    const [rows] = await pool.query(
+        'SELECT * FROM denuncias WHERE email IN (SELECT email FROM alunos WHERE id = ?) OR email IN (SELECT email FROM professores WHERE id = ?) ORDER BY criado_em DESC',
+        [userId, userId]
+    );
+    return rows;
+  },
+
   async create({ tipo, titulo, descricao, email, evidencia, anonimo }) {
     const [result] = await pool.query(
       `INSERT INTO denuncias (tipo, titulo, descricao, email, evidencia, anonimo, status)
        VALUES (?, ?, ?, ?, ?, ?, 'aberta')`,
       [tipo, titulo, descricao, email || null, evidencia || null, anonimo ? 1 : 0]
     );
+    console.log("ID:", result.insertId);
+    const [rows] = await pool.query('SELECT * FROM denuncias WHERE id = ?', [result.insertId]);
+    console.log(rows[0]);
     return { id: result.insertId };
   },
 

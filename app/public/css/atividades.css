@@ -49,7 +49,7 @@ body {
   position: block;
   top: 0;
   z-index: 100;
-  border-bottom: 2px solid #800020;
+  border-bottom: 2px solid var(--color-primary);
   height: 60px;
 }
 
@@ -64,7 +64,7 @@ body {
 .subheader__back {
   border: none;
   background: none;
-  color: var(--bordo);
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.35rem 0.6rem;
@@ -132,6 +132,7 @@ ESTRUTURA DO FORMULÁRIO
   color: var(--color-text-secondary);
   resize: vertical;
   min-height: 50px;
+  background: var(--color-card-bg);
 }
 
 .form-header textarea:focus {
@@ -175,6 +176,7 @@ BLOCO DE QUESTÃO
   padding: var(--spacing-xs) 0;
   font-size: 1rem;
   font-weight: 500;
+  background-color: var(--color-card-bg);
 }
 
 .question-header input:focus,
@@ -201,6 +203,7 @@ BLOCO DE QUESTÃO
   color: var(--color-text-secondary);
   font-style: italic;
   font-size: 0.95rem;
+  background: var(--color-card-bg);
 }
 
 .correct-answer-input {
@@ -224,14 +227,15 @@ BLOCO DE QUESTÃO
 .option-item input[type="text"] {
   flex-grow: 1;
   border: none;
-  background-color: var(--color-light-gray);
+  background-color: var(--color-card-bg);
+  color: var(--color-text-dark);
   padding: var(--spacing-sm);
   border-radius: 6px;
 }
 
 .option-item input[type="text"]:focus {
   outline: none;
-  background-color: #e0e0e0;
+  background-color: var();
 }
 
 /* ============================

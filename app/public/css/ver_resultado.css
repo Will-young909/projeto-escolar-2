@@ -162,7 +162,6 @@ h1 {
 
 .teacher-card {
     display: grid;
-    grid-template-columns: 86px 1fr;
     gap: 14px;
     padding: 14px;
     border: 1px solid var(--color-border);
@@ -207,4 +206,19 @@ h1 {
     padding: 12px;
     background: var(--color-light-gray);
     border-radius: 8px;
+}
+
+@media (min-width: 768px) {
+    .teacher-card img {
+        position: inherit;       
+    }
+
+    .teacher-card {
+        grid-template-columns: 86px 1fr;
+    }
+
+    /*.recommendation-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }*/
+    
 }

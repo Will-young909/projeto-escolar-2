@@ -14,6 +14,7 @@ const paymentsStore = require('./app/lib/paymentsStore');
 // --- Importação de Rotas ---
 const rotaPrincipal = require("./app/routes/router");
 const adminRoutes = require("./app/routes/adminRoutes");
+const passwordRoutes = require("./app/routes/password");
 const iaRouter = require("./app/routes/ia_router");
 const mlRouter = require("./app/routes/mlRoutes");
 const trilhaAdaptativaRouter = require("./app/routes/trilhaAdaptativaRoutes"); // Rota da Trilha Adaptativa
@@ -61,6 +62,7 @@ app.use(express.static(path.join(__dirname, "app/public")));
 
 // --- Registro das Rotas ---
 app.use("/", rotaPrincipal);
+app.use("/", passwordRoutes);
 app.use("/admin", adminRoutes);
 app.use("/ia", iaRouter);
 app.use("/api/ml", mlRouter);
@@ -97,7 +99,6 @@ io.on("connection", (socket) => {
 
     const history = await chatStore.getRoomHistory(room);
     socket.emit("roomHistory", history);
-    socket.to(room).emit("systemMessage", { text: `${currentUser.nome} entrou no chat.`, time: Date.now() });
   });
 
   socket.on("chatMessage", async ({ room, text }) => {
@@ -203,7 +204,6 @@ io.on("connection", (socket) => {
   socket.on("disconnecting", () => {
     socket.rooms.forEach(room => {
       if (room !== socket.id) {
-        socket.to(room).emit("systemMessage", { text: `${currentUser.nome} saiu da sala.`, time: Date.now() });
         socket.to(room).emit('peer-left', socket.id);
       }
     });

@@ -426,6 +426,12 @@ svg {
     transform: translateY(-2px);
 }
 
+.high-contrast button {
+  background: #004494;
+  color: #fff;
+  border: 1px solid #888;
+}
+
 /* ============ FOOTER ============ */
 footer {
   background: var(--color-primary);

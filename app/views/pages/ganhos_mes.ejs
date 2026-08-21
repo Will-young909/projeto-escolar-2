@@ -7,10 +7,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/infos.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
 </head>
 
 <body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header class="header">
     <a href="/">
       <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -80,4 +82,6 @@
     </section>
 </main>
 
+<script src="../js/accessibility.js"></script>
 </body>
+</html>

@@ -1,4 +1,5 @@
 const pool = require('../../config/pool');
+const DenunciaService = require('../services/DenunciaService');
 
 exports.getDashboard = async (req, res) => {
     const { status = 'pending', search, page = 1 } = req.query;
@@ -40,13 +41,9 @@ exports.getDashboard = async (req, res) => {
         // Busca as outras listas sem filtro para as demais tabelas
         const [approvedTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status = \'approved\' ORDER BY criado_em DESC');
         const [inactiveTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status IN (\'rejected\', \'suspended\') ORDER BY criado_em DESC');
-        const [denuncias] = await connection.query(`
-            SELECT d.*, a.nome AS responsavel_nome
-            FROM denuncias d
-            LEFT JOIN admins a ON a.id = d.responsavel_id
-            ORDER BY d.criado_em DESC
-            LIMIT 50
-        `);
+        
+        // Utiliza o DenunciaService para buscar as denúncias
+        const denuncias = await DenunciaService.findAll(req.query);
         const openReports = denuncias.filter(d => d.status !== 'resolvida').length;
         
         connection.release();

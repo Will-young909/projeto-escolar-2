@@ -1,3 +1,440 @@
 {
-  "activities": []
+  "activities": [
+    {
+      "title": "Atividade para teste",
+      "description": "Uma atividade feita para testes",
+      "questions": [
+        {
+          "title": "A resposta é a 1º",
+          "type": "multiple_choice",
+          "correct": "1",
+          "options": [
+            "1º",
+            "2º",
+            "3º"
+          ]
+        },
+        {
+          "title": "A resposta é \"Pikachu\"",
+          "type": "short_text",
+          "correctAnswer": "Pikachu"
+        }
+      ],
+      "id": "1vzxy6",
+      "professorId": "b3f6cf2b6d5143e5"
+    },
+    {
+      "id": "4v6jp",
+      "alunoId": "ef3ec1cc2a9ab183",
+      "isTest": true,
+      "title": "Exercício de Matemática - 5º Ano",
+      "description": "Este exercício contém 3 questões de múltipla escolha para avaliar conhecimentos básicos de matemática do 5º ano do Ensino Fundamental.",
+      "questions": [
+        {
+          "title": "João tem 45 reais e ganhou mais 20 reais de sua avó. Quantos reais João tem agora?",
+          "text": "João tem 45 reais e ganhou mais 20 reais de sua avó. Quantos reais João tem agora?",
+          "options": [
+            "25 reais",
+            "65 reais",
+            "45 reais",
+            "55 reais"
+          ],
+          "correct": "2",
+          "habilidade": "Adição",
+          "dificuldade": "facil"
+        },
+        {
+          "title": "Qual é o valor da expressão: 8 × (5 + 3)?",
+          "text": "Qual é o valor da expressão: 8 × (5 + 3)?",
+          "options": [
+            "64",
+            "72",
+            "40",
+            "56"
+          ],
+          "correct": "1",
+          "habilidade": "Multiplicação e adição",
+          "dificuldade": "medio"
+        },
+        {
+          "title": "Um retângulo tem 8 cm de comprimento e 5 cm de largura. Qual é o perímetro desse retângulo?",
+          "text": "Um retângulo tem 8 cm de comprimento e 5 cm de largura. Qual é o perímetro desse retângulo?",
+          "options": [
+            "13 cm",
+            "26 cm",
+            "40 cm",
+            "20 cm"
+          ],
+          "correct": "2",
+          "habilidade": "Geometria (perímetro)",
+          "dificuldade": "medio"
+        }
+      ]
+    },
+    {
+      "id": "ikxdco",
+      "alunoId": "c1ee4092da151be5",
+      "isTest": true,
+      "title": "Exercício de Revisão Matemática - 5º Ano",
+      "description": "Questões de múltipla escolha para avaliar conhecimentos básicos de matemática do 5º ano do Ensino Fundamental.",
+      "questions": [
+        {
+          "title": "Qual é o resultado da soma 345 + 278?",
+          "text": "Qual é o resultado da soma 345 + 278?",
+          "options": [
+            "513",
+            "623",
+            "613",
+            "523"
+          ],
+          "correct": "2",
+          "habilidade": "Adição",
+          "dificuldade": "facil"
+        },
+        {
+          "title": "Se um retângulo tem 12 cm de comprimento e 8 cm de largura, qual é o seu perímetro?",
+          "text": "Se um retângulo tem 12 cm de comprimento e 8 cm de largura, qual é o seu perímetro?",
+          "options": [
+            "20 cm",
+            "36 cm",
+            "40 cm",
+            "96 cm"
+          ],
+          "correct": "3",
+          "habilidade": "Geometria",
+          "dificuldade": "medio"
+        },
+        {
+          "title": "Qual fração representa 0,75 na forma fracionária?",
+          "text": "Qual fração representa 0,75 na forma fracionária?",
+          "options": [
+            "1/2",
+            "3/4",
+            "1/4",
+            "2/3"
+          ],
+          "correct": "2",
+          "habilidade": "Frações e Decimais",
+          "dificuldade": "facil"
+        }
+      ]
+    },
+    {
+      "id": "gow8i",
+      "alunoId": "1d1bf44cff77e139",
+      "isTest": true,
+      "title": "Exercício de Matemática - 5º Ano",
+      "description": "Exercício com 3 questões de múltipla escolha sobre operações básicas, frações e geometria para o 5º ano do ensino fundamental.",
+      "questions": [
+        {
+          "title": "Qual é o resultado de 456 + 321?",
+          "text": "Qual é o resultado de 456 + 321?",
+          "options": [
+            "777",
+            "787",
+            "767",
+            "757"
+          ],
+          "correct": "1",
+          "habilidade": "Adição",
+          "dificuldade": "facil"
+        },
+        {
+          "title": "João tem 3/4 de um bolo e come metade. Que fração do bolo ele comeu?",
+          "text": "João tem 3/4 de um bolo e come metade. Que fração do bolo ele comeu?",
+          "options": [
+            "1/2",
+            "3/8",
+            "1/4",
+            "3/4"
+          ],
+          "correct": "3",
+          "habilidade": "Frações",
+          "dificuldade": "medio"
+        },
+        {
+          "title": "Um quadrado tem lados medindo 6 cm. Qual é o seu perímetro?",
+          "text": "Um quadrado tem lados medindo 6 cm. Qual é o seu perímetro?",
+          "options": [
+            "12 cm",
+            "18 cm",
+            "24 cm",
+            "36 cm"
+          ],
+          "correct": "3",
+          "habilidade": "Geometria",
+          "dificuldade": "facil"
+        }
+      ]
+    },
+    {
+      "id": "3jw12l",
+      "alunoId": "516f91ffb9f1acf0",
+      "isTest": true,
+      "title": "Exercício de Matemática - 5º Ano",
+      "description": "Exercício com 3 questões de múltipla escolha para o 5º ano do Ensino Fundamental, abordando operações básicas e resolução de problemas.",
+      "questions": [
+        {
+          "title": "Maria tinha 45 reais e comprou um livro por 18 reais. Quanto dinheiro ela ainda tem?",
+          "text": "Maria tinha 45 reais e comprou um livro por 18 reais. Quanto dinheiro ela ainda tem?",
+          "options": [
+            "27 reais",
+            "33 reais",
+            "25 reais",
+            "37 reais"
+          ],
+          "correct": "1",
+          "habilidade": "Subtração",
+          "dificuldade": "facil"
+        },
+        {
+          "title": "Qual é o dobro de 15 mais 12?",
+          "text": "Qual é o dobro de 15 mais 12?",
+          "options": [
+            "42",
+            "30",
+            "36",
+            "48"
+          ],
+          "correct": "1",
+          "habilidade": "Multiplicação e Adição",
+          "dificuldade": "medio"
+        },
+        {
+          "title": "Um quadrado tem lados de 6 cm cada. Qual é o perímetro desse quadrado?",
+          "text": "Um quadrado tem lados de 6 cm cada. Qual é o perímetro desse quadrado?",
+          "options": [
+            "12 cm",
+            "18 cm",
+            "24 cm",
+            "36 cm"
+          ],
+          "correct": "3",
+          "habilidade": "Geometria",
+          "dificuldade": "facil"
+        }
+      ]
+    },
+    {
+      "id": "iqebj5",
+      "alunoId": "516f91ffb9f1acf0",
+      "isTest": true,
+      "title": "Atividade de Matemática - 5º Ano",
+      "description": "Exercício com 3 questões de múltipla escolha para avaliar habilidades básicas de matemática do 5º ano do ensino fundamental.",
+      "questions": [
+        {
+          "title": "Qual é o resultado de 245 + 137?",
+          "text": "Qual é o resultado de 245 + 137?",
+          "options": {
+            "1": "372",
+            "2": "382",
+            "3": "392",
+            "4": "402"
+          },
+          "correct": "2",
+          "habilidade": "Adição",
+          "dificuldade": "facil"
+        },
+        {
+          "title": "Um retângulo tem 8 cm de comprimento e 5 cm de largura. Qual é a área desse retângulo?",
+          "text": "Um retângulo tem 8 cm de comprimento e 5 cm de largura. Qual é a área desse retângulo?",
+          "options": {
+            "1": "13 cm²",
+            "2": "30 cm²",
+            "3": "40 cm²",
+            "4": "50 cm²"
+          },
+          "correct": "3",
+          "habilidade": "Geometria (Área)",
+          "dificuldade": "medio"
+        },
+        {
+          "title": "Qual fração representa 0,75?",
+          "text": "Qual fração representa 0,75?",
+          "options": {
+            "1": "1/4",
+            "2": "3/4",
+            "3": "1/2",
+            "4": "2/3"
+          },
+          "correct": "2",
+          "habilidade": "Frações",
+          "dificuldade": "facil"
+        }
+      ]
+    },
+    {
+      "title": "Exercícios de Frações com Múltipla Escolha",
+      "description": "Resolva 10 exercícios sobre frações com 3 alternativas de múltipla escolha cada.",
+      "questions": [
+        {
+          "title": "Qual é o valor da fração 3/4 na forma decimal?",
+          "type": "multiple_choice",
+          "options": [
+            "0,25",
+            "0,5",
+            "0,75"
+          ],
+          "correct": "3"
+        },
+        {
+          "title": "Simplifique a fração 8/12.",
+          "type": "multiple_choice",
+          "options": [
+            "4/6",
+            "2/3",
+            "1/2"
+          ],
+          "correct": "2"
+        },
+        {
+          "title": "Qual é a fração equivalente a 2/5 com denominador 15?",
+          "type": "multiple_choice",
+          "options": [
+            "4/15",
+            "6/15",
+            "8/15"
+          ],
+          "correct": "2"
+        },
+        {
+          "title": "Some as frações 1/3 e 1/6.",
+          "type": "multiple_choice",
+          "options": [
+            "1/9",
+            "1/2",
+            "2/9"
+          ],
+          "correct": "2"
+        },
+        {
+          "title": "Subtraia 3/8 de 5/8.",
+          "type": "multiple_choice",
+          "correct": "1",
+          "options": [
+            "1/4",
+            "2/8",
+            "1/8"
+          ]
+        },
+        {
+          "title": "Multiplique 2/5 por 3/4.",
+          "type": "multiple_choice",
+          "correct": "1",
+          "options": [
+            "6/20",
+            "5/9",
+            "3/10"
+          ]
+        },
+        {
+          "title": "Divida 7/8 por 1/2.",
+          "type": "multiple_choice",
+          "options": [
+            "7/16",
+            "7/4",
+            "14/8"
+          ],
+          "correct": "2"
+        },
+        {
+          "title": "Qual é a fração irredutível equivalente a 18/24?",
+          "type": "multiple_choice",
+          "correct": "1",
+          "options": [
+            "3/4",
+            "9/12",
+            "6/8"
+          ]
+        },
+        {
+          "title": "Some 1/2, 1/3 e 1/4.",
+          "type": "multiple_choice",
+          "correct": "1",
+          "options": [
+            "13/12",
+            "11/12",
+            "12/12"
+          ]
+        },
+        {
+          "title": "Subtraia 2/7 de 5/6.",
+          "type": "multiple_choice",
+          "options": [
+            "17/42",
+            "23/42",
+            "13/42"
+          ],
+          "correct": "2"
+        }
+      ],
+      "id": "wjukn",
+      "professorId": "7b0e763e1d8a3f19"
+    },
+    {
+      "id": "8l2jn",
+      "alunoId": "516f91ffb9f1acf0",
+      "isTest": false,
+      "title": "Exercício de Divisão - Múltipla Escolha",
+      "description": "Resolva 5 questões de múltipla escolha sobre divisão, cada uma com 3 alternativas. Escolha a alternativa correta para cada pergunta.",
+      "questions": [
+        {
+          "title": "Qual é o resultado de 48 dividido por 6?",
+          "habilidade": "Divisão básica",
+          "dificuldade": "facil",
+          "options": {
+            "1": "6",
+            "2": "8",
+            "3": "12"
+          },
+          "correct": "2"
+        },
+        {
+          "title": "Se dividirmos 100 por 4, qual é o quociente?",
+          "habilidade": "Divisão com números inteiros",
+          "dificuldade": "facil",
+          "options": {
+            "1": "20",
+            "2": "25",
+            "3": "30"
+          },
+          "correct": "2"
+        },
+        {
+          "title": "O resultado de 144 ÷ 12 é igual a:",
+          "habilidade": "Divisão com números maiores",
+          "dificuldade": "medio",
+          "options": {
+            "1": "10",
+            "2": "12",
+            "3": "14"
+          },
+          "correct": "2"
+        },
+        {
+          "title": "Dividindo 56 por 7, obtemos:",
+          "habilidade": "Divisão simples",
+          "dificuldade": "facil",
+          "options": {
+            "1": "6",
+            "2": "7",
+            "3": "8"
+          },
+          "correct": "3"
+        },
+        {
+          "title": "Qual é o valor de 1000 ÷ 25?",
+          "habilidade": "Divisão com números terminados em zero",
+          "dificuldade": "medio",
+          "options": {
+            "1": "30",
+            "2": "40",
+            "3": "50"
+          },
+          "correct": "2"
+        }
+      ],
+      "professorNome": "Abdala"
+    }
+  ]
 }

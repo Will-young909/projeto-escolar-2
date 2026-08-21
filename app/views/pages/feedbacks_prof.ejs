@@ -7,10 +7,100 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/infos.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+  <style>
+    .modal-overlay {
+      visibility: hidden;
+      opacity: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    }
+    .modal-overlay.is-open {
+      visibility: visible;
+      opacity: 1;
+    }
+    .modal-content {
+      background: var(--branco);
+      padding: 2.5rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transform: scale(0.9);
+      transition: transform 0.2s ease-in-out;
+    }
+    .modal-overlay.is-open .modal-content {
+        transform: scale(1);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 2.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: var(--bordo);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: .5rem;
+        font-weight: 600;
+    }
+    #modal-response-text {
+      width: 100%;
+      min-height: 120px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+    }
+    .modal-footer {
+      text-align: right;
+      padding-top: 1rem;
+      border-top: 1px solid #eee;
+    }
+    .btn-primary {
+        background-color: var(--bordo);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-primary:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+</style>
 </head>
 
 <body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header class="header">
     <a href="/">
       <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -29,7 +119,7 @@
       <section class="fb-resumo__barras">
         <% for (let i = 5; i >= 1; i--) { %>
           <section class="fb-barra">
-            <p><%= i %> ★</p>
+            <p class="fb-barra__qtd"><%= i %> ★</p>
             <section class="fb-barra__track">
               <section class="fb-barra__fill" style="width: <%= resumo.distribuicao[i].percent %>%;"></section>
             </section>
@@ -42,20 +132,20 @@
     <section class="fb-filtros">
       <label class="fb-filtro">
         <p>Ordenar por</p>
-        <select>
-          <option>Mais recentes</option>
-          <option>Melhores notas</option>
-          <option>Piores notas</option>
+        <select id="sort-order">
+          <option value="recentes">Mais recentes</option>
+          <option value="melhores">Melhores notas</option>
+          <option value="piores">Piores notas</option>
         </select>
       </label>
 
       <label class="fb-filtro">
         <p>Filtrar por nota</p>
-        <select>
-          <option>Todas</option>
-          <option>5 estrelas</option>
-          <option>4 estrelas</option>
-          <option>3 estrelas ou menos</option>
+        <select id="filter-note">
+          <option value="todas">Todas</option>
+          <option value="5">5 estrelas</option>
+          <option value="4">4 estrelas</option>
+          <option value="3">3 estrelas ou menos</option>
         </select>
       </label>
     </section>
@@ -63,7 +153,7 @@
     <section class="fb-lista">
       <% if (feedbacks && feedbacks.length > 0) { %>
         <% feedbacks.forEach(fb => { %>
-          <article class="fb-card">
+          <article class="fb-card" data-nota="<%= fb.nota || 0 %>" data-data="<%= fb.data %>">
             <header class="fb-card__topo">
               <section>
                 <strong><%= fb.usuario || fb.usuario_nome || 'Aluno' %></strong>
@@ -72,7 +162,7 @@
               <% if (fb.nota) { %>
                 <section class="fb-card__nota">
                   <p><%= Number(fb.nota).toFixed(1) %></p>
-                  <p><%= '★ '.repeat(Number(fb.nota)) + '☆ '.repeat(5 - Number(fb.nota)) %></p>
+                  <p class="fb-barra__star"><%= '★ '.repeat(Number(fb.nota)) + '☆ '.repeat(5 - Number(fb.nota)) %></p>
                 </section>
               <% } %>
             </header>
@@ -81,7 +171,7 @@
             </p>
             <footer class="fb-card__rodape">
               <p><%= new Date(fb.data).toLocaleDateString('pt-BR') %></p>
-              <button class="fb-card__responder">Responder</button>
+              <button class="fb-card__responder" data-feedback-id="<%= fb.id %>" data-aluno-id="<%= fb.aluno_id %>" data-aluno-nome="<%= fb.usuario || fb.usuario_nome || 'Aluno' %>">Responder</button>
             </footer>
           </article>
         <% }); %>
@@ -89,6 +179,198 @@
         <p class="lista-vazia">Ainda não há feedbacks para exibir.</p>
       <% } %>
     </section>
-</main>
 
+    <!-- Modal de Resposta -->
+    <section id="response-modal" class="modal-overlay">
+      <div class="modal-content">
+        <header class="modal-header">
+          <h2>Responder a <span id="modal-aluno-nome"></span></h2>
+          <button id="modal-close-btn" class="modal-close">&times;</button>
+        </header>
+        <form id="response-form">
+          <input type="hidden" id="modal-feedback-id" name="feedbackId">
+          <input type="hidden" id="modal-aluno-id" name="alunoId">
+          <div class="form-group">
+            <label for="modal-response-text">Sua resposta:</label>
+            <textarea id="modal-response-text" name="responseText" placeholder="Escreva uma mensagem privada para o aluno..." required></textarea>
+          </div>
+          <footer class="modal-footer">
+            <button type="submit" class="btn-primary">Enviar Resposta</button>
+          </footer>
+        </form>
+      </div>
+    </section>
+  </main>
+
+<script src="../js/accessibility.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const sortSelect = document.getElementById('sort-order');
+    const filterSelect = document.getElementById('filter-note');
+    const feedbackList = document.querySelector('.fb-lista');
+    
+    const originalEmptyMessage = feedbackList.querySelector('.lista-vazia');
+    const allCards = Array.from(feedbackList.querySelectorAll('.fb-card'));
+
+    function applyFiltersAndSorting() {
+        const sortBy = sortSelect.value;
+        const filterBy = filterSelect.value;
+
+        allCards.sort((a, b) => {
+            const notaA = parseInt(a.dataset.nota, 10);
+            const notaB = parseInt(b.dataset.nota, 10);
+            const dateA = new Date(a.dataset.data);
+            const dateB = new Date(b.dataset.data);
+
+            switch (sortBy) {
+                case 'melhores':
+                    return notaB - notaA || dateB - dateA;
+                case 'piores':
+                    return notaA - notaB || dateB - dateA;
+                case 'recentes':
+                default:
+                    return dateB - dateA;
+            }
+        });
+
+        let visibleCards = 0;
+
+        allCards.forEach(card => {
+            const nota = parseInt(card.dataset.nota, 10);
+            let show = false;
+
+            switch (filterBy) {
+                case 'todas':
+                    show = true;
+                    break;
+                case '5':
+                    show = (nota === 5);
+                    break;
+                case '4':
+                    show = (nota === 4);
+                    break;
+                case '3':
+                    show = (nota <= 3);
+                    break;
+                default:
+                    show = true;
+            }
+
+            if (show) {
+                card.style.display = '';
+                feedbackList.appendChild(card);
+                visibleCards++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        let emptyMessage = feedbackList.querySelector('.lista-vazia-filtro');
+        if (visibleCards === 0 && !originalEmptyMessage) {
+            if (!emptyMessage) {
+                emptyMessage = document.createElement('p');
+                emptyMessage.className = 'lista-vazia lista-vazia-filtro';
+                emptyMessage.textContent = 'Nenhum feedback corresponde aos filtros selecionados.';
+                feedbackList.appendChild(emptyMessage);
+            }
+        } else {
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
+        }
+    }
+
+    sortSelect.addEventListener('change', applyFiltersAndSorting);
+    filterSelect.addEventListener('change', applyFiltersAndSorting);
+
+    const responseModal = document.getElementById('response-modal');
+    if (responseModal) {
+        const closeModalBtn = document.getElementById('modal-close-btn');
+        const responseForm = document.getElementById('response-form');
+        const modalAlunoNome = document.getElementById('modal-aluno-nome');
+        const modalFeedbackId = document.getElementById('modal-feedback-id');
+        const modalAlunoId = document.getElementById('modal-aluno-id');
+        const modalResponseText = document.getElementById('modal-response-text');
+
+        function openModal(feedbackId, alunoId, alunoNome) {
+            modalFeedbackId.value = feedbackId;
+            modalAlunoId.value = alunoId;
+            modalAlunoNome.textContent = alunoNome;
+            responseModal.classList.add('is-open');
+        }
+
+        function closeModal() {
+            responseModal.classList.remove('is-open');
+            modalResponseText.value = '';
+        }
+
+        document.querySelectorAll('.fb-card__responder').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const alunoId = e.currentTarget.dataset.alunoId;
+                if (!alunoId || alunoId === 'null') {
+                    alert('Não é possível responder a um feedback anônimo.');
+                    return;
+                }
+                const feedbackId = e.currentTarget.dataset.feedbackId;
+                const alunoNome = e.currentTarget.dataset.alunoNome;
+                openModal(feedbackId, alunoId, alunoNome);
+            });
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        responseModal.addEventListener('click', (e) => {
+            if (e.target === responseModal) {
+                closeModal();
+            }
+        });
+
+        responseForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = responseForm.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.textContent = 'Enviando...';
+
+            const data = {
+                feedbackId: modalFeedbackId.value,
+                alunoId: modalAlunoId.value,
+                responseText: modalResponseText.value
+            };
+
+            try {
+                const response = await fetch('/feedback/responder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Falha ao enviar resposta.');
+                }
+
+                closeModal();
+                alert('Resposta enviada com sucesso!');
+                // Opcional: Desabilitar o botão de resposta para indicar que já foi respondido
+                const respondedButton = document.querySelector(`.fb-card__responder[data-feedback-id="${data.feedbackId}"]`);
+                if(respondedButton) {
+                    respondedButton.textContent = 'Respondido';
+                    respondedButton.disabled = true;
+                }
+
+            } catch (error) {
+                console.error('Erro ao enviar resposta:', error);
+                alert(error.message || 'Ocorreu um erro de conexão. Tente novamente.');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Enviar Resposta';
+            }
+        });
+    }
+});
+</script>
 </body>
+</html>
