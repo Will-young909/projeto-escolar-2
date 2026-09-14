@@ -1,4 +1,3 @@
-
 const pool = require('../../config/pool');
 
 const UsuarioHabilidadesModel = {
@@ -8,7 +7,7 @@ const UsuarioHabilidadesModel = {
   async findAllByAluno(alunoId) {
     try {
       const [rows] = await pool.query(
-        `SELECT uh.*, h.nome as habilidade_nome 
+        `SELECT uh.*, h.descricao as habilidade_nome 
          FROM usuario_habilidades uh
          JOIN habilidades h ON uh.habilidade_id = h.id
          WHERE uh.aluno_id = ?

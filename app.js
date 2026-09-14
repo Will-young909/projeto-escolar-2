@@ -4,9 +4,11 @@ require('dotenv').config();
 const express = require("express");
 const session = require("express-session");
 const http = require("http");
+const fs = require('fs');
 const { Server } = require("socket.io");
 const path = require("path");
 const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago');
+const pool = require('./config/pool');
 
 const chatStore = require('./app/lib/chatStore');
 const paymentsStore = require('./app/lib/paymentsStore');
@@ -52,6 +54,11 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "app/views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Gravações legadas nunca podem ser acessadas por URL direta de arquivo.
+// Todo acesso passa por /gravacao/stream/:id (autenticado e autorizado).
+app.use('/recordings', (req, res) => res.status(404).send('Não encontrado.'));
+app.use('/recordings/', (req, res) => res.status(404).send('Não encontrado.'));
 
 app.use((req, res, next) => {
   res.locals.session = req.session;
@@ -121,7 +128,6 @@ io.on("connection", (socket) => {
     const existingPeers = Array.from(io.sockets.adapter.rooms.get(room) || []).filter(id => id !== socket.id);
     socket.join(room);
     existingPeers.forEach(peerId => {
-      socket.emit('peer-joined', peerId);
       socket.to(peerId).emit('peer-joined', socket.id);
     });
     socket.data.videoRoom = room;
@@ -132,8 +138,19 @@ io.on("connection", (socket) => {
     io.to(to).emit('signal', { from: socket.id, data });
   });
 
-  socket.on('end-call', (room) => {
+  socket.on('end-call', async (room) => {
     if (!room) return;
+
+    // Sala livre (video del chat): no hay agendamiento; solo notificar salida.
+    if (!room.startsWith('chat_')) {
+      try {
+        await pool.query("UPDATE agendamentos SET status = 'concluido' WHERE sala_id = ?", [room]);
+        console.log(`Aula na sala ${room} marcada como concluída.`);
+      } catch (error) {
+        console.error(`Erro ao marcar aula da sala ${room} como concluída:`, error);
+      }
+    }
+    
     socket.to(room).emit('peer-left', socket.id);
     socket.leave(room);
   });
@@ -148,7 +165,7 @@ io.on("connection", (socket) => {
       const amount = Number(valor);
       if (!room || !amount || amount <= 0) return;
 
-      const siteUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+      const siteUrl = process.env.SITE_URL || `https://localhost:${PORT}`;
       
       const preference = {
         items: [{
@@ -212,6 +229,6 @@ io.on("connection", (socket) => {
 
 
 
-server.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

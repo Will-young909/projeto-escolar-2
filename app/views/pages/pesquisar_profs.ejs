@@ -156,7 +156,7 @@
                     <% professores.forEach(professor => { %>
                         <article class="card" aria-labelledby="prof-<%= professor.id %>-nome">
                             <section class='card-header'>
-                                <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>">
+                                <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>">
                             </section>
                             <section class='card-content'>
                                 <h2 id="prof-<%= professor.id %>-nome"><%= professor.nome %></h2>

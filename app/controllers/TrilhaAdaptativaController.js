@@ -1,62 +1,59 @@
 const TrilhaService = require('../services/trilhaService');
 
 const TrilhaAdaptativaController = {
-
   async iniciarTrilha(req, res) {
     try {
-      const { alunoId } = req.params;
-      if (!alunoId) {
-        return res.status(400).json({ message: 'ID do aluno é obrigatório.' });
-      }
-
+      const alunoId = req.session.user_aluno?.id;
+      if (!alunoId) return res.status(401).json({ message: 'Aluno não autenticado.' });
       const proximaTarefa = await TrilhaService.iniciarTrilhaParaAluno(alunoId);
-
-      if (proximaTarefa.tarefaTipo === 'CONCLUIDO') {
-        return res.status(200).json({ message: 'Parabéns, você concluiu a trilha!', ...proximaTarefa });
-      }
-
-      res.status(200).json(proximaTarefa);
-
+      return res.status(200).json(proximaTarefa);
     } catch (error) {
-      console.error('Erro no controller ao iniciar trilha:', error);
-      res.status(500).json({ message: 'Erro interno ao iniciar a trilha.' });
+      console.error('Erro ao iniciar trilha:', error);
+      return res.status(500).json({ message: 'Erro interno ao iniciar a trilha.' });
     }
   },
 
   async processarResposta(req, res) {
     try {
-      const { alunoId, submittedId, respostaDada } = req.body;
-
-      if (!alunoId || !submittedId || respostaDada === undefined) {
+      const alunoId = req.session.user_aluno?.id;
+      const { submittedId, respostaDada, tempoResposta } = req.body;
+      if (!alunoId) return res.status(401).json({ message: 'Aluno não autenticado.' });
+      if (!Number.isInteger(Number(submittedId)) || respostaDada === undefined) {
         return res.status(400).json({ message: 'Dados incompletos para processar a resposta.' });
       }
-
-      // Este serviço agora retorna um objeto combinado
-      const resultadoCompleto = await TrilhaService.processarRespostaEProximaQuestao(alunoId, submittedId, respostaDada, 0 /* tempo resposta mock */);
-
-      res.status(200).json(resultadoCompleto);
+      const tempo = Number(tempoResposta);
+      const resultado = await TrilhaService.processarRespostaEProximaQuestao(alunoId, Number(submittedId), respostaDada, Number.isFinite(tempo) && tempo >= 0 ? tempo : null);
+      return res.status(200).json(resultado);
     } catch (error) {
-      console.error('Erro no controller ao processar resposta:', error);
-      res.status(500).json({ message: 'Erro interno ao processar a resposta.' });
+      console.error('Erro ao processar resposta da trilha:', error);
+      const status = error.message.includes('já foi registrada') ? 409 : 500;
+      return res.status(status).json({ message: error.message || 'Erro interno ao processar a resposta.' });
+    }
+  },
+
+  async obterProgresso(req, res) {
+    try {
+      const alunoId = req.session.user_aluno?.id;
+      if (!alunoId) return res.status(401).json({ message: 'Aluno não autenticado.' });
+      return res.json(await TrilhaService.obterProgresso(alunoId));
+    } catch (error) {
+      console.error('Erro ao obter progresso:', error);
+      return res.status(500).json({ message: 'Erro ao obter progresso.' });
     }
   },
 
   async marcarConteudoConsumido(req, res) {
     try {
-        const { alunoId, conteudoId } = req.body;
+        const alunoId = req.session.user_aluno?.id;
+        const { itemId, tempoConsumido } = req.body;
+        if (!alunoId) return res.status(401).json({ message: 'Aluno não autenticado.' });
+        if (!itemId) return res.status(400).json({ message: 'ID do item não fornecido.' });
 
-        if (!alunoId || !conteudoId) {
-            return res.status(400).json({ message: 'IDs do aluno e do conteúdo são obrigatórios.' });
-        }
-
-        // Chama o serviço para registrar o consumo
-        await TrilhaService.marcarConteudoComoConsumido(alunoId, conteudoId);
-
-        res.status(200).json({ message: 'Conteúdo marcado como consumido.' });
-
+        const proximaTarefa = await TrilhaService.marcarConteudoConsumido(alunoId, Number(itemId), Number.isFinite(Number(tempoConsumido)) ? Number(tempoConsumido) : null);
+        return res.status(200).json(proximaTarefa);
     } catch (error) {
-        console.error('Erro no controller ao marcar conteúdo como consumido:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+        console.error('Erro ao marcar conteúdo como consumido:', error);
+        return res.status(500).json({ message: error.message || 'Erro interno ao processar a solicitação.' });
     }
   }
 };

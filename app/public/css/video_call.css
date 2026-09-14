@@ -195,7 +195,8 @@ body {
 .video-main {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #000;
 }
 
 .video-pip-wrapper {
@@ -444,6 +445,38 @@ body {
 
 .toast-success { border-left-color: var(--color-success); }
 .toast-error { border-left-color: var(--color-error); }
+
+.quality-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.quality-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.quality-indicator.good {
+    color: #22c55e;
+}
+
+.quality-indicator.fair {
+    color: #f59e0b;
+}
+
+.quality-indicator.poor {
+    color: #ef4444;
+}
 
 /* Safe Area para iPhone */
 @supports (padding: max(0px)) {

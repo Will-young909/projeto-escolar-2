@@ -1,17 +1,15 @@
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('../lib/tensorflow');
 const fs = require('fs');
 const path = require('path');
 const pool = require('../../config/pool');
 const HistoricoQuestoesModel = require('../models/HistoricoQuestoesModel');
 const UsuarioHabilidadesModel = require('../models/UsuarioHabilidadesModel');
+const C = require('../constants/trilha');
 
 const MODEL_DIR = './ml_model';
 const MODEL_PATH = `file://${path.join(__dirname, '../../', MODEL_DIR, 'model.json')}`;
 
 let modeloCarregado = null;
-
-const PROFICIENCIA_MINIMA_PARA_INTERVENCAO = 0.40;
-const ERROS_CONSECUTIVOS_PARA_INTERVENCAO = 3;
 
 const AnalisePedagogicaService = {
 
@@ -23,7 +21,7 @@ const AnalisePedagogicaService = {
                  WHERE aluno_id = ? AND (proficiencia < ? OR erros_consecutivos >= ?)
                  ORDER BY proficiencia ASC, erros_consecutivos DESC
                  LIMIT 1`,
-                [alunoId, PROFICIENCIA_MINIMA_PARA_INTERVENCAO, ERROS_CONSECUTIVOS_PARA_INTERVENCAO]
+                [alunoId, C.PEDAGOGICAL.PROFICIENCIA_MINIMA_PARA_INTERVENCAO, C.PEDAGOGICAL.ERROS_CONSECUTIVOS_PARA_INTERVENCAO]
             );
 
             if (proficiencias.length > 0) {
@@ -42,20 +40,20 @@ const AnalisePedagogicaService = {
         console.log(`[Serviço de Análise] Reforçando habilidade ${habilidadeId} para o aluno ${alunoId}`);
         const [sessaoResult] = await pool.query(
             'INSERT INTO sessoes_adaptativas (aluno_id, habilidade_foco_id, tipo_sessao) VALUES (?, ?, ?)',
-            [alunoId, habilidadeId, 'reforco']
+            [alunoId, habilidadeId, C.SESSAO_TIPO.REFORCO]
         );
         const sessaoId = sessaoResult.insertId;
 
         const [questoes] = await pool.query(
             'SELECT id FROM questoes WHERE habilidade_id = ? AND dificuldade = ? ORDER BY RAND() LIMIT 2',
-            [habilidadeId, 'facil']
+            [habilidadeId, C.DIFICULDADE.FACIL]
         );
 
         let currentOrder = ordemCounter;
         for (const questao of questoes) {
             await pool.query(
                 'INSERT INTO trilha_itens (trilha_id, sessao_id, questao_id, status, ordem, bloco) VALUES (?, ?, ?, ?, ?, ?)',
-                [trilhaId, sessaoId, questao.id, 'pendente', currentOrder, 'revisao']
+                [trilhaId, sessaoId, questao.id, C.ITEM_STATUS.PENDENTE, currentOrder, C.ITEM_BLOCO.REVISAO]
             );
             currentOrder++;
         }
@@ -102,10 +100,9 @@ const AnalisePedagogicaService = {
             await connection.beginTransaction();
             for (const prereq of prereqs) {
                 const prerequisitoId = prereq.prerequisito_id;
-                const [rows] = await connection.query('SELECT * FROM aluno_prerequisito_proficiencia WHERE aluno_id = ? AND prerequisito_id = ? FOR UPDATE', [alunoId, prerequisitoId]);
+                const [rows] = await pool.query('SELECT * FROM aluno_prerequisito_proficiencia WHERE aluno_id = ? AND prerequisito_id = ? FOR UPDATE', [alunoId, prerequisitoId]);
                 let prof = rows[0] || { proficiencia: 0.5, erros_consecutivos: 0, acertos_consecutivos: 0, id: null };
-                const FATOR_APRENDIZAGEM = 0.20;
-                let novaProficiencia = acertou ? prof.proficiencia + (1 - prof.proficiencia) * FATOR_APRENDIZAGEM : prof.proficiencia - prof.proficiencia * FATOR_APRENDIZAGEM;
+                let novaProficiencia = acertou ? prof.proficiencia + (1 - prof.proficiencia) * C.PEDAGOGICAL.FATOR_APRENDIZAGEM : prof.proficiencia - prof.proficiencia * C.PEDAGOGICAL.FATOR_APRENDIZAGEM;
                 prof.acertos_consecutivos = acertou ? prof.acertos_consecutivos + 1 : 0;
                 prof.erros_consecutivos = acertou ? 0 : prof.erros_consecutivos + 1;
                 prof.proficiencia = Math.max(0.0001, Math.min(0.9999, novaProficiencia));
@@ -139,8 +136,8 @@ const AnalisePedagogicaService = {
         let pesoTotal = 0;
         for (const prof of todasProficiencias) {
             let peso = 1.0;
-            if (prof.status_dominio === 'reforco') peso = 2.0;
-            if (prof.status_dominio === 'dominado') peso = 0.5;
+            if (prof.status_dominio === C.DOMINIO_STATUS.REFORCO) peso = 2.0;
+            if (prof.status_dominio === C.DOMINIO_STATUS.DOMINADO) peso = 0.5;
             scoreTotal += (prof.percentual_dominio || 0) * peso;
             pesoTotal += peso;
         }

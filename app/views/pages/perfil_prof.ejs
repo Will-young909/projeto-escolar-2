@@ -190,7 +190,7 @@
     <main class="perfil-container">
         <section class="perfil-info card">
             <section class="profile-header">
-                <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do Professor" class="foto-perfil">
+                <img src="<%= user.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto do Professor" class="foto-perfil">
                 <h1>
                     <%= user.nome %>
                 </h1>
@@ -244,7 +244,7 @@
                     <% user.historicoAlunos.forEach(aluno=> { %>
                         <li class="aluno-item" data-id="<%= aluno.id %>">
                             <div class="aluno-info">
-                            <img src="<%= aluno.foto || '/imagens/imagem_perfil.jpg' %>" alt="">
+                            <img src="<%= aluno.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="">
                             <p href="/aluno/<%= aluno.id %>">
                                 <%= aluno.nome %>
                             </p>

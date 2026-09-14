@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gravação da aula | Regimath</title>
+
+    <!-- FONTES + ICONES -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/ver_gravacao.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
+    <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" />
+</head>
+
+<body>
+
+    <header>
+        <a href="/">
+            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+        </a>
+        <a href="/historico_aulas" class="btn-back" aria-label="Voltar ao histórico">
+            <i class="fas fa-arrow-left"></i> Voltar ao histórico
+        </a>
+    </header>
+
+    <main class="container">
+
+        <h1 class="title">Gravação da Aula</h1>
+
+        <% if (acessoNegado) { %>
+            <section class="state-card denied" role="alert">
+                <i class="fas fa-lock icon"></i>
+                <h2>Acesso negado</h2>
+                <p>Você não tem permissão para acessar a gravação desta aula. Apenas o aluno, o professor ou um administrador autorizado podem visualizá-la.</p>
+                <a href="/historico_aulas" class="btn-primary">Voltar ao histórico</a>
+            </section>
+
+        <% } else if (!aula) { %>
+            <section class="state-card" role="alert">
+                <i class="fas fa-video-slash icon"></i>
+                <h2>Aula não encontrada</h2>
+                <p>Não encontramos esta aula no RegiMath.</p>
+                <a href="/historico_aulas" class="btn-primary">Voltar ao histórico</a>
+            </section>
+
+        <% } else { %>
+
+        <!-- Resumo da aula -->
+        <section class="aula-summary" aria-label="Resumo da aula">
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Matéria</span>
+                    <span class="info-value"><%= aula.materia %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Professor</span>
+                    <span class="info-value"><%= aula.professorNome %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Aluno</span>
+                    <span class="info-value"><%= aula.alunoNome %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Data</span>
+                    <span class="info-value"><%= new Date(aula.data + 'T00:00:00').toLocaleDateString('pt-BR') %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Horário</span>
+                    <span class="info-value"><%= aula.horaInicio %><% if (aula.horaFim) { %> – <%= aula.horaFim %><% } %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Duração</span>
+                    <span class="info-value"><%= aula.duracaoFormatada %><% if (aula.tamanhoMB) { %> <small>(<%= aula.tamanhoMB %> MB)</small><% } %></span>
+                </div>
+            </div>
+            <div class="info-status">
+                <span class="info-label">Status</span>
+                <% if (aula.gravacaoStatus === 'disponivel') { %>
+                    <span class="status-badge disponivel"><i class="fas fa-circle"></i> 🎥 Gravação disponível</span>
+                <% } else if (aula.gravacaoStatus === 'processando') { %>
+                    <span class="status-badge processando"><i class="fas fa-spinner fa-spin"></i> 🎥 Processando gravação...</span>
+                <% } else if (aula.gravacaoStatus === 'falhou') { %>
+                    <span class="status-badge falhou"><i class="fas fa-exclamation-triangle"></i> ⚠️ Não foi possível processar a gravação.</span>
+                <% } else { %>
+                    <span class="status-badge indisponivel"><i class="fas fa-pause-circle"></i> Gravação indisponível</span>
+                <% } %>
+            </div>
+        </section>
+
+        <!-- Player / Estados -->
+            <% if (aula.podeAssistir) { %>
+                <section class="player-section">
+                    <video
+                        id="recordingPlayer"
+                        class="recording-player"
+                        src="/gravacao/stream/<%= aula.id %>"
+                        controls
+                        playsinline
+                        preload="metadata">
+                        Seu navegador não suporta a reprodução de vídeos HTML5.
+                    </video>
+                    <p class="player-hint">
+                        <i class="fas fa-shield-alt"></i> Reprodução protegida — disponível apenas para os participantes desta aula.
+                    </p>
+                </section>
+            <% } else if (aula.gravacaoStatus === 'processando') { %>
+                <section class="state-card processing">
+                    <i class="fas fa-video icon pulsing"></i>
+                    <h2>Processando gravação...</h2>
+                    <p>A gravação desta aula está sendo processada. Em instantes ela estará disponível nesta página.</p>
+                </section>
+            <% } else if (aula.gravacaoStatus === 'falhou') { %>
+                <section class="state-card failed">
+                    <i class="fas fa-exclamation-triangle icon"></i>
+                    <h2>Não foi possível processar a gravação</h2>
+                    <p>Infelizmente o arquivo desta aula não pôde ser processado. Tente novamente mais tarde ou entre em contato com o suporte.</p>
+                </section>
+            <% } else { %>
+                <section class="state-card">
+                    <i class="fas fa-pause-circle icon"></i>
+                    <h2>Gravação indisponível</h2>
+                    <p>Esta aula não possui gravação disponível para reprodução.</p>
+                </section>
+            <% } %>
+
+            <div class="actions">
+                <a href="/historico_aulas" class="btn-primary"><i class="fas fa-history"></i> Voltar ao histórico</a>
+            </div>
+
+        <% } %>
+
+    </main>
+
+    <script src="../js/accessibility.js"></script>
+</body>
+
+</html>

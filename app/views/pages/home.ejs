@@ -103,8 +103,8 @@
           <% professores.forEach(professor => { %>
             <article class="card" aria-labelledby="prof-<%= professor.id %>-nome">
               <section class='card-header'>
-                <% if (professor.foto) { %>
-                <img src="<%= professor.foto %>" alt="Foto do(a) professor(a) <%= professor.nome %>">
+                <% if (professor.foto_perfil) { %>
+                <img src="<%= professor.foto_perfil %>" alt="Foto do(a) professor(a) <%= professor.nome %>">
                 <% } else { %>
                   <img src="/imagens/imagem_perfil.jpg" alt="Professor(a) <%= professor.nome %> está sem foto">
                 <% } %>

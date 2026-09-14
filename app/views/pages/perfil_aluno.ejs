@@ -53,7 +53,7 @@
     <aside class="perfil-card" aria-labelledby="perfil-nome-titulo">
       <section class="perfil-foto">
         <img
-          src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>"
+          src="<%= user.foto_perfil || '/imagens/imagem_perfil.jpg' %>"
           alt="Foto de perfil de <%= user.nome %>"
           class="foto-perfil"
           loading="lazy"
@@ -97,7 +97,7 @@
                 <% locals.historicoProfessores.forEach(professor => { %>
                     <li class="historico-item professor-item" data-id="<%= professor.id %>">
                         <div class="professor-info">
-                            <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>" class="historico-foto">
+                            <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>" class="historico-foto">
                             <p class="historico-link">
                                 <%= professor.nome %>
                             </p>

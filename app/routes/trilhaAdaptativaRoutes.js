@@ -4,7 +4,8 @@ const TrilhaAdaptativaController = require('../controllers/TrilhaAdaptativaContr
 
 // Rota para iniciar a trilha e obter a primeira tarefa (seja questão, vídeo, etc.)
 // Ex: GET /api/trilha-adaptativa/iniciar/123
-router.get('/iniciar/:alunoId', TrilhaAdaptativaController.iniciarTrilha);
+router.get('/iniciar', TrilhaAdaptativaController.iniciarTrilha);
+router.get('/progresso', TrilhaAdaptativaController.obterProgresso);
 
 // Rota para processar a resposta de um aluno a uma QUESTÃO
 // Ex: POST /api/trilha-adaptativa/responder

@@ -1,3 +1,4 @@
+
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
@@ -19,15 +20,71 @@ const FeedbackService = require('../services/FeedbackService');
 const ActivityLimitService = require('../services/ActivityLimitService');
 const PasseEstudoService = require('../services/PasseEstudoService');
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'app/public/imagens/uploads/');
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+const { execFile } = require('child_process');
+
+// ffprobe empacotado (já é dependência transitiva do projeto).
+// Nada de PATH global: usamos o binário do @ffprobe-installer.
+let FFPROBE_BIN = 'ffprobe';
+try {
+    // eslint-disable-next-line global-require
+    FFPROBE_BIN = require('@ffprobe-installer/ffprobe').path;
+} catch (e) {
+    console.warn('Aviso: @ffprobe-installer/ffprobe não encontrado, usando ffprobe do PATH.');
+}
+
+/**
+ * Mede a duração de um vídeo via ffprobe (sem depender de get-video-duration,
+ * cuja cadeia execa/ESM quebra no Node atual com ERR_REQUIRE_ESM).
+ * Retorna segundos (float) ou lança erro se não for possível medir.
+ *
+ * Estratégia:
+ *  1) Tenta o metadado format=duration (rápido, funciona p/ mp4 e webm corrigido).
+ *  2) Se vier N/A (webm do MediaRecorder sem cabeçalho de duração), conta os
+ *     frames de vídeo e estima pela taxa de captura da composição (24 fps).
+ */
+async function getVideoDuration(filePath) {
+    const run = (args) => new Promise((resolve, reject) => {
+        execFile(FFPROBE_BIN, args, { timeout: 60000 }, (error, stdout, stderr) => {
+            if (error) return reject(error);
+            resolve(String(stdout || '').trim());
+        });
+    });
+
+    // 1) Metadado do container.
+    try {
+        const raw = await run([
+            '-v', 'error',
+            '-show_entries', 'format=duration',
+            '-of', 'default=noprint_wrappers=1:nokey=1',
+            filePath
+        ]);
+        const duration = parseFloat(raw);
+        if (duration && !isNaN(duration) && duration > 0) {
+            return duration;
+        }
+    } catch (e) {
+        console.warn(`Aviso: ffprobe (format) falhou para ${filePath}:`, e.message);
     }
-});
+
+    // 2) Contagem de frames (webm do MediaRecorder informa avg_frame_rate 0/0,
+    //    mas nb_read_frames é confiável). A composição grava a 24 fps.
+    const frameCountRaw = await run([
+        '-v', 'error',
+        '-select_streams', 'v:0',
+        '-count_frames',
+        '-show_entries', 'stream=nb_read_frames',
+        '-of', 'default=noprint_wrappers=1:nokey=1',
+        filePath
+    ]);
+    const frames = parseInt(String(frameCountRaw).trim(), 10);
+    if (frames && !isNaN(frames) && frames > 0) {
+        return frames / 24;
+    }
+
+    throw new Error(`ffprobe não conseguiu medir a duração de ${filePath}`);
+}
+
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png/;
@@ -48,7 +105,10 @@ const upload = multer({
 
 const videoStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const dir = 'app/public/recordings';
+        // As gravações ficam em área privada (fora de app/public), nunca servidas
+        // diretamente pelo express.static. O acesso sempre passa por /gravacao/stream/:id
+        // que valida autenticação e vínculo com a aula.
+        const dir = path.join(__dirname, '..', 'private', 'recordings');
         if (!fs.existsSync(dir)){
             fs.mkdirSync(dir, { recursive: true });
         }
@@ -61,6 +121,74 @@ const videoStorage = multer.diskStorage({
 });
 
 const uploadVideo = multer({ storage: videoStorage }).single('video');
+
+// ---------------------------------------------------------------------------
+// Gravações: diretórios, resolução de arquivo e controle de acesso.
+// ---------------------------------------------------------------------------
+
+const RECORDINGS_DIR = path.join(__dirname, '..', 'private', 'recordings');
+
+// Diretório legado (usado antes da área privada). Apenas leitura para
+// compatibilidade: gravações antigas ainda podem ser acessadas com autenticação.
+const LEGACY_RECORDINGS_DIR = path.join(__dirname, '..', 'public', 'recordings');
+
+const GRAVACAO_STATUS = Object.freeze({
+    PROCESSANDO: 'processando',
+    DISPONIVEL: 'disponivel',
+    FALHOU: 'falhou',
+    INDISPONIVEL: 'indisponivel'
+});
+
+/**
+ * Converte um caminho relativo armazenado no banco (que pode estar nos
+ * formatos 'recordings/arquivo.webm', '/recordings/arquivo.webm' ou apenas
+ * 'arquivo.webm') no caminho absoluto do arquivo em disco.
+ *
+ * Usamos apenas o basename para impedir path traversal — o nome do arquivo
+ * é sempre gerado pelo servidor.
+ */
+function resolveRecordingFile(relPath) {
+    if (!relPath || typeof relPath !== 'string') return null;
+
+    const base = path.basename(relPath.replace(/\\/g, '/'));
+    if (!base || !/^[\w.-]+\.(webm|mp4|mov)$/i.test(base)) return null;
+
+    const privatePath = path.join(RECORDINGS_DIR, base);
+    if (fs.existsSync(privatePath)) return privatePath;
+
+    const legacyPath = path.join(LEGACY_RECORDINGS_DIR, base);
+    if (fs.existsSync(legacyPath)) return legacyPath;
+
+    return null;
+}
+
+/**
+ * Verifica se o usuário autenticado tem relação com o agendamento
+ * (aluno ou professor daquela aula) ou é um administrador autorizado.
+ */
+function hasRecordingAccess(req, agendamento) {
+    if (!req.session) return false;
+    if (req.session.user_admin && req.session.user_admin.id) return true;
+
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user || !user.id) return false;
+
+    const userId = String(user.id);
+    return (
+        String(agendamento.aluno_id) === userId ||
+        String(agendamento.professor_id) === userId
+    );
+}
+
+/**
+ * Formata uma duração em segundos para 'MMm SSs' (ex.: 12m 05s).
+ */
+function formatDuration(seconds) {
+    const total = Math.max(0, Math.round(Number(seconds) || 0));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${m}m ${String(s).padStart(2, '0')}s`;
+}
 
 async function getUserByEmail(email) {
     const searchEmail = email.toLowerCase();
@@ -78,43 +206,10 @@ async function getUserByEmail(email) {
     }
 }
 
-function normalizeActivityQuestions(activity) {
-    const rawQuestions = Array.isArray(activity.questions) ? activity.questions : Object.values(activity.questions || {});
-
-    return rawQuestions.map((question) => {
-        let options = null;
-        let correctKey = question.correct;
-
-        if (Array.isArray(question.options)) {
-            options = question.options.reduce((acc, value, index) => {
-                const letter = String.fromCharCode(65 + index);
-                acc[letter] = value;
-                return acc;
-            }, {});
-            const correctIndex = parseInt(question.correct, 10);
-            if (!isNaN(correctIndex) && correctIndex >= 0 && correctIndex < question.options.length) {
-                correctKey = String.fromCharCode(65 + correctIndex);
-            }
-        } else if (question.options) {
-            options = Object.fromEntries(Object.entries(question.options).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''));
-        }
-
-        const correctAnswer = question.correctAnswer || (options ? (options[correctKey] || correctKey) : '');
-
-        return {
-            ...question,
-            title: question.title || question.text || question.enunciado || 'Questão',
-            text: question.text || question.title || question.enunciado || 'Questão',
-            type: question.type || (options ? 'multiple_choice' : 'short_text'),
-            options,
-            correct: correctKey, 
-            correctAnswer
-        };
-    });
-}
+const activityNormalizer = require('../utils/activityNormalizer');
 
 async function ensureActivityPersisted(activity, creatorId = null) {
-    const normalizedQuestions = normalizeActivityQuestions(activity);
+    const normalizedQuestions = activityNormalizer.normalizeActivityQuestions(activity);
     const activityId = activity.id;
 
     const [existingActivity] = await pool.query('SELECT id FROM atividades WHERE id = ?', [activityId]);
@@ -125,8 +220,19 @@ async function ensureActivityPersisted(activity, creatorId = null) {
         );
     }
 
-    const [existingQuestions] = await pool.query('SELECT id FROM questoes WHERE atividade_id = ? ORDER BY id ASC', [activityId]);
+    const [existingQuestions] = await pool.query('SELECT id, resposta FROM questoes WHERE atividade_id = ? ORDER BY id ASC', [activityId]);
     if (existingQuestions.length >= normalizedQuestions.length) {
+        // Re-sincroniza o gabarito caso versões anteriores tenham gravado resposta vazia
+        // para questões escritas (correção retroativa de dados já persistidos).
+        for (let i = 0; i < normalizedQuestions.length; i++) {
+            const q = normalizedQuestions[i];
+            const optionEntries = q.options ? Object.entries(q.options) : [];
+            const expectedResposta = q.options ? (q.correct || optionEntries[0]?.[0] || '') : (q.correctAnswer || '');
+            const existingRow = existingQuestions[i];
+            if (existingRow && String(existingRow.resposta || '') !== String(expectedResposta)) {
+                await pool.query('UPDATE questoes SET resposta = ? WHERE id = ?', [expectedResposta, existingRow.id]);
+            }
+        }
         return { activity: { ...activity, questions: normalizedQuestions }, questionIds: existingQuestions.map(q => q.id) };
     }
 
@@ -171,15 +277,6 @@ function normalizeAnswers(answers) {
     if (!answers) return [];
     if (Array.isArray(answers)) return answers;
     return Object.keys(answers).sort((a, b) => Number(a) - Number(b)).map(key => answers[key]);
-}
-
-function isAnswerCorrect(question, answer) {
-    if (answer === undefined || answer === null || String(answer).trim() === '') return false;
-    const marked = String(answer).trim();
-    if (question.options) {
-        return marked.toLowerCase() === String(question.correct || '').toLowerCase();
-    }
-    return marked.toLowerCase() === String(question.correctAnswer || '').trim().toLowerCase();
 }
 
 async function getUserById(id, withRelations = true) {
@@ -256,7 +353,7 @@ async function handleActivitySubmission(req, res) {
         let score = 0;
 
         normalizedActivity.questions.forEach((question, index) => {
-            if (isAnswerCorrect(question, userAnswers[index])) score++;
+            if (activityNormalizer.isAnswerCorrect(question, userAnswers[index])) score++;
         });
 
         const pontuacao_total = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
@@ -271,7 +368,7 @@ async function handleActivitySubmission(req, res) {
         for (let i = 0; i < totalQuestions; i++) {
             const question = normalizedActivity.questions[i];
             const userAnswer = userAnswers[i] || '';
-            const isCorrect = isAnswerCorrect(question, userAnswer);
+            const isCorrect = activityNormalizer.isAnswerCorrect(question, userAnswer);
             const questionId = questionIds[i];
 
             if (questionId) {
@@ -320,7 +417,7 @@ router.get('/chat/with/:userId', (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const [professores] = await pool.query('SELECT id, nome, foto, descricao, status FROM professores WHERE status = ? LIMIT 10', ['disponivel']);
+        const [professores] = await pool.query('SELECT id, nome, foto_perfil, descricao, status FROM professores WHERE status = ? LIMIT 10', ['disponivel']);
         for (let prof of professores) {
             const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ?', [prof.id]);
             prof.disciplinas = disciplinas.map(d => d.nome);
@@ -471,7 +568,7 @@ router.post('/cadastro', [
             req.session.user_aluno = userForSession;
         } else {
             await pool.query('INSERT INTO professores (id, nome, email, senha) VALUES (?, ?, ?, ?)', [userId, nome, email, hashedPassword]);
-            userForSession = { id: userId, nome, email, tipo: 'professor', password: hashedPassword, horariosDisponiveis: [], link_previa: '', disciplinas: [], foto: '/imagens/imagem_perfil.jpg', descricao: '', status: 'disponivel' };
+            userForSession = { id: userId, nome, email, tipo: 'professor', password: hashedPassword, horariosDisponiveis: [], link_previa: '', disciplinas: [], foto_perfil: null, descricao: '', status: 'disponivel' };
             req.session.user_prof = userForSession;
         }
 
@@ -565,7 +662,8 @@ router.post('/login', [
             nome: user.nome,
             email: user.email,
             password: user.senha,
-            tipo: user.tipo
+            tipo: user.tipo,
+            foto_perfil: user.foto_perfil
         };
 
         if (user.tipo === "aluno") {
@@ -640,7 +738,7 @@ router.get('/perfil_aluno', async (req, res) => {
     try {
         const alunoId = req.session.user_aluno.id;
         const [professores] = await pool.query(
-            `SELECT DISTINCT p.id, p.nome, p.email, p.foto
+            `SELECT DISTINCT p.id, p.nome, p.email, p.foto_perfil
              FROM agendamentos ag
              JOIN professores p ON ag.professor_id = p.id
              WHERE ag.aluno_id = ? AND ag.status IN ('ativo', 'concluido')`,
@@ -973,14 +1071,100 @@ router.get("/video/:room", async (req, res) => {
 
     try {
         const column = req.session.user_aluno ? 'aluno_id' : 'professor_id';
-        const [agendamento] = await pool.query(
-            `SELECT id FROM agendamentos WHERE sala_id = ? AND ${column} = ? AND status = 'ativo'`,
+        const [agendamentoRows] = await pool.query(
+            `SELECT ag.id, ag.aluno_id, ag.professor_id, a.nome AS aluno_nome, p.nome AS professor_nome
+             FROM agendamentos ag
+             JOIN alunos a ON ag.aluno_id = a.id
+             JOIN professores p ON ag.professor_id = p.id
+             WHERE ag.sala_id = ? AND ag.${column} = ? AND ag.status = 'ativo'
+             LIMIT 1`,
             [room, user.id]
         );
-        res.render("pages/video_call", { room, user });
+
+        // 1) Aula agendada ativa: fluxo normal (nomes da aula, gravação no histórico).
+        if (agendamentoRows.length > 0) {
+            const agendamento = agendamentoRows[0];
+            const ehAluno = !!req.session.user_aluno;
+
+            // Nomes dos participantes para a composição da gravação (sem pedir novamente).
+            return res.render("pages/video_call", {
+                room,
+                user,
+                nomeLocal: ehAluno ? agendamento.aluno_nome : agendamento.professor_nome,
+                papelLocal: ehAluno ? 'Aluno' : 'Professor',
+                nomeRemoto: ehAluno ? agendamento.professor_nome : agendamento.aluno_nome,
+                papelRemoto: ehAluno ? 'Professor' : 'Aluno',
+                salaLivre: false
+            });
+        }
+
+        // 2) Sala livre vinda do chat (chat_<id>-<id>): permite entrar sem agendamento.
+        //    O usuário precisa fazer parte da sala; a gravação é local/efêmera
+        //    (não vinculada ao histórico de aulas).
+        if (typeof room === 'string' && room.startsWith('chat_')) {
+            const partes = room.replace('chat_', '').split('-');
+            if (!partes.includes(String(user.id))) {
+                return res.status(403).send('Você não participa desta conversa.');
+            }
+            const parceiroId = partes.find((id) => id !== String(user.id));
+            let parceiroNome = 'Parceiro';
+            try {
+                const parceiro = await getUserById(parceiroId, false);
+                if (parceiro && parceiro.nome) parceiroNome = parceiro.nome;
+            } catch (e) { /* mantém fallback */ }
+
+            const ehAluno = !!req.session.user_aluno;
+            return res.render("pages/video_call", {
+                room,
+                user,
+                nomeLocal: user.nome || 'Você',
+                papelLocal: ehAluno ? 'Aluno' : 'Professor',
+                nomeRemoto: parceiroNome,
+                papelRemoto: ehAluno ? 'Professor' : 'Aluno',
+                salaLivre: true
+            });
+        }
+
+        return res.status(403).send('Aula não encontrada ou não autorizada.');
     } catch (error) {
         console.error('Erro ao validar acesso à videochamada:', error);
         res.status(500).send('Não foi possível abrir a sala de aula.');
+    }
+});
+
+router.get('/video-duration', async (req, res) => {
+    // Mantido para compatibilidade com o histórico antigo (fallback do front-end).
+    // Agora restrito a usuários autenticados e limitado ao diretório de gravações.
+    const user = req.session.user_aluno || req.session.user_prof || req.session.user_admin;
+    if (!user || !user.id) {
+        return res.status(401).json({ error: 'Autenticação necessária.' });
+    }
+
+    const { video_path } = req.query;
+    if (!video_path) {
+        return res.status(400).json({ error: 'Parâmetro video_path não encontrado' });
+    }
+
+    // Impede path traversal: apenas o nome do arquivo dentro de recordings é aceito.
+    const base = path.basename(String(video_path).replace(/\\/g, '/'));
+    if (!base) {
+        return res.status(400).json({ error: 'Caminho de vídeo inválido' });
+    }
+
+    const fullPath = path.join(LEGACY_RECORDINGS_DIR, base);
+
+    if (!fs.existsSync(fullPath) || fs.statSync(fullPath).size === 0) {
+        return res.json({ duration: 0 });
+    }
+
+    try {
+        const duration = await getVideoDuration(fullPath);
+        res.json({ duration: Math.round(duration) });
+    } catch (error) {
+        // Um erro aqui significa que o arquivo existe, mas está corrompido ou em um formato inesperado.
+        // Em vez de quebrar, registramos um aviso e retornamos 0 para o front-end.
+        console.warn(`Aviso: Não foi possível obter a duração do vídeo em ${fullPath}. O arquivo pode estar corrompido.`, error);
+        res.json({ duration: 0 });
     }
 });
 
@@ -991,14 +1175,138 @@ router.post('/upload_recording', (req, res) => {
             return res.status(500).json({ success: false, message: 'Erro ao fazer upload.' });
         }
 
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'Nenhum arquivo de vídeo enviado.' });
+        }
+
         const { room } = req.body;
-        const videoPath = `/recordings/${req.file.filename}`;
+        const user = req.session.user_aluno || req.session.user_prof;
+
+        if (!user || !user.id) {
+            fs.unlink(req.file.path, () => {});
+            return res.status(401).json({ success: false, message: 'Usuário não autenticado.' });
+        }
+
+        if (!room) {
+            fs.unlink(req.file.path, () => {});
+            return res.status(400).json({ success: false, message: 'Sala não informada.' });
+        }
 
         try {
-            await pool.query('UPDATE agendamentos SET gravacao_url = ? WHERE sala_id = ?', [videoPath, room]);
-            res.json({ success: true, message: 'Gravação salva com sucesso!' });
-        } catch (error) {
-            console.error('Erro ao salvar URL da gravação no banco de dados:', error);
+            // Sala livre (chat_X-Y): sem agendamento, sem histórico.
+            // Apenas descarta o arquivo temporário e confirma o fim da chamada.
+            const ehSalaLivre = typeof room === 'string' && room.startsWith('chat_');
+            if (ehSalaLivre) {
+                fs.unlink(req.file.path, () => {});
+                return res.json({ success: true, salaLivre: true, message: 'Chamada livre encerrada.' });
+            }
+
+            const [agendamentos] = await pool.query(
+                `SELECT * FROM agendamentos WHERE sala_id = ? ORDER BY id DESC LIMIT 1`,
+                [room]
+            );
+
+            if (agendamentos.length === 0) {
+                fs.unlink(req.file.path, () => {});
+                return res.status(404).json({ success: false, message: 'Aula não encontrada.' });
+            }
+
+            const agendamento = agendamentos[0];
+
+            // Apenas o aluno ou o professor daquela aula podem enviar a gravação.
+            const userId = String(user.id);
+            const podeEnviar =
+                String(agendamento.aluno_id) === userId ||
+                String(agendamento.professor_id) === userId;
+
+            if (!podeEnviar) {
+                fs.unlink(req.file.path, () => {});
+                return res.status(403).json({ success: false, message: 'Você não participou desta aula.' });
+            }
+
+            const arquivoRelativo = `recordings/${req.file.filename}`;
+            const tamanho = req.file.size || (fs.statSync(req.file.path).size || 0);
+
+            // 1) Registra a gravação como PROCESSANDO na área privada.
+            await pool.query(
+                `UPDATE agendamentos
+                 SET gravacao_url = NULL,
+                     gravacao_path = ?,
+                     gravacao_status = ?,
+                     gravacao_tamanho = ?
+                 WHERE sala_id = ?`,
+                [arquivoRelativo, GRAVACAO_STATUS.PROCESSANDO, tamanho, room]
+            );
+
+            // 2) Processa: mede a duração real do arquivo.
+            // O MediaRecorder não escreve duração no cabeçalho do webm, então o
+            // ffprobe pode retornar N/A mesmo com o arquivo íntegro. Nesse caso
+            // usamos a duração real medida no cliente (duracao_ms) como fallback.
+            // Só marcamos FALHOU quando nem o arquivo nem o cliente dão duração.
+            // Fontes de duracao (ordem de confianca):
+            //  1) comp_frames/comp_elapsed_ms: frames desenhados no canvas pelo
+            //     compositor (fps real = frames / elapsed). Reflete o video final.
+            //  2) duracao_ms: relogio de parede do navegador (start->stop).
+            //  3) ffprobe: metadado do container ou contagem de frames / 24.
+            function numBody(v) {
+                if (v == null) return 0;
+                const n = Number(String(v).replace(',', '.'));
+                return (n > 0 && isFinite(n)) ? n : 0;
+            }
+            const compFrames = numBody(req.body && req.body.comp_frames);
+            const compElapsedSec = numBody(req.body && req.body.comp_elapsed_ms) / 1000;
+            let clientDurationSec = numBody(req.body && req.body.duracao_ms) / 1000;
+            if (compFrames > 0 && compElapsedSec > 0) {
+                const fpsReal = compFrames / compElapsedSec;
+                if (fpsReal > 1 && fpsReal <= 60) {
+                    clientDurationSec = compFrames / fpsReal;
+                }
+            }
+            try {
+                let duration = 0;
+                try {
+                    duration = await getVideoDuration(req.file.path);
+                } catch (ffprobeError) {
+                    console.warn(`Aviso: ffprobe sem duração para ${req.file.path}, tentando fallback do cliente:`, ffprobeError.message);
+                }
+
+                // Cliente (video final real) tem prioridade sobre a estimativa
+                // do servidor: o webm do MediaRecorder nao traz metadado e a
+                // contagem de frames assume 24fps fixos.
+                if (clientDurationSec > 0) {
+                    duration = clientDurationSec;
+                }
+
+                if (!duration || duration <= 0 || isNaN(duration)) {
+                    throw new Error(`Duração inválida medida para ${req.file.path}`);
+                }
+
+                await pool.query(
+                    `UPDATE agendamentos
+                     SET gravacao_duracao = ?, gravacao_status = ?
+                     WHERE sala_id = ?`,
+                    [Math.round(duration), GRAVACAO_STATUS.DISPONIVEL, room]
+                );
+
+                res.json({ success: true, message: 'Gravação processada e disponível no histórico!' });
+            } catch (processError) {
+                // Arquivo corrompido ou formato não reconhecido: registra falha.
+                console.warn(`Aviso: não foi possível processar a gravação ${req.file.path}:`, processError);
+
+                await pool.query(
+                    `UPDATE agendamentos SET gravacao_status = ? WHERE sala_id = ?`,
+                    [GRAVACAO_STATUS.FALHOU, room]
+                );
+
+                res.json({
+                    success: false,
+                    message: 'A gravação foi recebida, mas não pôde ser processada.',
+                    falhou: true
+                });
+            }
+        } catch (dbError) {
+            console.error('Erro ao salvar a gravação no banco de dados:', dbError);
+            fs.unlink(req.file.path, () => {});
             res.status(500).json({ success: false, message: 'Erro ao salvar gravação no banco de dados.' });
         }
     });
@@ -1047,6 +1355,152 @@ router.get('/aulas', async (req, res) => {
     } catch (error) {
         console.error('Erro ao carregar a página de aulas:', error);
         res.redirect('/dashboard_prof');
+    }
+});
+
+router.get('/ver_gravacao/:id', async (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof;
+    if (!user) {
+        return res.redirect('/login');
+    }
+
+    const agendamentoId = req.params.id;
+
+    if (!/^\d+$/.test(agendamentoId)) {
+        return res.status(400).render('pages/ver_gravacao', { aula: null, acessoNegado: false });
+    }
+
+    try {
+        const [agendamentoRows] = await pool.query(
+            `SELECT a.*,
+                    al.nome AS aluno_nome,
+                    p.nome AS professor_nome,
+                    h.hora_inicio,
+                    h.hora_fim,
+                    'Matemática' AS materia
+             FROM agendamentos a
+             JOIN alunos al ON a.aluno_id = al.id
+             JOIN professores p ON a.professor_id = p.id
+             JOIN horarios_disponiveis h ON a.horario_id = h.id
+             WHERE a.id = ?
+             LIMIT 1`,
+            [agendamentoId]
+        );
+
+        if (agendamentoRows.length === 0) {
+            return res.status(404).render('pages/ver_gravacao', { aula: null, acessoNegado: false });
+        }
+
+        const agendamento = agendamentoRows[0];
+
+        // Controle de acesso: aluno da aula, professor da aula ou administrador.
+        if (!hasRecordingAccess(req, agendamento)) {
+            return res.status(403).render('pages/ver_gravacao', { aula: null, acessoNegado: true });
+        }
+
+        // Normaliza o estado da gravação. Aulas de clientes antigos podem ter
+        // gravacao_url preenchida sem gravacao_status — tratamos como disponível.
+        let status = agendamento.gravacao_status;
+        if (!status) {
+            status = agendamento.gravacao_url ? GRAVACAO_STATUS.DISPONIVEL : GRAVACAO_STATUS.INDISPONIVEL;
+        }
+
+        const aula = {
+            id: agendamento.id,
+            materia: agendamento.materia || 'Matemática',
+            professorNome: agendamento.professor_nome,
+            alunoNome: agendamento.aluno_nome,
+            data: agendamento.data,
+            horaInicio: agendamento.hora_inicio,
+            horaFim: agendamento.hora_fim,
+            statusAula: agendamento.status,
+            gravacaoStatus: status,
+            duracaoFormatada: formatDuration(agendamento.gravacao_duracao),
+            tamanhoMB: agendamento.gravacao_tamanho
+                ? (agendamento.gravacao_tamanho / (1024 * 1024)).toFixed(1)
+                : null,
+            podeAssistir: status === GRAVACAO_STATUS.DISPONIVEL,
+            usuarioEhAluno: !!(req.session.user_aluno && req.session.user_aluno.id)
+        };
+
+        res.render('pages/ver_gravacao', { aula, acessoNegado: false });
+    } catch (error) {
+        console.error('Erro ao buscar gravação:', error);
+        res.status(500).render('pages/ver_gravacao', { aula: null, acessoNegado: false });
+    }
+});
+
+/**
+ * Streaming seguro da gravação.
+ *
+ * A gravação nunca é servida por arquivo estático. Toda reprodução passa por
+ * esta rota, que exige autenticação e vínculo com a aula. Suporta Range
+ * requests (necessário para seek no player HTML5) via res.sendFile.
+ */
+router.get('/gravacao/stream/:id', async (req, res) => {
+    const user = req.session.user_aluno || req.session.user_prof || req.session.user_admin;
+    if (!user || !user.id) {
+        return res.status(401).json({ error: 'Autenticação necessária.' });
+    }
+
+    const agendamentoId = req.params.id;
+    if (!/^\d+$/.test(agendamentoId)) {
+        return res.status(400).json({ error: 'Identificador inválido.' });
+    }
+
+    try {
+        const [agendamentoRows] = await pool.query(
+            'SELECT * FROM agendamentos WHERE id = ? LIMIT 1',
+            [agendamentoId]
+        );
+
+        if (agendamentoRows.length === 0) {
+            return res.status(404).json({ error: 'Aula não encontrada.' });
+        }
+
+        const agendamento = agendamentoRows[0];
+
+        // Aluno/professor da aula ou administrador autorizado.
+        if (!hasRecordingAccess(req, agendamento)) {
+            return res.status(403).json({ error: 'Você não tem permissão para acessar esta gravação.' });
+        }
+
+        if (agendamento.gravacao_status === GRAVACAO_STATUS.PROCESSANDO) {
+            return res.status(202).json({ error: 'Gravação ainda em processamento.' });
+        }
+
+        if (agendamento.gravacao_status === GRAVACAO_STATUS.FALHOU) {
+            return res.status(422).json({ error: 'A gravação não pôde ser processada.' });
+        }
+
+        if (agendamento.gravacao_status === GRAVACAO_STATUS.INDISPONIVEL &&
+            !agendamento.gravacao_url) {
+            return res.status(404).json({ error: 'Gravação indisponível.' });
+        }
+
+        // Resolve o arquivo na área privada (com fallback para a área legada).
+        const filePath = resolveRecordingFile(agendamento.gravacao_path || agendamento.gravacao_url);
+
+        if (!filePath) {
+            return res.status(404).json({ error: 'Arquivo de gravação não encontrado.' });
+        }
+
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
+        res.setHeader('Content-Disposition', 'inline');
+
+        res.sendFile(filePath, {
+            acceptRanges: true,
+            maxAge: 0,
+            immutable: false
+        }, (sendError) => {
+            if (sendError && !res.headersSent) {
+                res.status(404).json({ error: 'Arquivo de gravação não encontrado.' });
+            }
+        });
+    } catch (error) {
+        console.error('Erro ao servir a gravação:', error);
+        res.status(500).json({ error: 'Erro interno ao acessar a gravação.' });
     }
 });
 
@@ -1359,12 +1813,24 @@ router.get('/dashboard_aluno', async (req, res) => {
     try {
         const user = await getUserById(sessionUser.id, true);
 
+        const [comentarios] = await pool.query(
+            'SELECT nota FROM comentarios WHERE aluno_id = ? AND nota IS NOT NULL',
+            [user.id]
+        );
+
+        let mediaAvaliacoes = 0;
+        if (comentarios.length > 0) {
+            const somaNotas = comentarios.reduce((acc, c) => acc + c.nota, 0);
+            mediaAvaliacoes = (somaNotas / comentarios.length).toFixed(1);
+        }
+
         const recomendacoesProfessores = await RecomendacaoProfessorService.recomendarProfessoresParaAluno(user.id, { limite: 3 });
         
         res.render('pages/dashboard_aluno', { 
             user, 
             session: req.session, 
-            recomendacoesProfessores 
+            recomendacoesProfessores,
+            mediaAvaliacoes
         });
 
     } catch (error) {
@@ -1374,7 +1840,8 @@ router.get('/dashboard_aluno', async (req, res) => {
         res.render('pages/dashboard_aluno', {
             user,
             session: req.session,
-            recomendacoesProfessores: { focos: [], recomendacoes: [] }
+            recomendacoesProfessores: { focos: [], recomendacoes: [] },
+            mediaAvaliacoes: 0
         });
     }
 });
@@ -1467,16 +1934,18 @@ router.get('/historico_aulas', async (req, res) => {
 
         if (userType === 'aluno') {
             query = `
-                SELECT a.*, p.nome as professor_nome, 'Matemática' as materia
+                SELECT a.*, p.nome as professor_nome, 'Matemática' as materia, h.hora_inicio, h.hora_fim
                 FROM agendamentos a
                 JOIN professores p ON a.professor_id = p.id
+                JOIN horarios_disponiveis h ON a.horario_id = h.id
                 WHERE a.aluno_id = ? AND a.status = 'concluido'
             `;
         } else {
             query = `
-                SELECT a.*, al.nome as aluno_nome, 'Matemática' as materia
+                SELECT a.*, al.nome as aluno_nome, 'Matemática' as materia, h.hora_inicio, h.hora_fim
                 FROM agendamentos a
                 JOIN alunos al ON a.aluno_id = al.id
+                JOIN horarios_disponiveis h ON a.horario_id = h.id
                 WHERE a.professor_id = ? AND a.status = 'concluido'
             `;
         }
@@ -1591,22 +2060,50 @@ async function getAttemptDetails(tentativaId, userId) {
     const [atividadeRows] = await pool.query('SELECT * FROM atividades WHERE id = ?', [tentativa.atividade_id]);
     const atividadeBase = atividadeRows[0] || {};
 
+    // Fonte original da atividade (JSON) para recuperar gabaritos de questões escritas
+    // quando o banco tiver sido populado por versões anteriores com resposta vazia.
+    let originalQuestions = [];
+    try {
+        const storedActivity = activityStore.getActivities().activities.find(a => String(a.id) === String(tentativa.atividade_id));
+        if (storedActivity) {
+            originalQuestions = activityNormalizer.normalizeActivityQuestions(storedActivity);
+        }
+    } catch (error) {
+        originalQuestions = [];
+    }
+
     const atividade = {
         ...atividadeBase,
-        questions: respostas.map(r => {
-            let correctKey = r.resposta;
-            const options = { A: r.alternativa_a, B: r.alternativa_b, C: r.alternativa_c, D: r.alternativa_d };
+        questions: respostas.map((r, index) => {
+            // Only create options object for multiple choice questions
+            const hasOptions = r.alternativa_a || r.alternativa_b || r.alternativa_c || r.alternativa_d;
+            const options = hasOptions ? { 
+                A: r.alternativa_a, 
+                B: r.alternativa_b, 
+                C: r.alternativa_c, 
+                D: r.alternativa_d 
+            } : null;
 
-            const correctIndex = parseInt(correctKey, 10);
-            if (!isNaN(correctIndex) && String(correctIndex) === correctKey) {
-                correctKey = String.fromCharCode(65 + correctIndex);
+            // Converte índice numérico -> letra apenas em questões de múltipla escolha.
+            // Em questões escritas, o gabarito numérico (ex.: "120") precisa ser preservado.
+            let correctKey = r.resposta;
+            if (hasOptions) {
+                const correctIndex = parseInt(correctKey, 10);
+                if (!isNaN(correctIndex) && String(correctIndex) === correctKey && correctIndex >= 1) {
+                    correctKey = String.fromCharCode(64 + correctIndex);
+                }
             }
+
+            const sourceQuestion = originalQuestions[index] || {};
 
             return {
                 text: r.enunciado,
+                type: hasOptions ? 'multiple_choice' : (sourceQuestion.type || 'short_text'),
                 options: options,
                 correct: correctKey,
-                correctAnswer: r.explicacao || (options[correctKey] || correctKey)
+                correctAnswer: hasOptions
+                    ? (r.explicacao || (options[correctKey] || correctKey))
+                    : (r.explicacao || r.resposta || sourceQuestion.correctAnswer || '')
             };
         })
     };
@@ -1709,7 +2206,7 @@ router.post('/atividades/gerar-com-ia', async (req, res) => {
 
         const data = await response.json();
         
-        const normalizedQuestions = normalizeActivityQuestions({ questions: data.questions || [] });
+        const normalizedQuestions = activityNormalizer.normalizeActivityQuestions({ questions: data.questions || [] });
 
         const activities = activityStore.getActivities();
 
@@ -1864,16 +2361,19 @@ router.post('/perfil/editar', (req, res) => {
                 email: req.body.email,
             };
 
+            if (req.file) {
+                const base64Image = req.file.buffer.toString('base64');
+                const dataUri = `data:${req.file.mimetype};base64,${base64Image}`;
+                updatedData.foto_perfil = dataUri;
+            }
+
             if (isProf) {
                 updatedData.descricao = req.body.descricao || user.descricao;
                 updatedData.link_previa = req.body.link_previa || user.link_previa;
                 updatedData.status = req.body.status || user.status;
-                if (req.file) {
-                    updatedData.foto = '/imagens/uploads/' + req.file.filename;
-                }
-
-                await pool.query('UPDATE professores SET nome=?, email=?, descricao=?, link_previa=?, status=?, foto=? WHERE id=?',
-                    [updatedData.nome, updatedData.email, updatedData.descricao, updatedData.link_previa, updatedData.status, updatedData.foto || user.foto, user.id]
+                
+                await pool.query('UPDATE professores SET nome=?, email=?, descricao=?, link_previa=?, status=?, foto_perfil=? WHERE id=?',
+                    [updatedData.nome, updatedData.email, updatedData.descricao, updatedData.link_previa, updatedData.status, updatedData.foto_perfil || user.foto_perfil, user.id]
                 );
 
                 await pool.query('DELETE FROM disciplinas WHERE professor_id = ?', [user.id]);
@@ -1883,15 +2383,15 @@ router.post('/perfil/editar', (req, res) => {
                 updatedData.disciplinas = disciplinas;
 
             } else {
-                if (req.file) {
-                    updatedData.foto = '/imagens/uploads/' + req.file.filename;
-                }
-                await pool.query('UPDATE alunos SET nome=?, email=?, foto=? WHERE id=?', 
-                [updatedData.nome, updatedData.email, updatedData.foto || user.foto, user.id]);
+                await pool.query('UPDATE alunos SET nome=?, email=?, foto_perfil=? WHERE id=?', 
+                [updatedData.nome, updatedData.email, updatedData.foto_perfil || user.foto_perfil, user.id]);
             }
 
             const sessionKey = isProf ? 'user_prof' : 'user_aluno';
             req.session[sessionKey] = { ...user, ...updatedData };
+            if (req.session[sessionKey].foto) {
+                delete req.session[sessionKey].foto;
+            }
 
             req.session.save(err => {
                 if (err) {
@@ -1916,7 +2416,7 @@ router.get('/pesquisar_profs', async (req, res) => {
 
     try {
         let sql = `
-            SELECT p.id, p.nome, p.foto, p.descricao, p.status, GROUP_CONCAT(d.nome SEPARATOR ', ') as disciplinas
+            SELECT p.id, p.nome, p.foto_perfil, p.descricao, p.status, GROUP_CONCAT(d.nome SEPARATOR ', ') as disciplinas
             FROM professores p
             LEFT JOIN disciplinas d ON p.id = d.professor_id
         `;
@@ -2355,7 +2855,7 @@ router.get('/api/atividade/:activityId/dica/:questionIndex', async (req, res) =>
             return res.status(404).json({ message: 'Atividade não encontrada.' });
         }
 
-        const questions = normalizeActivityQuestions(activity);
+        const questions = activityNormalizer.normalizeActivityQuestions(activity);
         const question = questions[questionIndex];
 
         if (!question) {
@@ -2432,7 +2932,7 @@ router.get('/ver_atividade/:id', async (req, res) => {
 
         const activityData = {
             ...activity,
-            questions: normalizeActivityQuestions(activity),
+            questions: activityNormalizer.normalizeActivityQuestions(activity),
             professorNome: creator ? creator.nome : 'Anônimo'
         };
         
@@ -2522,7 +3022,7 @@ router.get('/gerar_atividade', async (req, res) => {
 
         const data = await response.json();
 
-        const normalizedQuestions = normalizeActivityQuestions({ questions: data.questions || [] });
+        const normalizedQuestions = activityNormalizer.normalizeActivityQuestions({ questions: data.questions || [] });
 
         const activities = activityStore.getActivities();
 
@@ -2552,6 +3052,7 @@ router.get('/trilha', async (req, res) => {
 
     try {
         const tarefa = await trilhaService.iniciarTrilhaParaAluno(user.id);
+        const progresso = await trilhaService.obterProgresso(user.id);
 
         if (tarefa.tarefaTipo === 'CONCLUIDO') {
             return res.render('pages/trilha_concluida');
@@ -2560,6 +3061,7 @@ router.get('/trilha', async (req, res) => {
         res.render('pages/trilha', {
             user,
             tarefa: tarefa,
+            progresso,
             session: req.session
         });
 
@@ -2584,18 +3086,12 @@ router.post('/trilha/responder', async (req, res) => {
             return res.redirect('/trilha');
         }
 
-        const resultado = await trilhaService.processarRespostaEProximaQuestao(
+        await trilhaService.processarRespostaEProximaQuestao(
             user.id,
-            item_id,
+            Number(item_id),
             resposta,
             tempoResposta
         );
-
-        GamificationService.registrarAtividade(user.id);
-
-        if (resultado.acertou) {
-            GamificationService.concederXpPorAcerto(user.id);
-        }
 
         res.redirect('/trilha');
 

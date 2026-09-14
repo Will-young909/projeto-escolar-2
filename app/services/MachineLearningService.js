@@ -1,5 +1,5 @@
 
-const tf = require('@tensorflow/tfjs-node');
+const tf = require('../lib/tensorflow');
 const HistoricoQuestoesModel = require('../models/HistoricoQuestoesModel');
 const UsuarioHabilidadesModel = require('../models/UsuarioHabilidadesModel');
 

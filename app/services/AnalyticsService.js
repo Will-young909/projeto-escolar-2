@@ -29,10 +29,10 @@ const AnalyticsService = {
 
             // 3. Buscar resumo de habilidades (pontos fortes e a melhorar)
             const [habilidades] = await pool.query(
-                `SELECT habilidade, AVG(percentual) as mediaPercentual
+                `SELECT habilidade_id, AVG(percentual) as mediaPercentual
                  FROM resultado_habilidade
                  WHERE aluno_id = ?
-                 GROUP BY habilidade
+                 GROUP BY habilidade_id
                  ORDER BY mediaPercentual DESC`,
                 [alunoId]
             );
@@ -40,10 +40,9 @@ const AnalyticsService = {
             const pontosFortes = habilidades.slice(0, 3);
             const pontosAMelhorar = habilidades.slice(-3).reverse();
 
-            // 4. Buscar histórico recente de atividades (placeholder)
-            // Esta parte pode ser expandida para buscar um histórico mais detalhado
+            // 4. Buscar histórico recente de atividades
             const [historico] = await pool.query(
-                `SELECT q.habilidade, i.acertou, i.concluido_em
+                `SELECT q.habilidade_id, i.acertou, i.concluido_em
                  FROM trilha_itens i
                  JOIN questoes q ON i.questao_id = q.id
                  JOIN trilhas t ON i.trilha_id = t.id

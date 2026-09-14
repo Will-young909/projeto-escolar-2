@@ -79,7 +79,7 @@
                         <i class="fas fa-calendar-alt"></i>
                         <%= new Date(dia).toLocaleString('pt-BR', {
                             timeZone: 'America/Sao_Paulo'
-                        }) %>
+                        }).split(",")[0] %>
                     </h2>
 
                     <% aulasAgrupadas[dia].forEach(aula => { %>
@@ -96,7 +96,7 @@
                             <p class="lesson-subject"><i class="fas fa-book"></i> Matemática</p>
 
                             <section class="actions">
-                                <a href="/video/<%= aula.salaId %>" class="action-btn primary enter-class-btn" data-data="<%= aula.data %>" data-hora="<%= aula.hora %>">
+                                <a href="/video/<%= aula.salaId %>" class="action-btn primary enter-class-btn" data-data="<%= aula.data %>" data-hora="<%= aula.hora %>" data-href="/video/<%= aula.salaId %>">
                                     <i class="fas fa-video"></i> Entrar na Sala
                                 </a>
                                 <a href="/chat/with/<%= aula.professor.id %>" class="action-btn secondary">
@@ -130,27 +130,36 @@
 
     <script src="../js/accessibility.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Lógica para habilitar/desabilitar o botão "Entrar na Sala"
+        function updateEnterClassButtons() {
             document.querySelectorAll('.enter-class-btn').forEach(btn => {
-                const [dia, mes, ano] = btn.dataset.data.split('-');
-                const [hora, minuto] = btn.dataset.hora.split(':');
-                const classTime = new Date(`${ano}-${mes}-${dia}T${hora}:${minuto}:00`);
+                const [ano, mes, dia] = btn.dataset.data.split('-').map(Number);
+                const [hora, minuto] = btn.dataset.hora.split(':').map(Number);
+                if ([ano, mes, dia, hora, minuto].some(v => Number.isNaN(v))) return;
+
+                const classTime = new Date(ano, mes - 1, dia, hora, minuto, 0);
                 const now = new Date();
 
-                const startTime = new Date(classTime.getTime() - 10 * 60 * 1000); // 10 minutos antes
-                const endTime = new Date(classTime.getTime() + 50 * 60 * 1000); // 50 minutos depois (duração da aula)
+                const startTime = new Date(classTime.getTime() - 10 * 60 * 1000);
+                const endTime = new Date(classTime.getTime() + 50 * 60 * 1000);
 
                 if (now >= startTime && now <= endTime) {
-                  btn.classList.remove('disabled');
-                  btn.href = btn.dataset.href;
-                  btn.title = 'Clique para entrar na sala de aula';
+                    btn.classList.remove('disabled');
+                    if (btn.dataset.href) btn.href = btn.dataset.href;
+                    btn.title = 'Clique para entrar na sala de aula';
+                    btn.style.pointerEvents = '';
                 } else {
-                  btn.classList.add('disabled');
-                  btn.removeAttribute('href');
-                  btn.title = 'A sala abre 10 minutos antes do início da aula.';
+                    btn.classList.add('disabled');
+                    btn.removeAttribute('href');
+                    btn.title = 'A sala abre 10 minutos antes do início da aula.';
+                    btn.style.pointerEvents = 'none';
                 }
             });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica para habilitar/desabilitar o botão "Entrar na Sala"
+            updateEnterClassButtons();
+            setInterval(updateEnterClassButtons, 30000);
 
             // Lógica para abrir/fechar a área de cancelamento
             document.querySelectorAll('.cancel-btn').forEach(btn => {

@@ -25,6 +25,37 @@
         .options .incorrect.selected::after { content: ' ✘ Sua escolha'; color: var(--branco); }
         .marked-label { float: right; font-size: 0.85rem; font-weight: 700; }
 
+        /* Estilos para questões escritas */
+        .text-answer-section {
+            margin-top: 15px;
+        }
+        .text-answer-box {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+        }
+        .text-answer-box p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        .text-answer-box.user-answer.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .text-answer-box.user-answer.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .text-answer-box.correct-answer {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
         .ai-tutor-section {
             background-color: var(--branco);
             border: 1px solid #eee;
@@ -128,14 +159,26 @@
                                 </li>
                             <% }); %>
                         </ul>
+
                     <% } else { 
-                        // Lógica para questões dissertativas
+                        // Lógica para questões escritas (short_text e long_text)
                         const isCorrect = respostaDoUsuario.acertou;
+                        const userAnswer = respostaDoUsuario.resposta_marcada || 'Não respondida';
+                        const correctAnswer = question.correctAnswer || respostaDoUsuario.resposta || '';
                     %>
-                        <p><strong>Sua resposta:</strong> <span class="<%= isCorrect ? 'correct' : 'incorrect' %>"><%= respostaDoUsuario.resposta_marcada || 'Não respondida' %></span></p>
-                        <% if (!isCorrect) { %>
-                            <p><strong>Resposta esperada:</strong> <span class="correct"><%= question.correctAnswer || respostaDoUsuario.resposta %></span></p>
-                        <% } %>
+                        <div class="text-answer-section">
+                            <p><strong>Sua resposta:</strong></p>
+                            <div class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
+                                <p><%= userAnswer %></p>
+                            </div>
+
+                            <% if (correctAnswer) { %>
+                                <p style="margin-top: 15px;"><strong>Resposta esperada:</strong></p>
+                                <div class="text-answer-box correct-answer">
+                                    <p><%= correctAnswer %></p>
+                                </div>
+                            <% } %>
+                        </div>
                     <% } %>
 
                     <!-- FUNCIONALIDADE DE IA -->
@@ -186,7 +229,7 @@
             <div class="recommendation-grid">
                 <% recs.recomendacoes.forEach(professor => { %>
                     <article class="teacher-card">
-                        <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
+                        <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
                             <div>
                                 <h3><%= professor.nome %></h3>
                                 <p class="match-score"><%= professor.score %>% de aderência estimada</p>

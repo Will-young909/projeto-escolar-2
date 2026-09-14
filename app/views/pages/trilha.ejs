@@ -97,20 +97,31 @@
 
       <% if (tarefa && tarefa.tarefaTipo !== 'CONCLUIDO') { %>
         
-        <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO'].includes(tarefa.tarefaTipo)) { %>
+        <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO', 'QUESTAO', 'MICROCHECK'].includes(tarefa.tarefaTipo)) { %>
           <% const questao = tarefa.proximaQuestao; %>
           <header class="page-header">
             <h1 class="page-title"><i class="fa-regular fa-circle-question" style="color: var(--roxo);"></i> Trilha de Aprendizagem</h1>
-            <p class="page-subtitle">Resolva a questão para avançar ou revise um conceito importante.</p>
+            <p class="page-subtitle"><%= tarefa.tarefaTipo === 'MICROCHECK' ? 'Responda rapidamente para confirmar seu entendimento.' : 'Resolva a questão para avançar ou revise um conceito importante.' %></p>
           </header>
 
           <% if (tarefa.tarefaTipo === 'REVISAO') { %><div class="revisao-indicator"> <i class="fas fa-history"></i> Hora da revisão! </div><% } %>
+          <% if (tarefa.tarefaTipo === 'MICROCHECK') { %><div class="revisao-indicator"> <i class="fas fa-clipboard-check"></i> Microchecagem </div><% } %>
+          <% if (progresso) { %>
+            <section class="feedback-box" aria-label="Progresso da trilha">
+              <h3>Progresso da trilha: <%= progresso.progressoGeral %>%</h3>
+              <p>Etapa atual: <%= tarefa.etapa || 'aprendizagem' %> · Dificuldade: <%= tarefa.dificuldade || questao.dificuldade || 'gradual' %></p>
+              <% if (progresso.revisoesPendentes) { %><p>Você tem <%= progresso.revisoesPendentes %> revisão(ões) pendente(s).</p><% } %>
+              <% progresso.habilidades.slice(0, 5).forEach(habilidade => { %>
+                <p><strong><%= habilidade.habilidade_nome %></strong>: <%= Number(habilidade.percentual_dominio || 0).toFixed(0) %>%</p>
+              <% }) %>
+            </section>
+          <% } %>
           <% if (questao.habilidade_nome) { %><span class="skill-badge"> <i class="fas fa-bolt"></i> Habilidade: <%= questao.habilidade_nome %> </span><% } %>
           
           <section class="question-box"> <p><%- questao.titulo || questao.enunciado %></p> </section>
 
           <form id="trilha-form">
-            <input type="hidden" name="item_id" value="<%= tarefa.tarefaTipo === 'DIAGNOSTICO' ? questao.item_id : questao.id %>">
+            <input type="hidden" name="item_id" value="<%= questao.item_id %>">
             <div class="options-group" id="options-group">
               <% if(questao.alternativa_a){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-a" value="A" required><label for="opcao-a"><span class="option-letter">A</span><span><%- questao.alternativa_a %></span></label></div> <% } %>
               <% if(questao.alternativa_b){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-b" value="B" required><label for="opcao-b"><span class="option-letter">B</span><span><%- questao.alternativa_b %></span></label></div> <% } %>
@@ -138,7 +149,7 @@
             </div>
           </div>
           <div class="actions">
-             <button id="conteudo-consumido-btn" data-conteudo-id="<%= conteudo.id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
+             <button id="conteudo-consumido-btn" data-item-id="<%= conteudo.item_id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
           </div>
         <% } %>
 
@@ -154,7 +165,7 @@
                 <div><%- conteudo.url_ou_conteudo %></div>
             </div>
             <div class="actions">
-                <button id="conteudo-consumido-btn" data-conteudo-id="<%= conteudo.id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
+                <button id="conteudo-consumido-btn" data-item-id="<%= conteudo.item_id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
             </div>
         <% } %>
 
@@ -173,13 +184,14 @@
 <script src="../js/accessibility.js"></script>  
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const startedAt = Date.now();
   const userId = '<%= user.id %>'; // Injeta o ID do usuário no script
 
   // Lógica para marcar conteúdo de apoio como consumido
   const btnConteudoConsumido = document.getElementById('conteudo-consumido-btn');
   if (btnConteudoConsumido) {
     btnConteudoConsumido.addEventListener('click', async () => {
-      const conteudoId = btnConteudoConsumido.dataset.conteudoId;
+      const itemId = btnConteudoConsumido.dataset.itemId;
       btnConteudoConsumido.disabled = true;
       btnConteudoConsumido.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
 
@@ -187,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch('/api/trilha-adaptativa/marcar-consumido', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alunoId: userId, conteudoId: conteudoId })
+          body: JSON.stringify({ itemId })
         });
         window.location.href = '/trilha'; // Recarrega para obter a próxima tarefa
       } catch (error) {
@@ -224,9 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              alunoId: userId,
               submittedId: itemId,
-              respostaDada: respostaDada
+              respostaDada: respostaDada,
+              tempoResposta: Math.round((Date.now() - startedAt) / 1000)
             }),
           });
 

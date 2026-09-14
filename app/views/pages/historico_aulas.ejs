@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -79,25 +80,38 @@
         </form>
         </section>
 
-        <% function formatLastActive(ts) {
-            if (!ts) return "";
+        <% function formatDateTime(ts, time) {
+            if (!ts || !time) return "";
             const d = new Date(ts);
-            return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+            const date = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+            return `${date} às ${time}`;
         } %>
 
         <% if (aulas && aulas.length > 0) { %>
 
           <section class="aula-list">
               <% aulas.forEach(aula => { %>
-                  
-                  <a href="<%= aula.gravacao_url || '#' %>" class="aula-card" <% if (aula.gravacao_url) { %>target="_blank" rel="noopener noreferrer"<% } %>>
 
-                      <i class="fas <%= aula.gravacao_url ? 'fa-play-circle' : 'fa-chalkboard-teacher' %> aula-icon"></i>
+                  <%
+                      // Estado da gravação (compatível com registros antigos).
+                      const recStatus = aula.gravacao_status ||
+                          (aula.gravacao_url ? 'disponivel' : null);
+                  %>
+
+                  <div class="aula-card" data-video-url="<%= recStatus === 'disponivel' ? aula.gravacao_url || aula.gravacao_path : '' %>">
+
+                      <%
+                          let recIcon = 'fa-chalkboard-teacher';
+                          if (recStatus === 'disponivel') recIcon = 'fa-video';
+                          else if (recStatus === 'processando') recIcon = 'fa-circle-notch fa-spin';
+                          else if (recStatus === 'falhou') recIcon = 'fa-exclamation-triangle';
+                      %>
+                      <i class="fas <%= recIcon %> aula-icon"></i>
 
                       <section class="content">
                           <section class="top-row">
                               <h2 class="name"><%= aula.materia || 'Matemática' %></h2>
-                              <p class="time"><%= formatLastActive(aula.data) %></p>
+                              <p class="time"><%= formatDateTime(aula.data, aula.hora_inicio) %></p>
                           </section>
 
                           <p class="prof-name">
@@ -112,21 +126,25 @@
                               <p class="tag <%= aula.status %>">
                                   <%= aula.status.charAt(0).toUpperCase() + aula.status.slice(1) %>
                               </p>
-                              <% if (!aula.gravacao_url) { %>
-                                  <p class="duracao">Sem gravação</p>
-                              <% } else { %>
-                                  <p class="duracao">Ver gravação</p>
-                              <% } %>
+                              <p class="duracao">Duração: <span class="duration-placeholder"
+                                  data-duracao="<%= aula.gravacao_duracao || 0 %>">Calculando...</span></p>
                           </section>
+
+                          <% if (recStatus === 'disponivel') { %>
+                              <a href="/ver_gravacao/<%= aula.id %>" class="btn-watch">Assistir aula →</a>
+                          <% } else if (recStatus === 'processando') { %>
+                              <p class="rec-status processing">🎥 Processando gravação...</p>
+                          <% } else if (recStatus === 'falhou') { %>
+                              <p class="rec-status failed">⚠️ Não foi possível processar a gravação.</p>
+                          <% } %>
                       </section>
 
-                  </a>
+                  </div>
 
               <% }) %>
           </section>
 
       <% } else { %>
-
 
             <section class="empty">
                 <i class="fas fa-history icon"></i>
@@ -140,36 +158,78 @@
 
     <script src="../js/accessibility.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.aula-card');
+            cards.forEach(card => {
+                const durationPlaceholder = card.querySelector('.duration-placeholder');
+                if (!durationPlaceholder) return;
+
+                // A duração agora é medida no processamento e vem do servidor.
+                const serverDuration = parseInt(durationPlaceholder.getAttribute('data-duracao') || '0', 10);
+
+                function renderDuration(totalSeconds) {
+                    const minutes = Math.floor(totalSeconds / 60);
+                    const seconds = totalSeconds % 60;
+                    durationPlaceholder.textContent = totalSeconds > 0 ? `${minutes}m ${seconds}s` : 'N/A';
+                }
+
+                if (serverDuration > 0) {
+                    renderDuration(serverDuration);
+                    return;
+                }
+
+                // Fallback (registros antigos): a duração ainda não foi medida.
+                const videoUrl = card.dataset.videoUrl;
+                if (videoUrl) {
+                    fetch(`/video-duration?video_path=${encodeURIComponent(videoUrl)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.duration) {
+                                renderDuration(data.duration);
+                            } else {
+                                durationPlaceholder.textContent = 'N/A';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro ao buscar duração do vídeo:', error);
+                            durationPlaceholder.textContent = 'Erro';
+                        });
+                } else {
+                    durationPlaceholder.textContent = 'N/A';
+                }
+            });
+        });
+
         const menuBtn = document.getElementById('menu-btn');
-    const menu = document.getElementById('menu');
-    const overlay = document.getElementById('overlay');
-    const closeBtn = document.getElementById('close-menu');
-    const toggleBtn = document.getElementById("toggle-menu");
+        const menu = document.getElementById('menu');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-menu');
+        const toggleBtn = document.getElementById("toggle-menu");
 
-    function toggleMobileMenu() {
-      menu.classList.toggle('active');
-      overlay.classList.toggle('active');
-      document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
-    }
+        function toggleMobileMenu() {
+          menu.classList.toggle('active');
+          overlay.classList.toggle('active');
+          document.body.classList.toggle('no-scroll', menu.classList.contains('active'));
+        }
 
-    if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
-    if (overlay) overlay.addEventListener('click', toggleMobileMenu);
-    if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
+        if (menuBtn) menuBtn.addEventListener('click', toggleMobileMenu);
+        if (overlay) overlay.addEventListener('click', toggleMobileMenu);
+        if (closeBtn) closeBtn.addEventListener('click', toggleMobileMenu);
 
-    if (toggleBtn) {
-      const toggleIcon = document.getElementById('toggle-icon');
-      const isCollapsed = menu.classList.contains('collapsed');
-      toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
-      if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
+        if (toggleBtn) {
+          const toggleIcon = document.getElementById('toggle-icon');
+          const isCollapsed = menu.classList.contains('collapsed');
+          toggleBtn.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+          if (isCollapsed) toggleIcon.style.transform = 'rotate(180deg)';
 
-      toggleBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        menu.classList.toggle("collapsed");
-        const isNowCollapsed = menu.classList.contains('collapsed');
-        toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
-        toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
-      });
-    }
+          toggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            menu.classList.toggle("collapsed");
+            const isNowCollapsed = menu.classList.contains('collapsed');
+            toggleBtn.setAttribute('aria-expanded', isNowCollapsed ? 'false' : 'true');
+            toggleIcon.style.transform = isNowCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+          });
+        }
     </script>
 
 </body>

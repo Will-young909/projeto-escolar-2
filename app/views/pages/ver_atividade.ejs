@@ -128,9 +128,21 @@
                 <form id="activity-form" action="<%= isTest ? '/submit-test/' : '/submit-activity/' %><%= activity.id %>" method="POST">
                     <% activity.questions.forEach((question, index) => { %>
                         <div class="question">
-                            <p><strong>Questão <%= index + 1 %>:</strong> <%= question.title %></p>
+                            <p><strong>Questão <%= index + 1 %>:</strong> <%= question.text || question.title %></p>
                             <div class="options">
-                                <% if (question.options) { %>
+                                <% if (question.type === 'multiple_choice' && question.options) { %>
+                                    <% Object.entries(question.options).forEach(([key, value]) => { %>
+                                        <label>
+                                            <input type="radio" name="answers[<%= index %>]" value="<%= key %>" required>
+                                            <%= value %>
+                                        </label>
+                                    <% }); %>
+                                <% } else if (question.type === 'short_text') { %>
+                                    <input type="text" name="answers[<%= index %>]" class="form-control" placeholder="Digite sua resposta curta aqui" required>
+                                <% } else if (question.type === 'long_text') { %>
+                                    <textarea name="answers[<%= index %>]" class="form-control" rows="4" placeholder="Digite sua resposta completa aqui" required></textarea>
+                                <% /* Fallbacks for old data structures */ %>
+                                <% } else if (question.options) { %>
                                     <% Object.entries(question.options).forEach(([key, value]) => { %>
                                         <label>
                                             <input type="radio" name="answers[<%= index %>]" value="<%= key %>" required>
@@ -139,7 +151,7 @@
                                     <% }); %>
                                 <% } else { %>
                                     <p>Esta é uma questão dissertativa. Responda abaixo:</p>
-                                    <textarea name="answers[<%= index %>]" class="form-control" rows="4"></textarea>
+                                    <textarea name="answers[<%= index %>]" class="form-control" rows="4" required></textarea>
                                 <% } %>
                             </div>
 
@@ -222,7 +234,7 @@
     <script>
         const isTest = <%- JSON.stringify(activity.isTest || false) %>;
 
-        // SCRIPT ANTIGO E IMPORTANTE (INTOCADO)
+        // SCRIPT ANTIGO E IMPORTANTE (AGORA CORRIGIDO)
         if (false && !isTest) {
             document.getElementById('activity-form')?.addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -238,8 +250,9 @@
                     const feedbackElement = document.createElement('p');
                     let isCorrect = false;
                     const questionName = `answers[${index}]`;
+                    const questionType = question.type || (question.options ? 'multiple_choice' : 'long_text');
 
-                    if (question.options) { // Múltipla escolha
+                    if (questionType === 'multiple_choice' && question.options) {
                         const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
                         if (selectedOption) {
                             isCorrect = selectedOption.value.toLowerCase() === (question.correct || '').toLowerCase();
@@ -250,7 +263,7 @@
                         } else {
                             feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
                         }
-                    } else { // Texto dissertativo
+                    } else if (questionType === 'short_text' || questionType === 'long_text') {
                         const userInput = document.querySelector(`[name="${questionName}"]`).value.trim();
                         if (userInput) {
                             isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
@@ -281,7 +294,7 @@
                 activityId: '<%= activity.id %>',
                 isUsingPass: <%= locals.usouPasseNaAtividade || false %>,
                 hasAvailablePass: <%- JSON.stringify(locals.passeDisponivel || { passeAtivo: false }) %>,
-                hintsUnlocked: <%= locals.usouPasseNaAtividade || false %>
+                hintsUnlocked: <%= locals.hintsUnlocked || false %>
             };
 
             let activeQuestionIndex = null;
@@ -385,7 +398,6 @@
                 }
             });
         }
-        // FIM DA INSERÇÃO: Novo Script para Dicas
     </script>
 </body>
 </html>

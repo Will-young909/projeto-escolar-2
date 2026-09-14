@@ -4,7 +4,11 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "jest"
+    "test": "jest",
+    "db:migrate": "knex migrate:latest",
+    "db:rollback": "knex migrate:rollback",
+    "db:seed": "knex seed:run",
+    "db:setup": "knex migrate:latest && knex seed:run"
   },
   "author": "William",
   "license": "ISC",
@@ -23,8 +27,10 @@
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "express-validator": "^7.2.1",
+    "get-video-duration": "^5.0.0",
     "ioredis": "^5.10.1",
     "jest": "^30.3.0",
+    "knex": "^3.3.0",
     "mercadopago": "^3.0.0",
     "multer": "^2.0.2",
     "mysql2": "^3.22.1",

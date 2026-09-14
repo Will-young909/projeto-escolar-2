@@ -13,6 +13,7 @@
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" type="image/png"/>
   <link rel="manifest" href="/manifest.json" />
   <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
+  <script src="../js/recording_composer.js"></script>
 </head>
 
 <body>
@@ -30,6 +31,10 @@
           <i class="fas fa-circle status-icon"></i>
           <span>Conectando...</span>
         </div>
+        <div id="qualityIndicator" class="quality-indicator good">
+    <span class="quality-dot"></span>
+    <span id="qualityText">Boa conexão</span>
+</div>
       </div>
       <div class="header-spacer"></div>
     </header>
@@ -38,7 +43,7 @@
     <section class="videos-section" role="region" aria-label="Vídeos da chamada">
       <!-- Vídeo principal (grande) -->
       <div class="video-main-wrapper">
-        <video id="remoteVideo" autoplay playsinline class="video-main" muted></video>
+        <video id="remoteVideo" autoplay playsinline class="video-main"></video>
         <div class="video-placeholder active" id="remotePlaceholder">
           <i class="fas fa-user-graduate"></i>
           <p id="remoteStatus">Aguardando parceiro...</p>
@@ -83,16 +88,7 @@
           <i class="fas fa-desktop"></i>
         </button>
       </div>
-
       <div class="controls-right">
-        <div class="recording-group">
-          <button id="btnStartRec" class="control-btn record-btn" title="Gravar" aria-label="Iniciar gravação">
-            <i class="fas fa-circle"></i>
-          </button>
-          <button id="btnStopRec" class="control-btn stop-btn" disabled title="Parar gravação" aria-label="Parar gravação">
-            <i class="fas fa-stop"></i>
-          </button>
-        </div>
         <button id="btnEndCall" class="control-btn end-btn" title="Encerrar chamada" aria-label="Encerrar chamada">
           <i class="fas fa-phone-slash"></i>
         </button>
@@ -104,439 +100,1413 @@
   </main>
 
   <script src="../js/accessibility.js"></script>
+  <script src="../js/recording_composer.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
-const ROOM = "<%= room %>"; 
-
-const ELEMENTS = {
-    localVideo: document.getElementById('localVideo'),
-    remoteVideo: document.getElementById('remoteVideo'),
-    remoteStatus: document.getElementById('remoteStatus'),
-    statusIndicator: document.getElementById('statusIndicator'),
-    localPlaceholder: document.getElementById('localPlaceholder'),
-    remotePlaceholder: document.getElementById('remotePlaceholder'),
-    btnToggleCam: document.getElementById('btnToggleCam'),
-    btnToggleAudio: document.getElementById('btnToggleAudio'),
-    btnShareScreen: document.getElementById('btnShareScreen'),
-    btnStartRec: document.getElementById('btnStartRec'),
-    btnStopRec: document.getElementById('btnStopRec'),
-    btnEndCall: document.getElementById('btnEndCall'),
-};
-
-const configuration = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' } 
-    ]
-};
-
-class VideoCallManager {
-    constructor() {
-        this.localStream = null;
-        this.remoteStream = null;
-        this.pc = null;
-        this.recorder = null;
-        this.isSharingScreen = false;
-        this.peerId = null;
-        this.currentRoom = ROOM;
-
-        this.init();
-    }
-
-    updateStatus(text, className, isRemote = false) {
-        const element = isRemote ? ELEMENTS.remoteStatus : ELEMENTS.statusIndicator;
-        
-        if (isRemote) {
-            element.textContent = text;
-            ELEMENTS.remotePlaceholder.classList.toggle('active', className !== 'connected');
-        } else {
-            ELEMENTS.statusIndicator.className = 'connection-status ' + className;
-            ELEMENTS.statusIndicator.innerHTML = `<i class="fas fa-circle status-icon"></i> ${text}`;
-        }
-    }
-
-    toggleButtonState(button, track, iconOn, iconOff, placeholderElement = null) {
-        if (!track) return;
-        
-        const isEnabled = track.enabled;
-        button.classList.toggle('off', !isEnabled);
-        button.querySelector('i').className = isEnabled ? iconOn : iconOff;
-        button.setAttribute('data-status', isEnabled ? 'on' : 'off');
-        
-        if (placeholderElement) {
-            placeholderElement.classList.toggle('active', !isEnabled);
-        }
-        button.setAttribute('aria-label', `${isEnabled ? 'Desativar' : 'Ativar'} ${button.title}`);
-    }
-
-    async initLocalStream(isScreenShare = false) {
-        try {
-            if (this.localStream) {
-                this.localStream.getTracks().forEach(track => track.stop());
-            }
-
-            let stream;
-            if (isScreenShare) {
-                stream = await navigator.mediaDevices.getDisplayMedia({ 
-                    video: true, 
-                    audio: true 
-                });
-                this.isSharingScreen = true;
-                ELEMENTS.btnShareScreen.classList.add('active');
-                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-share-square';
-                
-                stream.getVideoTracks()[0].onended = () => this.restoreLocalCamera();
-            } else {
-                stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-                    audio: true
-                });
-                this.isSharingScreen = false;
-                ELEMENTS.btnShareScreen.classList.remove('active');
-                ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
-            }
-
-            this.localStream = stream;
-            ELEMENTS.localVideo.srcObject = this.localStream;
-            this.updateStatus('Mídia OK', 'local-ready');
-            this.toggleButtonState(
-                ELEMENTS.btnToggleCam, 
-                this.localStream.getVideoTracks()[0], 
-                'fas fa-video', 
-                'fas fa-video-slash', 
-                ELEMENTS.localPlaceholder
-            );
-            this.toggleButtonState(
-                ELEMENTS.btnToggleAudio, 
-                this.localStream.getAudioTracks()[0], 
-                'fas fa-microphone', 
-                'fas fa-microphone-slash'
-            );
-
-        } catch (err) {
-            console.error('Erro ao acessar mídia local:', err);
-            this.updateStatus('Erro na Mídia', 'error');
-            alert('Não foi possível acessar mídia: ' + err.message);
-            ELEMENTS.localPlaceholder.classList.add('active');
-        }
-    }
-
-    createPeerConnection() {
-        if (this.pc) return; 
-        
-        this.pc = new RTCPeerConnection(configuration);
-
-        this.pc.ontrack = (evt) => {
-            if (!this.remoteStream) {
-                this.remoteStream = new MediaStream();
-                ELEMENTS.remoteVideo.srcObject = this.remoteStream;
-            }
-            evt.streams[0].getTracks().forEach(t => {
-                if (!this.remoteStream.getTrackById(t.id)) {
-                    this.remoteStream.addTrack(t);
-                }
-            });
-            
-            this.updateStatus('Conectado', 'connected', true);
-        };
-
-        this.pc.onicecandidate = (evt) => {
-            if (evt.candidate && this.peerId) {
-                socket.emit('signal', { to: this.peerId, from: socket.id, data: { candidate: evt.candidate } });
-            }
-        };
-        
-        this.pc.onconnectionstatechange = () => {
-            const state = this.pc.connectionState;
-            const statusMap = {
-                'connected': ['Conexão Ativa', 'connected'],
-                'disconnected': ['Desconectado', 'disconnected'],
-                'failed': ['Falha na Conexão', 'error'],
-                'connecting': ['Conectando...', 'connecting']
-            };
-            const [text, className] = statusMap[state] || ['Estado Desconhecido', 'warning'];
-            this.updateStatus(text, className);
-        };
-
-        if (this.localStream) {
-            this.localStream.getTracks().forEach(track => this.pc.addTrack(track, this.localStream));
-        }
-    }
-
-    closePeerConnection() {
-        if (this.pc) {
-            this.pc.close();
-            this.pc = null;
-            this.peerId = null;
-        }
-        if (ELEMENTS.remoteVideo.srcObject) ELEMENTS.remoteVideo.srcObject = null;
-        this.remoteStream = null;
-        
-        this.updateStatus('Chamada Encerrada', 'disconnected');
-        this.updateStatus('Parceiro Desconectado', 'disconnected', true);
-        
-        if (this.isSharingScreen) {
-            this.restoreLocalCamera();
-        }
-    }
-
-    async startCall(isInitiator) {
-        if (!this.localStream) await this.initLocalStream();
-        this.createPeerConnection();
-
-        if (isInitiator) {
-            this.updateStatus('Iniciando Chamada...', 'connecting');
-            const offer = await this.pc.createOffer();
-            await this.pc.setLocalDescription(offer);
-            socket.emit('signal', { to: this.peerId, from: socket.id, data: { sdp: this.pc.localDescription } });
-        }
-    }
-
-    async switchLocalStream(newStream) {
-        this.localStream = newStream;
-        ELEMENTS.localVideo.srcObject = newStream;
-
-        if (this.pc) {
-            const senders = this.pc.getSenders();
-            newStream.getTracks().forEach(async newTrack => {
-                const sender = senders.find(s => s.track && s.track.kind === newTrack.kind);
-                if (sender) {
-                    await sender.replaceTrack(newTrack);
-                } else {
-                    this.pc.addTrack(newTrack, newStream);
-                }
-            });
-
-            senders.forEach(sender => {
-                if (sender.track && !newStream.getTracks().some(t => t.kind === sender.track.kind)) {
-                }
-            });
-        }
-    }
-
-    async restoreLocalCamera() {
-        this.isSharingScreen = false;
-        ELEMENTS.btnShareScreen.classList.remove('active');
-        ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
-
-        if (ELEMENTS.localVideo.srcObject) {
-            ELEMENTS.localVideo.srcObject.getTracks().forEach(track => track.stop());
-        }
-        
-        await this.initLocalStream(false); 
-        await this.switchLocalStream(this.localStream);
-    }
-
-    handleToggleAudio() {
-        if (!this.localStream) return;
-        const audioTrack = this.localStream.getAudioTracks()[0];
-        if (!audioTrack) return;
-        
-        audioTrack.enabled = !audioTrack.enabled;
-        this.toggleButtonState(ELEMENTS.btnToggleAudio, audioTrack, 'fas fa-microphone', 'fas fa-microphone-slash');
-    }
-
-    handleToggleCam() {
-        if (!this.localStream) return;
-        const videoTrack = this.localStream.getVideoTracks()[0];
-        if (!videoTrack) return;
-
-        videoTrack.enabled = !videoTrack.enabled;
-        this.toggleButtonState(ELEMENTS.btnToggleCam, videoTrack, 'fas fa-video', 'fas fa-video-slash', ELEMENTS.localPlaceholder);
-    }
-
-    async handleShareScreen() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-            alert('Compartilhar tela não é suportado neste navegador.');
-            return;
-        }
-
-        if (this.isSharingScreen) {
-            await this.restoreLocalCamera();
-        } else {
-            await this.initLocalStream(true);
-            await this.switchLocalStream(this.localStream); 
-        }
-    }
-
-    handleEndCall(e) {
-        e.preventDefault();
-        if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
-            socket.emit('end-call', this.currentRoom);
-            this.closePeerConnection();
-            window.history.back();
-        }
-    }
-    
-    handleStartRec() {
-      if (!this.localStream || !this.remoteStream) {
-        alert('Aguarde o outro participante se conectar para iniciar a gravação.');
-        return;
-      }
-      ELEMENTS.btnStartRec.disabled = true;
-      ELEMENTS.btnStopRec.disabled = false;
-      if (typeof RecordRTC === 'undefined') {
-        alert('Biblioteca de gravação indisponível.');
-        return;
-      }
-      this.recorder = RecordRTC([this.localStream, this.remoteStream], {
-        type: 'video',
-        mimeType: 'video/webm',
-        bitsPerSecond: 128000
-      });
-      this.recorder.startRecording();
-      ELEMENTS.btnStartRec.classList.add('recording');
-      ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-pause';
-      alert('Gravação iniciada.');
-    }
-
-    handleStopRec() {
-      if(this.recorder){
-        this.recorder.stopRecording(() => {
-          let blob = this.recorder.getBlob();
-          this.uploadRecording(blob);
-          this.recorder = null;
-        });
-      }
-      ELEMENTS.btnStartRec.disabled = false;
-      ELEMENTS.btnStopRec.disabled = true;
-      ELEMENTS.btnStartRec.classList.remove('recording');
-      ELEMENTS.btnStartRec.querySelector('i').className = 'fas fa-circle';
-      alert('Gravação finalizada. O vídeo está sendo enviado para o histórico.');
-    }
-
-    uploadRecording(blob) {
-      const formData = new FormData();
-      formData.append('video', blob, `recording_${ROOM}.webm`);
-      formData.append('room', ROOM);
-
-      fetch('/upload_recording', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        if(data.success) {
-          showToast('Gravação salva com sucesso!', 'success');
-        } else {
-          showToast('Erro ao salvar a gravação.', 'error');
-        }
-      })
-      .catch(err => {
-        console.error('Error uploading recording:', err);
-        showToast('Erro de conexão ao salvar a gravação.', 'error');
-      });
+    // Converte um valor em string JS segura (escapa `script` e aspas).
+    function jsString(value) {
+      return JSON.stringify(String(value === null || value === undefined ? '' : value)).replace(/</g, '\\u003c');
     }
 
-    setupSocketHandlers() {
-        socket.on('connect', () => {
-            socket.emit('join', this.currentRoom);
-        });
+    const socket = io({ autoConnect: false });
+    const ROOM = "<%= room %>";
+    const SALA_LIVRE = <%- JSON.stringify(typeof salaLivre !== 'undefined' && salaLivre ? true : false) %>;
+    let recorder;
+    let recordingComposer = null;
+    let recordingChunks = [];
+    let recordingStartedAt = 0; // timestamp do inicio da gravacao (p/ duracao do webm)
 
-        socket.on('peer-joined', id => {
-            this.peerId = id;
-            this.updateStatus('Chamando...', 'connecting');
-            ELEMENTS.remoteStatus.textContent = 'Conectando ao interlocutor...';
-            this.startCall(true); 
-        });
+    // Nomes/papéis para a composição da gravação (vindos da sessão/aula).
+    // JSON.stringify aqui é seguro: só serializa strings vindas do servidor
+    // (sem pedir nada de novo ao usuário) e nunca executa código.
+    const NOME_LOCAL = <%- JSON.stringify(typeof nomeLocal !== 'undefined' && nomeLocal != null ? String(nomeLocal) : '') %>;
+    const PAPEL_LOCAL = <%- JSON.stringify(typeof papelLocal !== 'undefined' && papelLocal != null ? String(papelLocal) : '') %>;
+    const NOME_REMOTO = <%- JSON.stringify(typeof nomeRemoto !== 'undefined' && nomeRemoto != null ? String(nomeRemoto) : '') %>;
+    const PAPEL_REMOTO = <%- JSON.stringify(typeof papelRemoto !== 'undefined' && papelRemoto != null ? String(papelRemoto) : '') %>;
 
-        socket.on('peer-left', id => {
-            if (id === this.peerId) {
-                this.closePeerConnection();
-                ELEMENTS.remoteStatus.textContent = 'Chamada encerrada pelo parceiro.';
-            }
-        });
+    const ELEMENTS = {
+        localVideo: document.getElementById('localVideo'),
+        remoteVideo: document.getElementById('remoteVideo'),
+        remoteStatus: document.getElementById('remoteStatus'),
+        statusIndicator: document.getElementById('statusIndicator'),
+        localPlaceholder: document.getElementById('localPlaceholder'),
+        remotePlaceholder: document.getElementById('remotePlaceholder'),
+        btnToggleCam: document.getElementById('btnToggleCam'),
+        btnToggleAudio: document.getElementById('btnToggleAudio'),
+        btnShareScreen: document.getElementById('btnShareScreen'),
+        btnEndCall: document.getElementById('btnEndCall'),
+    };
 
-        socket.on('signal', async ({ from, data }) => {
-            if (!this.peerId || from !== this.peerId) this.peerId = from;
+    const configuration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' } 
+        ]
+    };
 
-            this.createPeerConnection();
+    class VideoCallManager {
+        constructor() {
+            this.localStream = null;
+            this.remoteStream = null;
+            this.pc = null;
+            this.isSharingScreen = false;
+            this.peerId = null;
+            this.currentRoom = ROOM;
+            this.pendingCandidates = [];
 
-            if (data.sdp) {
-                try {
-                    await this.pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
-                    if (data.sdp.type === 'offer') {
-                        const answer = await this.pc.createAnswer();
-                        await this.pc.setLocalDescription(answer);
-                        socket.emit('signal', { to: from, from: socket.id, data: { sdp: this.pc.localDescription } });
-                    }
-                } catch(e) {
-                    console.error("Erro ao configurar SDP", e);
-                }
-            }
+            // Monitoramento e controle automático da qualidade
+this.qualityMonitorInterval = null;
+this.lastStats = null;
+this.qualityLevel = 'good';
+this.qualityDownCount = 0;
+this.qualityUpCount = 0;
+this.lastQualityChange = 0;
 
-            if (data.candidate) {
-                try {
-                    await this.pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-                } catch (e) {
-                    console.warn('Erro ao adicionar candidate', e);
-                }
-            }
-        });
-    }
+            this.init();
+        }
 
-    setupEventListeners() {
-        ELEMENTS.btnToggleAudio.addEventListener('click', () => this.handleToggleAudio());
-        ELEMENTS.btnToggleCam.addEventListener('click', () => this.handleToggleCam());
-        ELEMENTS.btnShareScreen.addEventListener('click', () => this.handleShareScreen());
-        ELEMENTS.btnEndCall.addEventListener('click', (e) => this.handleEndCall(e));
-        ELEMENTS.btnStartRec.addEventListener('click', () => this.handleStartRec());
-        ELEMENTS.btnStopRec.addEventListener('click', () => this.handleStopRec());
-    }
+        
 
-    async init() {
-        this.setupEventListeners();
-        this.setupSocketHandlers();
-        await this.initLocalStream(false);
-    }
+        updateStatus(text, className, isRemote = false) {
+            const element = isRemote ? ELEMENTS.remoteStatus : ELEMENTS.statusIndicator;
+            
+            if (isRemote) {
+                element.textContent = text;
+                ELEMENTS.remotePlaceholder.classList.toggle('active', className !== 'connected');
+            } else {
+                ELEMENTS.statusIndicator.className = 'connection-status ' + className;
+                ELEMENTS.statusIndicator.innerHTML = `<i class="fas fa-circle status-icon"></i> ${text}`;
+            }
+        }
+
+        updateQualityIndicator(level, metrics = {}) {
+    const indicator = document.getElementById('qualityIndicator');
+    const text = document.getElementById('qualityText');
+
+    if (!indicator || !text) {
+        console.warn('[WebRTC] Indicador de qualidade não encontrado.');
+        return;
+    }
+
+    indicator.classList.remove('good', 'fair', 'poor');
+    indicator.classList.add(level);
+
+    const labels = {
+        good: 'Boa conexão',
+        fair: 'Conexão regular',
+        poor: 'Conexão ruim'
+    };
+
+    text.textContent = labels[level] || 'Qualidade desconhecida';
+
+    if (
+        metrics.packetLoss !== undefined &&
+        metrics.rtt !== null
+    ) {
+        indicator.title =
+            `Perda: ${metrics.packetLoss.toFixed(1)}% | ` +
+            `RTT: ${Math.round(metrics.rtt)} ms`;
+    }
 }
 
+        toggleButtonState(button, track, iconOn, iconOff, placeholderElement = null) {
+            if (!track) return;
+            
+            const isEnabled = track.enabled;
+            button.classList.toggle('off', !isEnabled);
+            button.querySelector('i').className = isEnabled ? iconOn : iconOff;
+            button.setAttribute('data-status', isEnabled ? 'on' : 'off');
+            
+            if (placeholderElement) {
+                placeholderElement.classList.toggle('active', !isEnabled);
+            }
+            button.setAttribute('aria-label', `${isEnabled ? 'Desativar' : 'Ativar'} ${button.title}`);
+        }
+
+        async initLocalStream(isScreenShare = false) {
+    try {
+        if (!navigator.mediaDevices) {
+            throw new Error('A câmera e o microfone exigem HTTPS ou localhost.');
+        }
+
+        // Encerra a mídia anterior, se existir
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => track.stop());
+            this.localStream = null;
+        }
+
+        let stream;
+
+        if (isScreenShare) {
+            stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true
+            });
+
+            this.isSharingScreen = true;
+
+            ELEMENTS.btnShareScreen.classList.add('active');
+            ELEMENTS.btnShareScreen.querySelector('i').className =
+                'fas fa-share-square';
+
+            const screenTrack = stream.getVideoTracks()[0];
+
+            if (screenTrack) {
+                screenTrack.onended = () => this.restoreLocalCamera();
+            }
+
+        } else {
+
+            // Configuração principal — boa qualidade para celular e PC
+            const mobileConstraints = {
+                video: {
+                    facingMode: 'user',
+                    width: {
+                        ideal: 1280,
+                        max: 1280
+                    },
+                    height: {
+                        ideal: 720,
+                        max: 720
+                    },
+                    frameRate: {
+                        ideal: 30,
+                        max: 30
+                    }
+                },
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            };
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(
+                    mobileConstraints
+                );
+
+            } catch (captureError) {
+
+                console.warn(
+                    'Falha na captura com qualidade alta. Tentando configuração compatível:',
+                    captureError
+                );
+
+                // Fallback para celulares mais simples
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: 'user',
+                        width: {
+                            ideal: 640,
+                            max: 640
+                        },
+                        height: {
+                            ideal: 480,
+                            max: 480
+                        },
+                        frameRate: {
+                            ideal: 24,
+                            max: 30
+                        }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+            }
+
+            this.isSharingScreen = false;
+
+            ELEMENTS.btnShareScreen.classList.remove('active');
+            ELEMENTS.btnShareScreen.querySelector('i').className =
+                'fas fa-desktop';
+        }
+
+        // Só atribui depois que o stream realmente foi obtido
+        if (!stream) {
+            throw new Error('Nenhum fluxo de mídia foi obtido.');
+        }
+
+        this.localStream = stream;
+
+        // Mostra sua própria câmera
+        ELEMENTS.localVideo.srcObject = this.localStream;
+
+        // Garante reprodução do vídeo local
+        try {
+            await ELEMENTS.localVideo.play();
+        } catch (playError) {
+            console.warn('Não foi possível iniciar o vídeo automaticamente:', playError);
+        }
+
+        this.updateStatus('Mídia OK', 'local-ready');
+
+        // Atualiza botão da câmera
+        const videoTrack = this.localStream.getVideoTracks()[0];
+
+        this.toggleButtonState(
+            ELEMENTS.btnToggleCam,
+            videoTrack,
+            'fas fa-video',
+            'fas fa-video-slash',
+            ELEMENTS.localPlaceholder
+        );
+
+        // Atualiza botão do microfone
+        const audioTrack = this.localStream.getAudioTracks()[0];
+
+        this.toggleButtonState(
+            ELEMENTS.btnToggleAudio,
+            audioTrack,
+            'fas fa-microphone',
+            'fas fa-microphone-slash'
+        );
+
+        // Log útil para verificar o que o celular realmente entregou
+        if (videoTrack) {
+            console.log('Câmera selecionada:', videoTrack.getSettings());
+        }
+
+        if (audioTrack) {
+            console.log('Microfone selecionado:', audioTrack.getSettings());
+        }
+
+    } catch (err) {
+        console.error('Erro ao acessar mídia local:', err);
+
+        this.localStream = null;
+
+        this.updateStatus('Erro na Mídia', 'error');
+
+        let message;
+
+        switch (err.name) {
+            case 'NotAllowedError':
+                message =
+                    'Permita o acesso à câmera e ao microfone nas configurações do navegador e tente novamente.';
+                break;
+
+            case 'NotReadableError':
+                message =
+                    'A câmera ou o microfone está sendo usado por outro aplicativo. Feche outros aplicativos que estejam usando esses dispositivos e tente novamente.';
+                break;
+
+            case 'NotFoundError':
+                message =
+                    'Nenhuma câmera ou microfone foi encontrado neste dispositivo.';
+                break;
+
+            case 'OverconstrainedError':
+                message =
+                    'A câmera deste dispositivo não suporta a configuração solicitada.';
+                break;
+
+            case 'SecurityError':
+                message =
+                    'O navegador bloqueou o acesso à câmera ou ao microfone por motivos de segurança.';
+                break;
+
+            default:
+                message =
+                    'Não foi possível acessar câmera e microfone: ' +
+                    (err.message || err.name);
+        }
+
+        alert(message);
+
+        ELEMENTS.localPlaceholder.classList.add('active');
+    }
+}
+
+        createPeerConnection() {
+            if (this.pc) return; 
+            
+            this.pc = new RTCPeerConnection(configuration);
+
+            this.pc.ontrack = (evt) => {
+                if (!this.remoteStream) {
+                    this.remoteStream = new MediaStream();
+                    ELEMENTS.remoteVideo.srcObject = this.remoteStream;
+                }
+                evt.streams[0].getTracks().forEach(t => {
+                    if (!this.remoteStream.getTrackById(t.id)) {
+                        this.remoteStream.addTrack(t);
+                    }
+                });
+                
+                this.updateStatus('Conectado', 'connected', true);
+                this.handleStartRec();
+            };
+
+            this.pc.onicecandidate = (evt) => {
+                if (evt.candidate && this.peerId) {
+                    socket.emit('signal', { to: this.peerId, from: socket.id, data: { candidate: evt.candidate } });
+                }
+            };
+            
+            this.pc.onconnectionstatechange = () => {
+                const state = this.pc.connectionState;
+                const statusMap = {
+                    'connected': ['Conexão Ativa', 'connected'],
+                    'disconnected': ['Desconectado', 'disconnected'],
+                    'failed': ['Falha na Conexão', 'error'],
+                    'connecting': ['Conectando...', 'connecting']
+                };
+                const [text, className] = statusMap[state] || ['Estado Desconhecido', 'warning'];
+                this.updateStatus(text, className);
+
+                if (state === 'connected') {
+    this.applyVideoQuality('good');
+    this.startQualityMonitor();
+}
+
+if (state === 'failed' || state === 'closed') {
+    this.stopQualityMonitor();
+}
+            };
+
+            if (this.localStream) {
+                this.localStream.getTracks().forEach(track => this.pc.addTrack(track, this.localStream));
+            }
+        }
+
+        async addRemoteCandidate(candidate) {
+            if (!this.pc.remoteDescription) {
+                this.pendingCandidates.push(candidate);
+                return;
+            }
+            await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+
+        async flushPendingCandidates() {
+            const candidates = this.pendingCandidates.splice(0);
+            for (const candidate of candidates) {
+                await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+            }
+        }
+
+        startQualityMonitor() {
+    if (this.qualityMonitorInterval) return;
+
+    console.log('[WebRTC] Monitor de qualidade iniciado.');
+
+    this.lastStats = null;
+
+    this.qualityMonitorInterval = setInterval(() => {
+        this.monitorQuality();
+    }, 2000);
+}
+
+
+stopQualityMonitor() {
+    if (this.qualityMonitorInterval) {
+        clearInterval(this.qualityMonitorInterval);
+        this.qualityMonitorInterval = null;
+    }
+
+    this.lastStats = null;
+
+    console.log('[WebRTC] Monitor de qualidade parado.');
+}
+
+
+async monitorQuality() {
+    if (!this.pc || this.pc.connectionState === 'closed') {
+        return;
+    }
+
+    try {
+        const stats = await this.pc.getStats();
+
+        let outboundVideo = null;
+let remoteInboundVideo = null;
+let candidatePair = null;
+let availableOutgoingBitrate = null;
+
+stats.forEach(report => {
+
+    // Vídeo que estamos enviando
+    if (
+        report.type === 'outbound-rtp' &&
+        report.kind === 'video'
+    ) {
+        outboundVideo = report;
+    }
+
+    // Informações do vídeo vistas pelo outro lado
+    if (
+        report.type === 'remote-inbound-rtp' &&
+        report.kind === 'video'
+    ) {
+        remoteInboundVideo = report;
+    }
+
+    // Conexão de rede atualmente utilizada
+    if (
+        report.type === 'candidate-pair' &&
+        report.state === 'succeeded' &&
+        report.nominated
+    ) {
+        candidatePair = report;
+    }
+});
+
+// Calcula RTT e banda disponível DEPOIS de encontrar o candidate-pair
+let rtt = null;
+
+if (
+    remoteInboundVideo &&
+    typeof remoteInboundVideo.roundTripTime === 'number'
+) {
+    rtt = remoteInboundVideo.roundTripTime * 1000;
+} else if (
+    candidatePair &&
+    typeof candidatePair.currentRoundTripTime === 'number'
+) {
+    rtt = candidatePair.currentRoundTripTime * 1000;
+}
+
+if (
+    candidatePair &&
+    typeof candidatePair.availableOutgoingBitrate === 'number'
+) {
+    availableOutgoingBitrate =
+        candidatePair.availableOutgoingBitrate;
+}
+
+        stats.forEach(report => {
+
+            // Vídeo que estamos enviando
+            if (
+                report.type === 'outbound-rtp' &&
+                report.kind === 'video'
+            ) {
+                outboundVideo = report;
+            }
+
+            // Informações recebidas pelo outro lado
+            if (
+                report.type === 'remote-inbound-rtp' &&
+                report.kind === 'video'
+            ) {
+                remoteInboundVideo = report;
+            }
+
+            // Conexão de rede atual
+            if (
+                report.type === 'candidate-pair' &&
+                report.state === 'succeeded' &&
+                report.nominated
+            ) {
+                candidatePair = report;
+            }
+        });
+
+        if (!outboundVideo) {
+            return;
+        }
+
+        const now = Date.now();
+
+        if (!this.lastStats) {
+            this.lastStats = {
+                timestamp: now,
+                bytesSent: outboundVideo.bytesSent || 0,
+                packetsSent: outboundVideo.packetsSent || 0,
+                packetsLost: outboundVideo.packetsLost || 0
+            };
+
+            return;
+        }
+
+        const elapsedSeconds =
+            (now - this.lastStats.timestamp) / 1000;
+
+        if (elapsedSeconds <= 0) {
+            return;
+        }
+
+        // -----------------------------------------
+        // BITRATE
+        // -----------------------------------------
+
+        const bytesDelta =
+            (outboundVideo.bytesSent || 0) -
+            this.lastStats.bytesSent;
+
+        const bitrate =
+            (bytesDelta * 8) / elapsedSeconds;
+
+        const bitrateKbps = Math.round(bitrate / 1000);
+
+        // -----------------------------------------
+        // PERDA DE PACOTES
+        // -----------------------------------------
+
+        const packetsSent =
+            outboundVideo.packetsSent || 0;
+
+        const packetsLost =
+            outboundVideo.packetsLost || 0;
+
+        const packetsSentDelta =
+    packetsSent - this.lastStats.packetsSent;
+
+const packetsLostDelta =
+    packetsLost - this.lastStats.packetsLost;
+
+const totalPacketsDelta =
+    packetsSentDelta + packetsLostDelta;
+
+const packetLoss =
+    totalPacketsDelta > 0
+        ? (packetsLostDelta / totalPacketsDelta) * 100
+        : 0;
+
+        // -----------------------------------------
+        // RTT
+        // -----------------------------------------
+
+        if (
+            remoteInboundVideo &&
+            typeof remoteInboundVideo.roundTripTime === 'number'
+        ) {
+            rtt = remoteInboundVideo.roundTripTime * 1000;
+        } else if (
+            candidatePair &&
+            typeof candidatePair.currentRoundTripTime === 'number'
+        ) {
+            rtt = candidatePair.currentRoundTripTime * 1000;
+        }
+
+        // -----------------------------------------
+        // FPS / FRAMES
+        // -----------------------------------------
+
+        const framesSent =
+            outboundVideo.framesSent || 0;
+
+        const framesDelta =
+            framesSent -
+            (this.lastStats.framesSent || 0);
+
+        const fps =
+            Math.round(framesDelta / elapsedSeconds);
+
+        // -----------------------------------------
+        // LOG
+        // -----------------------------------------
+
+        console.log(
+            `[WebRTC] Qualidade: ${this.qualityLevel} | ` +
+            `Bitrate: ${bitrateKbps} kbps | ` +
+            `Perda: ${packetLoss.toFixed(2)}% | ` +
+            `RTT: ${rtt !== null ? Math.round(rtt) + ' ms' : 'N/A'} | ` +
+            `FPS: ${fps}`
+        );
+
+        // -----------------------------------------
+        // DECISÃO DE QUALIDADE
+        // -----------------------------------------
+
+        this.evaluateQuality({
+    bitrateKbps,
+    packetLoss,
+    rtt,
+    fps,
+    availableOutgoingBitrate
+});
+
+this.updateQualityIndicator(this.qualityLevel, {
+    packetLoss,
+    rtt
+});
+
+        this.lastStats = {
+            timestamp: now,
+            bytesSent: outboundVideo.bytesSent || 0,
+            packetsSent: packetsSent,
+            packetsLost: packetsLost,
+            framesSent: framesSent
+        };
+
+    } catch (error) {
+        console.warn(
+            '[WebRTC] Erro ao obter estatísticas:',
+            error
+        );
+    }
+}
+
+evaluateQuality({ packetLoss, rtt, availableOutgoingBitrate }) {
+    const now = Date.now();
+
+    // Evita mudanças muito frequentes
+    if (now - this.lastQualityChange < 10000) {
+        return;
+    }
+
+    const availableMbps =
+        typeof availableOutgoingBitrate === 'number'
+            ? availableOutgoingBitrate / 1000000
+            : null;
+
+    /*
+     * DOWNGRADE
+     *
+     * A conexão é considerada ruim quando há:
+     * - muita perda de pacotes
+     * - RTT muito alto
+     * - pouca largura de banda disponível
+     */
+
+    const severeProblem =
+        packetLoss >= 7 ||
+        (rtt !== null && rtt >= 450) ||
+        (availableMbps !== null && availableMbps < 0.45);
+
+    const moderateProblem =
+        packetLoss >= 3 ||
+        (rtt !== null && rtt >= 250) ||
+        (availableMbps !== null && availableMbps < 0.9);
+
+    if (severeProblem) {
+        this.qualityDownCount++;
+
+        if (this.qualityDownCount >= 2) {
+            this.changeQuality('down');
+            this.qualityDownCount = 0;
+            this.qualityUpCount = 0;
+        }
+
+        return;
+    }
+
+    if (moderateProblem) {
+        this.qualityDownCount++;
+
+        if (this.qualityDownCount >= 2) {
+            this.changeQuality('down');
+            this.qualityDownCount = 0;
+            this.qualityUpCount = 0;
+        }
+
+        return;
+    }
+
+    /*
+     * UPGRADE
+     *
+     * Só aumentamos a qualidade quando a conexão
+     * estiver estável por vários ciclos.
+     */
+
+    const connectionIsGood =
+        packetLoss <= 1 &&
+        (rtt === null || rtt <= 150) &&
+        (availableMbps === null || availableMbps >= 1.5);
+
+    if (connectionIsGood) {
+        this.qualityUpCount++;
+
+        if (this.qualityUpCount >= 5) {
+            this.changeQuality('up');
+            this.qualityUpCount = 0;
+            this.qualityDownCount = 0;
+        }
+    } else {
+        this.qualityUpCount = 0;
+        this.qualityDownCount = 0;
+    }
+}
+async changeQuality(direction) {
+    const levels = ['poor', 'fair', 'good'];
+    const currentIndex = levels.indexOf(this.qualityLevel);
+
+    let newIndex;
+
+    if (direction === 'down') {
+        newIndex = Math.max(0, currentIndex - 1);
+    } else {
+        newIndex = Math.min(levels.length - 1, currentIndex + 1);
+    }
+
+    if (newIndex === currentIndex) {
+        return;
+    }
+
+    const newLevel = levels[newIndex];
+
+    console.log(
+        `[WebRTC] Alterando qualidade: ${this.qualityLevel} → ${newLevel}`
+    );
+
+    await this.applyVideoQuality(newLevel);
+
+    this.lastQualityChange = Date.now();
+
+    this.updateQualityIndicator(newLevel);
+}
+
+async applyVideoQuality(level) {
+
+    if (!this.pc) return;
+
+    const settings = {
+    poor: {
+        maxBitrate: 400000,
+        maxFramerate: 15,
+        scaleResolutionDownBy: 4
+    },
+
+    fair: {
+        maxBitrate: 900000,
+        maxFramerate: 24,
+        scaleResolutionDownBy: 2
+    },
+
+    good: {
+        maxBitrate: 2000000,
+        maxFramerate: 30,
+        scaleResolutionDownBy: 1
+    }
+};
+
+    if (!settings) return;
+
+    const videoSender = this.pc
+        .getSenders()
+        .find(sender =>
+            sender.track &&
+            sender.track.kind === 'video'
+        );
+
+    if (!videoSender) {
+        console.warn(
+            '[WebRTC] Sender de vídeo não encontrado.'
+        );
+        return;
+    }
+
+    const parameters = videoSender.getParameters();
+
+if (!parameters.encodings || parameters.encodings.length === 0) {
+    parameters.encodings = [{}];
+}
+
+const encoding = parameters.encodings[0];
+
+encoding.maxBitrate = settings.maxBitrate;
+encoding.maxFramerate = settings.maxFramerate;
+encoding.scaleResolutionDownBy =
+    settings.scaleResolutionDownBy;
+
+try {
+    await videoSender.setParameters(parameters);
+
+    this.qualityLevel = level;
+
+    this.updateQualityIndicator(level);
+
+    console.log(
+        `[WebRTC] Qualidade aplicada: ${level}`,
+        settings
+    );
+
+} catch (error) {
+    console.error(
+        '[WebRTC] Erro ao aplicar qualidade:',
+        error
+    );
+}
+}
+
+        closePeerConnection() {
+            this.stopQualityMonitor();
+            if (this.pc) {
+                this.pc.close();
+                this.pc = null;
+                this.peerId = null;
+            }
+            this.pendingCandidates = [];
+            if (ELEMENTS.remoteVideo.srcObject) ELEMENTS.remoteVideo.srcObject = null;
+            this.remoteStream = null;
+            
+            this.updateStatus('Chamada Encerrada', 'disconnected');
+            this.updateStatus('Parceiro Desconectado', 'disconnected', true);
+            
+            if (typeof recorder !== 'undefined' && recorder) {
+                this.handleStopRec();
+            } else {
+                window.history.back();
+            }
+
+            if (this.isSharingScreen) {
+                this.restoreLocalCamera();
+            }
+        }
+
+        async startCall(isInitiator) {
+            if (!this.localStream) await this.initLocalStream();
+            this.createPeerConnection();
+
+            if (isInitiator) {
+                this.updateStatus('Iniciando Chamada...', 'connecting');
+                const offer = await this.pc.createOffer();
+                await this.pc.setLocalDescription(offer);
+                socket.emit('signal', { to: this.peerId, from: socket.id, data: { sdp: this.pc.localDescription } });
+            }
+        }
+
+        async switchLocalStream(newStream) {
+            // Mantém o mix de áudio da gravação atualizado quando o stream
+            // local muda (compartilhamento de tela e retorno à câmera).
+            if (typeof recordingComposer !== 'undefined' && recordingComposer && this.localStream && this.localStream !== newStream) {
+                recordingComposer.replaceAudioStream(this.localStream, newStream);
+            }
+
+            this.localStream = newStream;
+            ELEMENTS.localVideo.srcObject = newStream;
+
+            if (this.pc) {
+                const senders = this.pc.getSenders();
+                newStream.getTracks().forEach(async newTrack => {
+                    const sender = senders.find(s => s.track && s.track.kind === newTrack.kind);
+                    if (sender) {
+                        await sender.replaceTrack(newTrack);
+                    } else {
+                        this.pc.addTrack(newTrack, newStream);
+                    }
+                });
+
+                senders.forEach(sender => {
+                    if (sender.track && !newStream.getTracks().some(t => t.kind === sender.track.kind)) {
+                    }
+                });
+            }
+        }
+
+        async restoreLocalCamera() {
+            this.isSharingScreen = false;
+            ELEMENTS.btnShareScreen.classList.remove('active');
+            ELEMENTS.btnShareScreen.querySelector('i').className = 'fas fa-desktop';
+
+            if (ELEMENTS.localVideo.srcObject) {
+                ELEMENTS.localVideo.srcObject.getTracks().forEach(track => track.stop());
+            }
+            
+            await this.initLocalStream(false); 
+            await this.switchLocalStream(this.localStream);
+        }
+
+        handleToggleAudio() {
+            if (!this.localStream) return;
+            const audioTrack = this.localStream.getAudioTracks()[0];
+            if (!audioTrack) return;
+            
+            audioTrack.enabled = !audioTrack.enabled;
+            this.toggleButtonState(ELEMENTS.btnToggleAudio, audioTrack, 'fas fa-microphone', 'fas fa-microphone-slash');
+        }
+
+        handleToggleCam() {
+            if (!this.localStream) return;
+            const videoTrack = this.localStream.getVideoTracks()[0];
+            if (!videoTrack) return;
+
+            videoTrack.enabled = !videoTrack.enabled;
+            this.toggleButtonState(ELEMENTS.btnToggleCam, videoTrack, 'fas fa-video', 'fas fa-video-slash', ELEMENTS.localPlaceholder);
+        }
+
+        async handleShareScreen() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                alert('Compartilhar tela não é suportado neste navegador.');
+                return;
+            }
+
+            if (this.isSharingScreen) {
+                await this.restoreLocalCamera();
+            } else {
+                await this.initLocalStream(true);
+                await this.switchLocalStream(this.localStream); 
+            }
+        }
+
+        handleEndCall(e) {
+            e.preventDefault();
+            if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
+                socket.emit('end-call', this.currentRoom);
+                this.closePeerConnection();
+            }
+        }
+        
+        handleStartRec() {
+            if (typeof recorder !== 'undefined' && recorder) return;
+            if (!this.localStream || !this.remoteStream) return;
+
+            let streamParaGravar = null;
+
+            // 1) Composição própria do RegiMath (canvas 16:9 1280x720 + mix de
+            //    áudio via AudioContext). Nomes vêm da sessão (sem pedir de novo).
+            try {
+                if (typeof RegiMathRecordingComposer === 'undefined') {
+                    throw new Error('Compositor de gravação não carregado.');
+                }
+
+                if (typeof recordingComposer === 'undefined' || !recordingComposer) {
+                    recordingComposer = new RegiMathRecordingComposer({
+                        canvasWidth: 1280,
+                        canvasHeight: 720,
+                        participants: [
+                            { key: 'local', name: NOME_LOCAL, role: PAPEL_LOCAL, isLocal: true, getVideoEl: () => ELEMENTS.localVideo },
+                            { key: 'remote', name: NOME_REMOTO, role: PAPEL_REMOTO, isLocal: false, getVideoEl: () => ELEMENTS.remoteVideo }
+                        ],
+                        showNames: true
+                    });
+                }
+
+                streamParaGravar = recordingComposer.createComposedStream([this.localStream, this.remoteStream]);
+
+                if (!streamParaGravar || streamParaGravar.getVideoTracks().length === 0) {
+                    throw new Error('Stream composto sem vídeo.');
+                }
+            } catch (error) {
+                // 2) Fallback seguro: grava a combinação direta dos streams
+                //    (comportamento original do RegiMath).
+                console.warn('[Rec] Composição indisponível, usando gravação direta:', error);
+                if (typeof recordingComposer !== 'undefined' && recordingComposer) {
+                    recordingComposer.stop();
+                    recordingComposer = null;
+                }
+                streamParaGravar = new MediaStream([
+                    ...this.localStream.getTracks(),
+                    ...this.remoteStream.getTracks()
+                ]);
+            }
+
+            try {
+                const gravador = this.createRecorderFor(streamParaGravar);
+                if (!gravador) {
+                    throw new Error('Nenhum gravador disponível neste navegador.');
+                }
+
+                recorder = gravador;
+
+                recordingStartedAt = Date.now(); // base da duração real do webm
+                // MediaRecorder nativo é objeto; RecordRTC é adaptador com startRecording().
+                const ehMediaRecorderNativo =
+                    (typeof MediaRecorder !== 'undefined') &&
+                    (gravador instanceof MediaRecorder);
+                if (ehMediaRecorderNativo) {
+                    gravador.start(1000); // timeslice: gera chunks periodicamente
+                } else if (gravador && typeof gravador.startRecording === 'function') {
+                    gravador.startRecording();
+                }
+
+                showToast('Gravação iniciada.', 'info');
+            } catch (err) {
+                console.error('[Rec] Falha ao iniciar a gravação:', err);
+                recorder = null;
+                recordingStartedAt = 0;
+                if (typeof recordingComposer !== 'undefined' && recordingComposer) {
+                    recordingComposer.stop();
+                    recordingComposer = null;
+                }
+                showToast('Não foi possível iniciar a gravação.', 'error');
+            }
+        }
+
+        createRecorderFor(stream) {
+            // Preferência: MediaRecorder nativo (webm/vp8+opus).
+            // IMPORTANTE: MediaRecorder NÃO grava metadados de duração no cabeçalho
+            // do webm durante a gravação. Sem correção, o ffprobe retorna N/A e o
+            // histórico marca "falhou" mesmo com o arquivo íntegro. Por isso usamos
+            // fixWebmDuration() no stop (baseado no tempo real de gravação).
+            if (typeof MediaRecorder !== 'undefined' && typeof MediaRecorder.isTypeSupported === 'function') {
+                const candidates = ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9,opus', 'video/webm'];
+                const mimeType = candidates.find(t => MediaRecorder.isTypeSupported(t)) || '';
+                const options = { videoBitsPerSecond: 2500000, audioBitsPerSecond: 128000 };
+                if (mimeType) options.mimeType = mimeType;
+
+                const mr = new MediaRecorder(stream, options);
+                recordingChunks = [];
+                mr.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) recordingChunks.push(e.data);
+                };
+                mr.onerror = (e) => console.error('[Rec] Erro no MediaRecorder:', e);
+                return mr;
+            }
+
+            // Fallback: RecordRTC (carregado via CDN na página).
+            if (typeof RecordRTC !== 'undefined') {
+                return RecordRTC(stream, {
+                    type: 'video',
+                    mimeType: 'video/webm',
+                    videoBitsPerSecond: 2500000,
+                    audioBitsPerSecond: 128000
+                });
+            }
+
+            return null;
+        }
+
+        stopRecorder(gravador) {
+            return new Promise((resolve, reject) => {
+                if (!gravador) return resolve(null);
+
+                const ehMediaRecorderNativo =
+                    (typeof MediaRecorder !== 'undefined') &&
+                    (gravador instanceof MediaRecorder);
+                if (ehMediaRecorderNativo) {
+                    gravador.onstop = async () => {
+                        try {
+                            const rawBlob = new Blob(recordingChunks, { type: gravador.mimeType || 'video/webm' });
+                            recordingChunks = [];
+                            // Corrige a duração do webm (MediaRecorder não escreve o
+                            // cabeçalho de duração; ffprobe leria N/A e o histórico
+                            // marcaria "falhou"). Usa o tempo real de gravação.
+                            const duracaoMs = (recordingStartedAt && Date.now() - recordingStartedAt) || 0;
+                            const fixedBlob = await fixWebmDuration(rawBlob, duracaoMs);
+                            resolve(fixedBlob);
+                        } catch (fixErr) {
+                            console.warn('[Rec] Falha ao corrigir duração do webm, enviando bruto:', fixErr);
+                            const blob = new Blob(recordingChunks, { type: gravador.mimeType || 'video/webm' });
+                            recordingChunks = [];
+                            resolve(blob);
+                        }
+                    };
+                    try {
+                        gravador.stop();
+                    } catch (stopError) {
+                        reject(stopError);
+                    }
+                } else if (gravador && typeof gravador.stopRecording === 'function') {
+                    gravador.stopRecording(() => resolve(gravador.getBlob()));
+                } else {
+                    reject(new Error('Nenhum gravador ativo.'));
+                }
+            });
+        }
+
+        async handleStopRec() {
+            const gravador = recorder;
+            recorder = null;
+            const duracaoGravadaMs = recordingStartedAt ? (Date.now() - recordingStartedAt) : 0;
+            recordingStartedAt = 0;
+
+            if (!gravador) return;
+
+            // Sala livre (botão de vídeo del chat, sin agendamiento):
+            // no hay histórica ni grabación que vincular; basta con cerrar.
+            if (typeof SALA_LIVRE !== 'undefined' && SALA_LIVRE) {
+                try {
+                    const blob = await this.stopRecorder(gravador);
+                    if (blob && blob.size > 0) {
+                        // Enviamos al servidor solo para que libere el archivo
+                        // temporal (lo descarta). No se guarda nada.
+                        await this.uploadRecording(blob, duracaoGravadaMs);
+                    } else {
+                        window.history.back();
+                    }
+                } catch (err) {
+                    console.warn('[Rec] Sala libre, no se pudo subir la grabación:', err);
+                    window.history.back();
+                } finally {
+                    if (typeof recordingComposer !== 'undefined' && recordingComposer) {
+                        recordingComposer.stop();
+                        recordingComposer = null;
+                    }
+                }
+                return;
+            }
+
+            showToast('Gravação finalizada. Enviando para o histórico...', 'info');
+
+            try {
+                const blob = await this.stopRecorder(gravador);
+
+                if (blob && blob.size > 0) {
+                    await this.uploadRecording(blob, duracaoGravadaMs);
+                } else {
+                    showToast('A gravação ficou vazia.', 'error');
+                    window.history.back();
+                }
+            } catch (err) {
+                console.error('[Rec] Erro ao finalizar a gravação:', err);
+                showToast('Falha ao finalizar a gravação.', 'error');
+                window.history.back();
+            } finally {
+                if (typeof recordingComposer !== 'undefined' && recordingComposer) {
+                    recordingComposer.stop();
+                    recordingComposer = null;
+                }
+            }
+        }
+
+        uploadRecording(blob, duracaoMs) {
+            const formData = new FormData();
+            formData.append('video', blob, `recording_${ROOM}.webm`);
+            formData.append('room', ROOM);
+            // Telemetria real do compositor (frames desenhados no canvas +
+            // tempo decorrido). O servidor usa como fonte primaria da duracao.
+            try {
+                if (typeof recordingComposer !== 'undefined' && recordingComposer && typeof recordingComposer.getStats === 'function') {
+                    var __stats = recordingComposer.getStats();
+                    if (__stats && __stats.renderedFrames > 0) {
+                        formData.append('comp_frames', String(__stats.renderedFrames));
+                    }
+                    if (__stats && __stats.elapsedMs > 0) {
+                        formData.append('comp_elapsed_ms', String(Math.round(__stats.elapsedMs)));
+                    }
+                }
+            } catch (e) { /* telemetria opcional */ }
+            // Telemetria real do compositor (frames desenhados no canvas +
+            // tempo decorrido). O servidor usa como fonte primaria da duracao.
+            try {
+                if (typeof recordingComposer !== 'undefined' && recordingComposer && typeof recordingComposer.getStats === 'function') {
+                    var __stats = recordingComposer.getStats();
+                    if (__stats && __stats.renderedFrames > 0) {
+                        formData.append('comp_frames', String(__stats.renderedFrames));
+                    }
+                    if (__stats && __stats.elapsedMs > 0) {
+                        formData.append('comp_elapsed_ms', String(Math.round(__stats.elapsedMs)));
+                    }
+                }
+            } catch (e) { /* telemetria opcional */ }
+            // Telemetria real do compositor (frames desenhados no canvas +
+            // tempo decorrido). O servidor usa como fonte primaria da duracao.
+            try {
+                if (typeof recordingComposer !== 'undefined' && recordingComposer && typeof recordingComposer.getStats === 'function') {
+                    var __stats = recordingComposer.getStats();
+                    if (__stats && __stats.renderedFrames > 0) {
+                        formData.append('comp_frames', String(__stats.renderedFrames));
+                    }
+                    if (__stats && __stats.elapsedMs > 0) {
+                        formData.append('comp_elapsed_ms', String(Math.round(__stats.elapsedMs)));
+                    }
+                }
+            } catch (e) { /* telemetria opcional */ }
+            // Telemetria real do compositor (frames desenhados no canvas +
+            // tempo decorrido). O servidor usa como fonte primaria da duracao.
+            try {
+                if (typeof recordingComposer !== 'undefined' && recordingComposer && typeof recordingComposer.getStats === 'function') {
+                    var __stats = recordingComposer.getStats();
+                    if (__stats && __stats.renderedFrames > 0) {
+                        formData.append('comp_frames', String(__stats.renderedFrames));
+                    }
+                    if (__stats && __stats.elapsedMs > 0) {
+                        formData.append('comp_elapsed_ms', String(Math.round(__stats.elapsedMs)));
+                    }
+                }
+            } catch (e) { /* telemetria opcional */ }
+            // Duração real medida no cliente (ms). O servidor usa como fallback
+            // quando o ffprobe não encontra metadados no webm.
+            if (duracaoMs && duracaoMs > 0) {
+                formData.append('duracao_ms', String(Math.round(duracaoMs)));
+            }
+
+            fetch('/upload_recording', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.salaLivre) {
+                    // Sala libre (video del chat): no hay historica, solo ir atras.
+                    showToast('Chamada encerrada.', 'success');
+                } else if(data.success) {
+                    showToast('Gravação salva com sucesso!', 'success');
+                } else if (data.falhou) {
+                    showToast('Gravação recebida, mas não pôde ser processada.', 'error');
+                } else {
+                    showToast('Erro ao salvar a gravação.', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error uploading recording:', err);
+                showToast('Erro de conexão ao salvar a gravação.', 'error');
+            })
+            .finally(() => {
+                window.history.back();
+            });
+        }
+
+        setupSocketHandlers() {
+            socket.on('connect', () => {
+                socket.emit('join', this.currentRoom);
+            });
+
+            socket.on('peer-joined', id => {
+                this.peerId = id;
+                this.updateStatus('Chamando...', 'connecting');
+                ELEMENTS.remoteStatus.textContent = 'Conectando ao interlocutor...';
+                this.startCall(true); 
+            });
+
+            socket.on('peer-left', id => {
+                if (id === this.peerId) {
+                    this.closePeerConnection();
+                    ELEMENTS.remoteStatus.textContent = 'Chamada encerrada pelo parceiro.';
+                }
+            });
+
+            socket.on('signal', async ({ from, data }) => {
+                if (!this.peerId || from !== this.peerId) this.peerId = from;
+
+                this.createPeerConnection();
+
+                if (data.sdp) {
+    try {
+        const description = new RTCSessionDescription(data.sdp);
+
+        // RECEBENDO UMA OFFER
+        if (description.type === 'offer') {
+            if (this.pc.signalingState !== 'stable') {
+                console.warn(
+                    'Offer ignorada. Estado atual:',
+                    this.pc.signalingState
+                );
+                return;
+            }
+
+            await this.pc.setRemoteDescription(description);
+
+            await this.flushPendingCandidates();
+
+            const answer = await this.pc.createAnswer();
+
+            await this.pc.setLocalDescription(answer);
+
+            socket.emit('signal', {
+                to: from,
+                from: socket.id,
+                data: {
+                    sdp: this.pc.localDescription
+                }
+            });
+        }
+
+        // RECEBENDO UMA ANSWER
+        else if (description.type === 'answer') {
+            if (this.pc.signalingState !== 'have-local-offer') {
+                console.warn(
+                    'Answer ignorada. Estado atual:',
+                    this.pc.signalingState
+                );
+                return;
+            }
+
+            await this.pc.setRemoteDescription(description);
+
+            await this.flushPendingCandidates();
+        }
+
+    } catch (e) {
+        console.error('Erro ao configurar SDP:', e);
+    }
+}
+
+                if (data.candidate) {
+                    try {
+                        await this.addRemoteCandidate(data.candidate);
+                    } catch (e) {
+                        console.warn('Erro ao adicionar candidate', e);
+                    }
+                }
+            });
+        }
+
+        setupEventListeners() {
+            ELEMENTS.btnToggleAudio.addEventListener('click', () => this.handleToggleAudio());
+            ELEMENTS.btnToggleCam.addEventListener('click', () => this.handleToggleCam());
+            ELEMENTS.btnShareScreen.addEventListener('click', () => this.handleShareScreen());
+            ELEMENTS.btnEndCall.addEventListener('click', (e) => this.handleEndCall(e));
+        }
+
+        async init() {
+            this.setupEventListeners();
+            this.setupSocketHandlers();
+            await this.initLocalStream(false);
+            socket.connect();
+        }
+    }
+
+    // Corrige o cabecalho de duracao do webm gravado via MediaRecorder.
+    // O Chrome nao escreve a duracao nos metadados (ffprobe leria N/A e o
+    // historico marcaria "falhou"). Injetamos o elemento Duration (0x4489,
+    // float64 em ms) logo apos o Segment, usando o tempo real de gravacao.
+    function fixWebmDuration(blob, durationMs) {
+        return blob.arrayBuffer().then(function (buf) {
+            try {
+                if (!durationMs || durationMs <= 0) return blob;
+                var bytes = new Uint8Array(buf);
+                var segIdx = -1;
+                for (var i = 0; i + 4 <= bytes.length; i++) {
+                    if (bytes[i] === 0x18 && bytes[i+1] === 0x53 && bytes[i+2] === 0x80 && bytes[i+3] === 0x67) { segIdx = i; break; }
+                }
+                if (segIdx < 0) return blob;
+                var dur = new ArrayBuffer(11);
+                var dv = new DataView(dur);
+                dv.setUint8(0, 0x44); dv.setUint8(1, 0x89); dv.setUint8(2, 0x88);
+                dv.setFloat64(3, Number(durationMs), false);
+                var durBytes = new Uint8Array(dur);
+                var insertAt = Math.min(segIdx + 12, bytes.length);
+                var out = new Uint8Array(bytes.length + durBytes.length);
+                out.set(bytes.subarray(0, insertAt), 0);
+                out.set(durBytes, insertAt);
+                out.set(bytes.subarray(insertAt), insertAt + durBytes.length);
+                return new Blob([out], { type: blob.type || 'video/webm' });
+            } catch (e) { return blob; }
+        }).catch(function () { return blob; });
+    }
+
     function showToast(message, type = 'info') {
-      const toast = document.createElement('div');
-      toast.className = `toast toast-${type}`;
-      toast.textContent = message;
-      document.getElementById('toastContainer').appendChild(toast);
-      
-      setTimeout(() => {
-        toast.classList.add('show');
-      }, 100);
-      
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.getElementById('toastContainer').appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      window.videoCallManager = new VideoCallManager();
-      
-      if ('ontouchstart' in window) {
-        initMobileGestures();
-      }
+        window.videoCallManager = new VideoCallManager();
+        
+        if ('ontouchstart' in window) {
+            initMobileGestures();
+        }
     });
 
     function initMobileGestures() {
-      let startX, startY;
-      document.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-      });
-      
-      document.addEventListener('touchend', (e) => {
-        if (!startX || !startY) return;
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
-        const diffX = startX - endX;
-        const diffY = startY - endY;
+        let startX, startY;
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
         
-        if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY)) {
-          if (diffX > 0) {
-            document.querySelector('.btn-exit').click();
-          }
-        }
-      });
+        document.addEventListener('touchend', (e) => {
+            if (!startX || !startY) return;
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const diffX = startX - endX;
+            const diffY = startY - endY;
+            
+            if (Math.abs(diffX) > 100 && Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0) {
+                    document.querySelector('.btn-exit').click();
+                }
+            }
+        });
     }
-  </script>
+</script>
 </body>
 </html>

@@ -102,19 +102,6 @@
             return aulaDate >= now && aulaDate <= next24Hours;
         });
         const count = aulasProximas24h.length;
-
-        const comentarios = session.prof_comentarios || {};
-        let totalAvaliacoes = 0;
-        let numeroDeAvaliacoes = 0;
-        Object.values(comentarios).forEach(profComentarios => {
-            profComentarios.forEach(comentario => {
-                if (comentario.usuario === user.nome && comentario.nota) {
-                    totalAvaliacoes += comentario.nota;
-                    numeroDeAvaliacoes++;
-                }
-            });
-        });
-        const mediaAvaliacoes = numeroDeAvaliacoes > 0 ? (totalAvaliacoes / numeroDeAvaliacoes).toFixed(1) : "N/A";
     %>
 
     <section class="stats">
@@ -128,7 +115,7 @@
         <section class="card">
             <i class="fa-solid fa-star icon warning"></i>
             <h3>Minhas Avaliações</h3>
-            <p class="value"><%= mediaAvaliacoes %> / 5.0</p>
+            <p class="value"><%= mediaAvaliacoes > 0 ? `${mediaAvaliacoes} / 5.0` : 'N/A' %></p>
             <a href="/feedbacks_aluno" class="link">Ver feedbacks <i class="fas fa-arrow-right"></i></a>
         </section>
     </section>
@@ -155,7 +142,7 @@
         <section class="recommendation-list">
           <% recsProfessores.recomendacoes.forEach(professor => { %>
             <article class="recommendation-item">
-              <img src="<%= professor.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
+              <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
               <section>
                 <h3><%= professor.nome %></h3>
                 <p class="match"><%= professor.score %>% de aderência</p>

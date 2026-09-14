@@ -108,7 +108,7 @@
           
           <section class="form-group foto-upload">
             <label for="foto">Foto de Perfil</label>
-            <img src="<%= user.foto || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
+            <img src="<%= user.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= user.nome %>" class="foto-preview" />
             <button type="button" class="btn-trocar-foto"><i class="fas fa-camera"></i> Trocar Foto</button>
             <input type="file" id="foto" name="foto" accept="image/*" hidden />
             <p class="input-dica">Arquivos aceitos: JPG, PNG até 5MB</p>
