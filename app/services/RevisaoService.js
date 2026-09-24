@@ -10,19 +10,22 @@ const RevisaoService = {
   async agendarProximaRevisao(alunoId, questaoId, acertou) {
     const current = await this.findAgendamento(alunoId, questaoId);
     let easeFactor = current ? Number(current.fator_facilidade) : 2.5;
-    let interval = current ? Number(current.intervalo_dias) : 0;
+    const currentInterval = current ? Number(current.intervalo_dias) : 0;
+    let interval = currentInterval;
 
     if (acertou) {
-      if (interval === 0) {
-        interval = 1;
-      } else if (interval === 1) {
-        interval = 6;
-      } else {
-        interval = Math.round(interval * easeFactor);
-      }
+      const scheduleIndex = C.REVISAO_INTERVALOS.indexOf(currentInterval);
+      // The first five successful recalls follow the pedagogical schedule
+      // exactly (1, 3, 7, 14, 30 days). After that, preserve the existing
+      // ease-factor behaviour for long-term reviews.
+      interval = scheduleIndex === -1
+        ? C.REVISAO_INTERVALOS[0]
+        : C.REVISAO_INTERVALOS[scheduleIndex + 1] || Math.round(currentInterval * easeFactor);
       easeFactor = Math.max(1.3, easeFactor + 0.1);
     } else {
-      interval = 0;
+      // A missed review is brought back the next day instead of becoming due
+      // immediately, which avoids repeatedly serving the same item in one run.
+      interval = C.REVISAO_INTERVALOS[0];
       easeFactor = Math.max(1.3, easeFactor - 0.2);
     }
 

@@ -64,8 +64,13 @@ const TrilhaService = {
       }
       const [order] = await connection.query('SELECT COALESCE(MAX(ordem), 0) + 1 AS nextOrder FROM trilha_itens WHERE trilha_id = ?', [trilha.id]);
 
-      const [result] = await connection.query(`INSERT INTO trilha_itens (sessao_id, trilha_id, ordem, questao_id, material_aprendizagem_id, bloco, decisao_motor, atividade_tipo)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [session.id, trilha.id, order[0].nextOrder, item.questao_id, item.material_id, decisao.etapa, decisao.action, 'questao']);
+      const atividadeTipo = item.material_id ? 'material' : 'questao';
+      const [result] = await connection.query(`INSERT INTO trilha_itens (sessao_id, trilha_id, ordem, questao_id, material_aprendizagem_id, bloco, decisao_motor, atividade_tipo, meta_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
+        session.id, trilha.id, order[0].nextOrder, item.questao_id || null, item.material_id || null,
+        decisao.etapa, decisao.action, atividadeTipo,
+        JSON.stringify({ origem: 'atividade_dinamica', habilidade_id: item.habilidade_id, dificuldade: item.dificuldade || null })
+      ]);
 
       await connection.query(`INSERT INTO trilha_decisoes (trilha_id, aluno_id, habilidade_id, acao, etapa, dificuldade, motivo, contexto_json)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [trilha.id, alunoId, item.habilidade_id, decisao.action, decisao.etapa, item.dificuldade, decisao.reason, JSON.stringify({ percentual: decisao.mastery?.percentual ?? null, sessao_id: session.id })]);
@@ -154,8 +159,12 @@ const TrilhaService = {
     if (result.item.habilidade_id) await AnalisePedagogicaService.analisarAposResposta(alunoId, result.item.habilidade_id, result.item.questao_id, { acertou: result.acertou, tempo_resposta_seg: tempoResposta });
     const gamification = await GamificationService.registrarResultado(alunoId, result.acertou);
 
+    const deveEncerrarPorEvidencia = mastery?.atividadeConcluida || mastery?.status === C.DOMINIO_STATUS.DOMINADA;
+    if (deveEncerrarPorEvidencia && result.item.sessao_id) {
+      await this.encerrarSessaoAtividade(result.item.sessao_id, mastery.status);
+    }
     const proximaTarefa = await this.iniciarTrilhaParaAluno(alunoId);
-    const deveEncerrarAtividade = proximaTarefa.etapa !== result.item.bloco && result.item.sessao_id;
+    const deveEncerrarAtividade = !deveEncerrarPorEvidencia && proximaTarefa.etapa !== result.item.bloco && result.item.sessao_id;
     if (deveEncerrarAtividade) {
       await this.encerrarSessaoAtividade(result.item.sessao_id, mastery?.status || 'concluida');
     }
@@ -176,27 +185,26 @@ const TrilhaService = {
 
       await connection.query('UPDATE trilha_itens SET status = ?, concluido_em = NOW() WHERE id = ?', [C.ITEM_STATUS.CONCLUIDO, itemId]);
       
-      if (tempoConsumido !== null && rows[0].material_aprendizagem_id) {
-        await connection.query(`INSERT INTO historico_questoes (aluno_id, questao_id, habilidade_id, resposta_dada, acertou, tempo_resposta_seg)
-          VALUES (?, ?, ?, ?, ?, ?)`, [alunoId, null, null, 'consumo_material', true, tempoConsumido]);
-      }
-
       const materialItem = rows[0];
       if (materialItem.material_aprendizagem_id) {
         const [microcheck] = await connection.query(`SELECT q.*, h.descricao AS habilidade_nome FROM questoes q JOIN habilidades h ON h.id = q.habilidade_id
           WHERE q.habilidade_id = (SELECT habilidade_id FROM materiais_aprendizagem WHERE id = ?)
-          AND NOT EXISTS (SELECT 1 FROM historico_questoes hq WHERE hq.aluno_id = ? AND hq.questao_id = q.id AND hq.data_resposta >= DATE_SUB(NOW(), INTERVAL 7 DAY))
-          ORDER BY RAND() LIMIT 1`, [materialItem.material_aprendizagem_id, alunoId]);
+          AND NOT EXISTS (SELECT 1 FROM historico_questoes hq WHERE hq.aluno_id = ? AND hq.questao_id = q.id)
+          AND NOT EXISTS (
+            SELECT 1 FROM respostas_teste rt JOIN tentativas_teste tt ON tt.id = rt.tentativa_id
+            WHERE tt.aluno_id = ? AND rt.questao_id = q.id
+          )
+          ORDER BY q.id ASC LIMIT 1`, [materialItem.material_aprendizagem_id, alunoId, alunoId]);
         if (microcheck[0]) {
           const [session] = await connection.query(`INSERT INTO sessoes_adaptativas (aluno_id, habilidade_foco_id, tipo_sessao)
             VALUES (?, ?, ?)`, [alunoId, microcheck[0].habilidade_id, C.SESSAO_TIPO.PRATICA]);
           const [order] = await connection.query('SELECT COALESCE(MAX(ordem), 0) + 1 AS nextOrder FROM trilha_itens WHERE trilha_id = ?', [materialItem.trilha_id]);
           const [result] = await connection.query(`INSERT INTO trilha_itens (sessao_id, trilha_id, ordem, questao_id, bloco, decisao_motor)
-            VALUES (?, ?, ?, ?, ?, ?)`, [session.insertId, materialItem.trilha_id, order[0].nextOrder, microcheck[0].id, C.ITEM_BLOCO.MICROCHECK, 'microcheck_pos_consumo']);
+            VALUES (?, ?, ?, ?, ?, ?)`, [session.insertId, materialItem.trilha_id, order[0].nextOrder, microcheck[0].id, C.ITEM_BLOCO.CHECKPOINT, 'microcheck_pos_consumo']);
           await connection.query(`INSERT INTO trilha_decisoes (trilha_id, aluno_id, habilidade_id, acao, etapa, dificuldade, motivo, contexto_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [materialItem.trilha_id, alunoId, microcheck[0].habilidade_id, C.DECISAO_ACAO.PRATICAR, C.ITEM_BLOCO.MICROCHECK, microcheck[0].dificuldade, 'microcheck_consumo', JSON.stringify({ item_pai_id: itemId, tempo_consumo_seg: tempoConsumido })]);
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [materialItem.trilha_id, alunoId, microcheck[0].habilidade_id, C.DECISAO_ACAO.PRATICAR, C.ITEM_BLOCO.CHECKPOINT, microcheck[0].dificuldade, 'microcheck_consumo', JSON.stringify({ item_pai_id: itemId, tempo_consumo_seg: tempoConsumido })]);
           await connection.commit();
-          return { tarefaTipo: 'MICROCHECK', proximaQuestao: { ...microcheck[0], item_id: result.insertId }, trilhaId: materialItem.trilha_id, etapa: C.ITEM_BLOCO.MICROCHECK };
+          return { tarefaTipo: 'MICROCHECK', proximaQuestao: { ...microcheck[0], item_id: result.insertId }, trilhaId: materialItem.trilha_id, etapa: C.ITEM_BLOCO.CHECKPOINT };
         }
       }
       await connection.commit();
