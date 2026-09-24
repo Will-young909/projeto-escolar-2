@@ -14,6 +14,8 @@ const DEFAULTS = Object.freeze({
   activityCompletionMaxErrors: 4
 });
 
+const MASTERY_STATUSES = Object.freeze(['dominada', 'dominado']);
+
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function masteryState({ history = [], currentPercent = 0 }, options = DEFAULTS) {
@@ -45,6 +47,19 @@ function selectDifficulty({ history = [], currentDifficulty = 'facil', status = 
   return order[clamp(target, 0, order.length - 1)];
 }
 
+function difficultyPool(targetDifficulty = 'facil') {
+  const order = ['facil', 'medio', 'dificil'];
+  const index = Math.max(0, order.indexOf(targetDifficulty));
+  return order
+    .map((difficulty, position) => ({ difficulty, distance: Math.abs(position - index) }))
+    .sort((left, right) => left.distance - right.distance || order.indexOf(left.difficulty) - order.indexOf(right.difficulty))
+    .map(item => item.difficulty);
+}
+
+function isMastered(status) {
+  return MASTERY_STATUSES.includes(status);
+}
+
 function shouldEndActivity({ history = [], currentPercent = 0, consecutiveCorrect = 0, recentAccuracy = 0 }, options = DEFAULTS) {
   if (history.length < options.activityCompletionMinAttempts) return false;
   const accuracy = history.filter(item => item.acertou).length / history.length;
@@ -56,7 +71,9 @@ function shouldEndActivity({ history = [], currentPercent = 0, consecutiveCorrec
 
 function determineNextStep({ skill, prerequisites = [], history = [], dueReview = false, currentDifficulty = 'facil', activity = null }) {
   const mastery = masteryState({ history, currentPercent: skill.percentual_dominio });
-  const missingPrerequisite = prerequisites.find(item => item.status_dominio !== 'dominada');
+  // `dominado` is kept for compatibility with profiles written by older
+  // versions of Regimath. Both values mean that a prerequisite is ready.
+  const missingPrerequisite = prerequisites.find(item => !isMastered(item.status_dominio));
 
   if (dueReview) return { action: 'revisao', etapa: 'revisao', skillId: dueReview.habilidade_id, difficulty: 'facil', reason: 'revisao_pendente', mastery, endActivity: false };
   if (missingPrerequisite) return { action: 'prerequisito', etapa: 'reforco', skillId: missingPrerequisite.habilidade_id, difficulty: 'facil', reason: 'prerequisito_nao_dominado', mastery, endActivity: false };
@@ -84,5 +101,4 @@ function determineNextStep({ skill, prerequisites = [], history = [], dueReview 
   return { action: 'praticar', etapa: history.length ? 'pratica' : 'aprendizagem', skillId: skill.habilidade_id, difficulty: selectDifficulty({ history, currentDifficulty, status: mastery.status }), reason: 'progresso_gradual', mastery, endActivity };
 }
 
-module.exports = { DEFAULTS, masteryState, selectDifficulty, determineNextStep, shouldEndActivity };
-
+module.exports = { DEFAULTS, MASTERY_STATUSES, masteryState, selectDifficulty, difficultyPool, determineNextStep, shouldEndActivity, isMastered };
