@@ -9,6 +9,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 const { default: MercadoPagoConfig, Preference, Payment } = require('mercadopago');
 const pool = require('./config/pool');
+const { buildMercadoPagoPreference } = require('./app/services/mercadoPagoPreferenceBuilder');
 
 const chatStore = require('./app/lib/chatStore');
 const paymentsStore = require('./app/lib/paymentsStore');
@@ -167,22 +168,20 @@ io.on("connection", (socket) => {
 
       const siteUrl = process.env.SITE_URL || `https://localhost:${PORT}`;
       
-      const preference = {
+      const preference = buildMercadoPagoPreference({
         items: [{
           title: descricao || 'Pagamento Regimath',
           quantity: 1,
           currency_id: "BRL",
           unit_price: amount
         }],
-        back_urls: {
-          success: `${siteUrl}/pagamento/sucesso?room=${room}`,
-          failure: `${siteUrl}/pagamento/erro?room=${room}`,
-          pending: `${siteUrl}/pagamento/pendente?room=${room}`
-        },
-        auto_return: "approved",
+        siteUrl,
+        successUrl: `${siteUrl}/pagamento/sucesso?room=${room}`,
+        failureUrl: `${siteUrl}/pagamento/erro?room=${room}`,
+        pendingUrl: `${siteUrl}/pagamento/pendente?room=${room}`,
         notification_url: `${siteUrl}/webhook/mercadopago`,
         metadata: { room, createdBy: currentUser.id }
-      };
+      });
 
       const mpResponse = await mpPreferenceClient.create({ body: preference });
       const prefId = mpResponse.id || null;

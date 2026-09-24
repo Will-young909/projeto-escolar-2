@@ -5,31 +5,91 @@ const AlunoModel = require('../models/AlunoModel');
 
 require('dotenv').config();
 
-const { Mistral } = require('@mistralai/mistralai');
-
 // 🔐 validação
-if (!process.env.MISTRAL_API_KEY) {
+const USE_GEMINI = process.env.USE_GEMINI === 'true';
+
+if (!USE_GEMINI && !process.env.MISTRAL_API_KEY) {
   throw new Error('MISTRAL_API_KEY não definida');
 }
+if (USE_GEMINI && !process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY não definida');
+}
 
-const client = new Mistral({
-  apiKey: process.env.MISTRAL_API_KEY
-});
+let mistralClientPromise;
+let geminiClientPromise;
+
+function getMistralClient() {
+  if (!mistralClientPromise) {
+    mistralClientPromise = import('@mistralai/mistralai').then(({ Mistral }) => new Mistral({
+      apiKey: process.env.MISTRAL_API_KEY
+    }));
+  }
+  return mistralClientPromise;
+}
+
+function getGeminiClient() {
+  if (!geminiClientPromise) {
+    geminiClientPromise = import('@google/generative-ai').then(({ GoogleGenerativeAI }) => {
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      return genAI.getGenerativeModel({ model: 'gemini-3.5-flash-lite' });
+    });
+  }
+  return geminiClientPromise;
+}
 
 // 🔁 geração com Mistral
-async function generateWithMistral(prompt) {
-  const response = await client.chat.complete({
-    model: 'mistral-small-latest', // rápido e gratuito
-    messages: [
-      {
-        role: 'user',
-        content: prompt
+async function generateWithMistral(prompt, retries = 3) {
+  const client = await getMistralClient();
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await client.chat.complete({
+        model: 'mistral-small-latest',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      });
+      return response.choices[0].message.content;
+    } catch (error) {
+      if (error.status === 429 && attempt < retries) {
+        const waitMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+        console.warn(`Rate limited. Retrying in ${Math.round(waitMs)}ms (attempt ${attempt}/${retries})`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
       }
-    ],
-    temperature: 0.7
-  });
+      throw error;
+    }
+  }
+}
 
-  return response.choices[0].message.content;
+// 🔁 geração com Gemini
+async function generateWithGemini(prompt, retries = 3) {
+  const model = await getGeminiClient();
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7 }
+      });
+      return result.response.text();
+    } catch (error) {
+      if (error.status === 429 && attempt < retries) {
+        const waitMs = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+        console.warn(`Rate limited. Retrying in ${Math.round(waitMs)}ms (attempt ${attempt}/${retries})`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+// 🔀 selector
+async function generateWithAI(prompt) {
+  if (USE_GEMINI) {
+    return generateWithGemini(prompt);
+  }
+  return generateWithMistral(prompt);
 }
 
 // 🔍 parser robusto
@@ -94,7 +154,7 @@ Formato esperado:
 }
 `;
 
-    const rawText = await generateWithMistral(fullPrompt);
+    const rawText = await generateWithAI(fullPrompt);
 
     console.log('Resposta IA:', rawText);
 

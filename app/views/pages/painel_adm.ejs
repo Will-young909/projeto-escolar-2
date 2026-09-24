@@ -83,9 +83,6 @@
       <section class="card" style="margin-top: 30px;">
         <h2 class="section-title">Atividade Recente</h2>
         <ul style="list-style: none; padding-left: 10px;" id="recent-activity-list">
-          <li><i class="fa-solid fa-user-plus" style="color: var(--color-success);"></i> <strong>Novo Professor:</strong> Carlos Mendes aguarda aprovação.</li>
-          <li><i class="fa-solid fa-file-invoice-dollar" style="color: var(--color-primary);"></i> <strong>Nova Aula:</strong> Mariana Silva pagou R$ 60,00 para Prof. Ana Beatriz.</li>
-          <li><i class="fa-solid fa-flag" style="color: var(--color-error);"></i> <strong>Nova Denúncia:</strong> Aluno X denunciou Professor Y por "Não compareceu".</li>
         </ul>
       </section>
     </section>
@@ -229,14 +226,48 @@
 
     <!-- FINANCEIRO -->
     <section class="content-page" id="page-finance">
-      <section class="card">
-        <h2 class="section-title">Repasses Pendentes</h2>
-        <section class="table-wrapper"><table class="data-table"></table></section>
-      </section>
-      <section class="card">
-        <h2 class="section-title">Extrato de Transações</h2>
-        <section class="table-wrapper"><table class="data-table"></table></section>
-      </section>
+        <section class="card">
+            <h2 class="section-title">Repasses Pendentes</h2>
+            <div class="table-wrapper">
+                <table class="data-table" id="pending-payouts-table">
+                    <thead>
+                        <tr>
+                            <th>Professor</th>
+                            <th>Valor</th>
+                            <th>Data da Solicitação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Linhas de repasses pendentes serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <section class="card">
+            <h2 class="section-title">Extrato de Transações</h2>
+            <div class="table-wrapper">
+                <table class="data-table" id="transaction-history-table">
+                    <thead>
+                        <tr>
+                            <th>ID Transação</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Aluno</th>
+                            <th>Professor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Linhas do histórico de transações serão inseridas aqui -->
+                    </tbody>
+                </table>
+            </div>
+            <section class="pagination" id="transaction-pagination">
+                <!-- Controles de paginação serão inseridos aqui -->
+            </section>
+        </section>
     </section>
 
     <!-- MODERAÇÃO -->
@@ -558,6 +589,11 @@
         if (window.location.hash !== targetId) {
             window.history.pushState(null, '', targetId);
         }
+
+        if (targetId === '#page-finance') {
+            fetchPendingPayouts();
+            fetchTransactionHistory();
+        }
       };
 
       navLinks.forEach(link => {
@@ -599,6 +635,128 @@
               document.querySelectorAll('.kpi-value').forEach(el => el.textContent = "Erro");
           }
       };
+
+      const fetchPendingPayouts = async () => {
+        const tableBody = document.querySelector('#pending-payouts-table tbody');
+        try {
+            const response = await fetch('/admin/financeiro/repasses?status=pendente');
+            const payouts = await response.json();
+
+            tableBody.innerHTML = ''; // Limpa a tabela
+            if (payouts.length > 0) {
+                payouts.forEach(payout => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${payout.professor_nome}</td>
+                        <td>${formatCurrency(payout.valor)}</td>
+                        <td>${new Date(payout.data_solicitacao).toLocaleDateString('pt-BR')}</td>
+                        <td class="actions-buttons">
+                            <button class="btn btn-success" onclick="markAsPaid(${payout.id})">Pagar</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="4">Nenhum repasse pendente.</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error fetching pending payouts:', error);
+            tableBody.innerHTML = '<tr><td colspan="4">Erro ao carregar repasses.</td></tr>';
+        }
+    };
+
+    const fetchTransactionHistory = async (page = 1) => {
+        const tableBody = document.querySelector('#transaction-history-table tbody');
+        const paginationContainer = document.getElementById('transaction-pagination');
+        try {
+            const response = await fetch(`/admin/financeiro/transactions?page=${page}&limit=15`);
+            const { transactions, pagination } = await response.json();
+
+            tableBody.innerHTML = '';
+            if (transactions.length > 0) {
+                transactions.forEach(tx => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${tx.pagamento_id}</td>
+                        <td>${tx.descricao}</td>
+                        <td>${formatCurrency(tx.valor)}</td>
+                        <td><span class="status-badge status-${tx.status}">${tx.status}</span></td>
+                        <td>${new Date(tx.criado_em).toLocaleString('pt-BR')}</td>
+                        <td>${tx.aluno_nome || 'N/A'}</td>
+                        <td>${tx.professor_nome || 'N/A'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="7">Nenhuma transação encontrada.</td></tr>';
+            }
+
+            // Paginação
+            paginationContainer.innerHTML = '';
+            if (pagination.totalPages > 1) {
+                const ul = document.createElement('ul');
+
+                if (pagination.page > 1) {
+                    const prevLi = document.createElement('li');
+                    const prevA = document.createElement('a');
+                    prevA.href = '#';
+                    prevA.textContent = 'Anterior';
+                    prevA.onclick = (e) => { e.preventDefault(); fetchTransactionHistory(pagination.page - 1); };
+                    prevLi.appendChild(prevA);
+                    ul.appendChild(prevLi);
+                }
+
+                for (let i = 1; i <= pagination.totalPages; i++) {
+                    const li = document.createElement('li');
+                    if (i === pagination.page) li.className = 'active';
+                    const a = document.createElement('a');
+                    a.href = '#';
+                    a.textContent = i;
+                    a.onclick = (e) => { e.preventDefault(); fetchTransactionHistory(i); };
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                }
+
+                if (pagination.page < pagination.totalPages) {
+                    const nextLi = document.createElement('li');
+                    const nextA = document.createElement('a');
+                    nextA.href = '#';
+                    nextA.textContent = 'Próximo';
+                    nextA.onclick = (e) => { e.preventDefault(); fetchTransactionHistory(pagination.page + 1); };
+                    nextLi.appendChild(nextA);
+                    ul.appendChild(nextLi);
+                }
+                paginationContainer.appendChild(ul);
+            }
+
+        } catch (error) {
+            console.error('Error fetching transaction history:', error);
+            tableBody.innerHTML = '<tr><td colspan="7">Erro ao carregar transações.</td></tr>';
+        }
+    };
+
+    const markAsPaid = async (payoutId) => {
+        if (!confirm('Você tem certeza que deseja marcar este repasse como pago?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/admin/financeiro/repasses/${payoutId}/paid`, {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                alert('Repasse marcado como pago com sucesso!');
+                fetchPendingPayouts(); // Atualiza a tabela
+            } else {
+                const errorText = await response.text();
+                alert(`Erro ao marcar como pago: ${errorText}`);
+            }
+        } catch (error) {
+            console.error('Error marking payout as paid:', error);
+            alert('Ocorreu um erro na comunicação com o servidor.');
+        }
+    };
 
       const currentHash = window.location.hash || '#page-users';
       if (currentHash && document.querySelector(currentHash)) {

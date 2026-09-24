@@ -11,6 +11,7 @@ const activityStore = require('../lib/activityStore');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { buildMercadoPagoPreference } = require('../services/mercadoPagoPreferenceBuilder');
 const trilhaService = require('../services/trilhaService');
 const GamificationService = require('../services/GamificationService');
 const AnalyticsService = require('../services/AnalyticsService');
@@ -299,7 +300,7 @@ async function getUserById(id, withRelations = true) {
             const aluno = alunoRows[0];
             if (withRelations) {
                  const [agendamentos] = await pool.query(`SELECT ag.*, p.nome as professor_nome, p.id as professor_id FROM agendamentos ag JOIN professores p ON ag.professor_id = p.id WHERE ag.aluno_id = ? AND ag.status = 'ativo' ORDER BY ag.data, ag.hora`, [id]);
-                aluno.agenda = agendamentos.map(ag => ({ id: ag.id, professor: { id: ag.professor_id, nome: ag.professor_nome }, salaId: ag.sala_id, data: ag.data, hora: ag.hora }));
+                aluno.agenda = agendamentos.map(ag => ({ id: ag.id, professor: { id: ag.professor_id, nome: ag.professor_nome }, salaId: ag.sala_id, data: (ag.data instanceof Date ? `${ag.data.getFullYear()}-${String(ag.data.getMonth() + 1).padStart(2, '0')}-${String(ag.data.getDate()).padStart(2, '0')}` : String(ag.data)), hora: String(ag.hora) }));
 
                 const [notificacoes] = await pool.query('SELECT * FROM notificacoes WHERE usuario_id = ? AND usuario_tipo = ? AND link_relacionado IS NOT NULL ORDER BY criado_em DESC', [id, 'aluno']);
                 aluno.notificacoes = notificacoes;
@@ -503,7 +504,7 @@ router.post('/agendar-horario', async (req, res) => {
             return res.redirect(`/pagamento/sucesso?external_reference=${reference}&status=approved&dev_checkout=1`);
         }
 
-        const preference = {
+        const preference = buildMercadoPagoPreference({
             items: [{
                 title: `Aula com ${professor.nome}`,
                 description: `Agendamento para ${horario.data} às ${horario.hora_inicio}`,
@@ -511,14 +512,12 @@ router.post('/agendar-horario', async (req, res) => {
                 currency_id: 'BRL',
                 unit_price: parseFloat(horario.preco)
             }],
-            back_urls: {
-                success: `${siteUrl}/pagamento/sucesso`,
-                failure: `${siteUrl}/pagamento/erro`,
-                pending: `${siteUrl}/pagamento/pendente`
-            },
-            auto_return: "approved",
+            siteUrl,
+            successUrl: `${siteUrl}/pagamento/sucesso`,
+            failureUrl: `${siteUrl}/pagamento/erro`,
+            pendingUrl: `${siteUrl}/pagamento/pendente`,
             external_reference: JSON.stringify({ profId, horarioId: horarioIdBanco, alunoId }),
-        };
+        });
 
         const response = await mpPreferenceClient.create({ body: preference });
         const body = response.body || response;
@@ -1345,8 +1344,8 @@ router.get('/aulas', async (req, res) => {
             id: ag.id,
             aluno: { id: ag.aluno_id, nome: ag.alunoNome },
             salaId: ag.salaId || ag.sala_id,
-            data: ag.data,
-            hora: ag.hora,
+            data: (ag.data instanceof Date ? `${ag.data.getFullYear()}-${String(ag.data.getMonth() + 1).padStart(2, '0')}-${String(ag.data.getDate()).padStart(2, '0')}` : String(ag.data)),
+            hora: String(ag.hora),
             assunto: ag.assunto || 'Matemática'
         }));
 
@@ -1626,7 +1625,7 @@ async function createPassePreference(req, res, passeTipo) {
     }
 
     try {
-        const preference = {
+        const preference = buildMercadoPagoPreference({
             items: [{
                 title: passeInfo.title,
                 description: `Acesso extra para a plataforma RegiMath`,
@@ -1634,14 +1633,12 @@ async function createPassePreference(req, res, passeTipo) {
                 currency_id: 'BRL',
                 unit_price: passeInfo.price
             }],
-            back_urls: {
-                success: `${siteUrl}/pagamento/sucesso`,
-                failure: `${siteUrl}/pagamento/erro`,
-                pending: `${siteUrl}/pagamento/pendente`
-            },
-            auto_return: "approved",
+            siteUrl,
+            successUrl: `${siteUrl}/pagamento/sucesso`,
+            failureUrl: `${siteUrl}/pagamento/erro`,
+            pendingUrl: `${siteUrl}/pagamento/pendente`,
             external_reference: JSON.stringify({ passeTipo, alunoId }),
-        };
+        });
 
         const response = await mpPreferenceClient.create({ body: preference });
         const body = response.body || response;
@@ -2503,8 +2500,8 @@ router.get('/agenda', async (req, res) => {
             id: ag.id,
             professor: { id: ag.professor_id, nome: ag.professor_nome },
             salaId: ag.sala_id,
-            data: ag.data,
-            hora: ag.hora,
+            data: (ag.data instanceof Date ? `${ag.data.getFullYear()}-${String(ag.data.getMonth() + 1).padStart(2, '0')}-${String(ag.data.getDate()).padStart(2, '0')}` : String(ag.data)),
+            hora: String(ag.hora),
         }));
 
         res.render('pages/agenda', { user: { ...user, agenda: agendaFormatada }, session: req.session });
@@ -3010,6 +3007,7 @@ router.get('/gerar_atividade', async (req, res) => {
 
     try {
         const port = process.env.APP_PORT;
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         const response = await fetch(`http://localhost:${port}/ia/generate-exercise`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3051,6 +3049,15 @@ router.get('/trilha', async (req, res) => {
     }
 
     try {
+        const [attempts] = await pool.query(
+            'SELECT 1 FROM tentativas_teste WHERE aluno_id = ? LIMIT 1',
+            [user.id]
+        );
+
+        if (attempts.length === 0) {
+            return res.redirect('/nivel_escolar');
+        }
+
         const tarefa = await trilhaService.iniciarTrilhaParaAluno(user.id);
         const progresso = await trilhaService.obterProgresso(user.id);
 

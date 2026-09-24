@@ -29,6 +29,8 @@ router.get('/financeiro/repasses', requireAdmin, AdminFinanceController.getRepas
 router.get('/financeiro/carteira/:professor_id', requireAdmin, AdminFinanceController.getCarteiraProfessor);
 router.post('/financeiro/bloquear/:professor_id', requireAdmin, AdminFinanceController.bloquearPagamentos);
 router.get('/financeiro/exportar', requireAdmin, AdminFinanceController.exportarCSV);
+router.get('/financeiro/transactions', requireAdmin, AdminFinanceController.getTransactionHistory);
+router.post('/financeiro/repasses/:id/paid', requireAdmin, AdminFinanceController.markRepasseAsPaid);
 
 // Alertas
 const AlertasController = require('../controllers/AlertasController');

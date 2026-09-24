@@ -1,5 +1,6 @@
 const pool = require('../../config/pool');
 const DenunciaService = require('../services/DenunciaService');
+const RecentActivityService = require('../services/RecentActivityService');
 
 exports.getDashboard = async (req, res) => {
     const { status = 'pending', search, page = 1 } = req.query;
@@ -114,6 +115,8 @@ exports.getDashboardSummary = async (req, res) => {
             'SELECT COUNT(*) as count FROM denuncias'
         );
 
+        const recentActivities = await RecentActivityService.getRecentActivities();
+
         res.json({
             newStudents: newStudentsResult[0].count,
             newTeachers: newTeachersResult[0].count,
@@ -122,7 +125,35 @@ exports.getDashboardSummary = async (req, res) => {
             monthlyRevenue: revenueResult[0].total || 0,
             openReports: openReportsResult[0].count,
             pendingPayments: 0, 
-            avgResolutionTime: 0
+            avgResolutionTime: 0,
+            recentActivities: recentActivities.map(activity => {
+                let message = '';
+                let icon = '';
+                let color = '';
+
+                switch (activity.type) {
+                    case 'new_teacher':
+                        message = `<strong>Novo Professor:</strong> ${activity.details.teacher_name} aguarda aprovação.`
+                        icon = 'fa-solid fa-user-plus';
+                        color = 'var(--color-success)';
+                        break;
+                    case 'new_class':
+                        message = `<strong>Nova Aula:</strong> ${activity.details.aluno_nome} pagou R$ ${activity.details.preco} para Prof. ${activity.details.professor_nome}.`;
+                        icon = 'fa-solid fa-file-invoice-dollar';
+                        color = 'var(--color-primary)';
+                        break;
+                    case 'new_report':
+                        if (activity.anonimo) {
+                            message = `<strong>Nova Denúncia Anônima:</strong> ${activity.subject} contra ${activity.details.denunciado_nome}.`;
+                        } else {
+                            message = `<strong>Nova Denúncia:</strong> ${activity.details.denunciante_nome} denunciou ${activity.details.denunciado_nome} por \"${activity.subject}\".`;
+                        }
+                        icon = 'fa-solid fa-flag';
+                        color = 'var(--color-error)';
+                        break;
+                }
+                return { message, icon, color };
+            })
         });
 
     } catch (error) {
