@@ -8,6 +8,7 @@ config = node_config(
     },
     node_server = "express",
     node_version = "24",
+    node_install_requires_all_files = True,
 )
 
 build = node_build(config)
