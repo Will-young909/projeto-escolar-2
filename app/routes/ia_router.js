@@ -9,10 +9,10 @@ require('dotenv').config();
 const USE_GEMINI = process.env.USE_GEMINI === 'true';
 
 if (!USE_GEMINI && !process.env.MISTRAL_API_KEY) {
-  throw new Error('MISTRAL_API_KEY não definida');
+  console.warn('Aviso: MISTRAL_API_KEY não definida. Rotas de IA não funcionarão.');
 }
 if (USE_GEMINI && !process.env.GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY não definida');
+  console.warn('Aviso: GEMINI_API_KEY não definida. Rotas de IA não funcionarão.');
 }
 
 let mistralClientPromise;
