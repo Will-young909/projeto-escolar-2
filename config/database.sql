@@ -2,12 +2,12 @@
 -- REGIMATH - DATABASE SCHEMA PROFISSIONAL
 -- ============================================================
 -- Banco de dados para:
--- â€¢ Plataforma educacional adaptativa
--- â€¢ GamificaÃ§Ã£o
--- â€¢ Trilha inteligente
--- â€¢ RevisÃ£o espaÃ§ada
--- â€¢ ProficiÃªncia por habilidade
--- â€¢ PrÃ©-requisitos conceituais
+-- • Plataforma educacional adaptativa
+-- • Gamificação
+-- • Trilha inteligente
+-- • Revisão espaçada
+-- • Proficiência por habilidade
+-- • Pré-requisitos conceituais
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS b3yigwtafba02ntosynz
@@ -17,7 +17,7 @@ COLLATE utf8mb4_unicode_ci;
 USE b3yigwtafba02ntosynz;
 
 -- ============================================================
--- CONFIGURAÃ‡Ã•ES
+-- CONFIGURAÇÕES
 -- ============================================================
 
 SET NAMES utf8mb4;
@@ -64,31 +64,6 @@ CREATE TABLE alunos (
                                 ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS curriculo_aluno (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    aluno_id VARCHAR(255) NOT NULL,
-    disciplina_id VARCHAR(255) NOT NULL,
-    ano_escolar INT NOT NULL,
-    objetivo VARCHAR(255) NULL,
-    versao_mapa VARCHAR(120) NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
-    INDEX idx_curriculo_aluno_ano (aluno_id, disciplina_id, ano_escolar)
-) ENGINE=InnoDB;
-
-CREATE TABLE IF NOT EXISTS habilidades_curriculo (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    curriculo_id INT NOT NULL,
-    habilidade_id INT NOT NULL,
-    ordem INT NOT NULL DEFAULT 0,
-    obrigatoria BOOLEAN NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (curriculo_id) REFERENCES curriculo_aluno(id) ON DELETE CASCADE,
-    FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_curriculo_habilidade (curriculo_id, habilidade_id),
-    INDEX idx_curriculo_habilidade_ordem (curriculo_id, ordem)
-) ENGINE=InnoDB;
-
 CREATE TABLE passes_estudo (
     id INT AUTO_INCREMENT PRIMARY KEY,
     aluno_id VARCHAR(255) NOT NULL,
@@ -114,6 +89,7 @@ CREATE TABLE professores (
     
     descricao               TEXT,
     link_previa             VARCHAR(500) DEFAULT '',
+    previa_arquivo          VARCHAR(500) DEFAULT NULL,
     status                  ENUM(
                                 'disponivel',
                                 'indisponivel'
@@ -123,6 +99,11 @@ CREATE TABLE professores (
     aprovado_em             TIMESTAMP NULL,
     suspenso_ate            TIMESTAMP NULL DEFAULT NULL,
     motivo_reprovacao       TEXT NULL,
+
+    -- Perfil profissional (preenchido pelo professor após o cadastro)
+    perfil_enviado_em       TIMESTAMP NULL DEFAULT NULL,
+    formacao                ENUM('estudante_universitario', 'graduado', 'pos_graduado', 'mestre') NULL,
+    comprovante_formacao    LONGTEXT NULL,
     pagamentos_bloqueados   BOOLEAN DEFAULT FALSE,
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     atualizado_em           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -205,12 +186,14 @@ CREATE TABLE agendamentos (
     horario_id              INT NOT NULL,
     sala_id                 VARCHAR(100),
     gravacao_url            VARCHAR(500) NULL,
+
+    -- Metadados de gravação (20260911000000_add_recording_metadata.js)
     gravacao_status         ENUM(
-                                'processando',
-                                'disponivel',
-                                'falhou',
-                                'indisponivel'
-                             ) NULL,
+                                    'processando',
+                                    'disponivel',
+                                    'falhou',
+                                    'indisponivel'
+                                ) NULL,
     gravacao_path           VARCHAR(500) NULL,
     gravacao_duracao        INT NULL,
     gravacao_tamanho        BIGINT NULL,
@@ -223,6 +206,12 @@ CREATE TABLE agendamentos (
                                 'concluido'
                              ) DEFAULT 'ativo',
     criado_em               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_cancelamento       TIMESTAMP NULL,
+    motivo_cancelamento     TEXT NULL,
+    aluno_entrou_em         TIMESTAMP NULL,
+    aluno_saiu_em           TIMESTAMP NULL,
+    professor_entrou_em     TIMESTAMP NULL,
+    professor_saiu_em       TIMESTAMP NULL,
     CONSTRAINT fk_agendamento_aluno
         FOREIGN KEY (aluno_id)
         REFERENCES alunos(id)
@@ -236,6 +225,21 @@ CREATE TABLE agendamentos (
         REFERENCES horarios_disponiveis(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE recomendacao_eventos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  aluno_id VARCHAR(255) NOT NULL,
+  professor_id VARCHAR(255) NOT NULL,
+  tentativa_id INT NULL,
+  posicao TINYINT NULL,
+  score INT NULL,
+  evento ENUM('impressao', 'clique', 'contato', 'agendamento_criado') NOT NULL,
+  origem VARCHAR(30) DEFAULT 'recomendados',
+  criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_aluno_prof (aluno_id, professor_id),
+  INDEX idx_evento_data (evento, criado_em)
+);
+
 
 -- ============================================================
 -- TABELA: ATIVIDADES
@@ -339,7 +343,18 @@ CREATE TABLE questoes (
 
     explicacao                 TEXT NULL,
 
-    criado_em                  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_em                  TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Metadados pedagógicos e validação de conteúdo (trilha adaptativa)
+    status_validacao          VARCHAR(20) NOT NULL DEFAULT 'aprovado',
+    objetivo_pedagogico        VARCHAR(255) NULL,
+    formato                    VARCHAR(30) NULL,
+    dificuldade_calibrada      DECIMAL(4,2) NULL,
+    competencia_cognitiva     VARCHAR(60) NULL,
+    origem                    VARCHAR(20) NULL,
+    versao                    INT NOT NULL DEFAULT 1,
+    numero_aplicacoes          INT NOT NULL DEFAULT 0,
+
 
     CONSTRAINT fk_questao_atividade
         FOREIGN KEY (atividade_id)
@@ -351,27 +366,6 @@ CREATE TABLE questoes (
         REFERENCES habilidades(id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB;
-
--- ============================================================
--- TABELA: MATERIAIS DE APRENDIZAGEM
--- ============================================================
-
-CREATE TABLE materiais_aprendizagem (
-    id                          INT AUTO_INCREMENT PRIMARY KEY,
-    habilidade_id               INT NOT NULL,
-    titulo                      VARCHAR(255) NOT NULL,
-    descricao                   TEXT NULL,
-    url                         VARCHAR(1024) NOT NULL,
-    tipo                        ENUM('video', 'artigo', 'exemplo') NOT NULL,
-    created_at                  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at                  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_material_habilidade
-        FOREIGN KEY (habilidade_id)
-        REFERENCES habilidades(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB;
-
 -- ============================================================
 -- TABELA: SESSÕES ADAPTATIVAS
 -- ============================================================
@@ -392,16 +386,22 @@ CREATE TABLE sessoes_adaptativas (
 
     status                      ENUM(
                                     'ativa',
-                                    'concluida'
-                                ) DEFAULT 'ativa',
+                                    'concluida',
+                                    'pausada',
+                                    'abandonada'
+                                ) NOT NULL DEFAULT 'ativa',
 
-    criado_em                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    criado_em                   TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
 
-    objetivo VARCHAR(255) NULL,
-    contexto_json JSON NULL,
-    status_termino VARCHAR(120) NULL,
-    inicio_em TIMESTAMP NULL,
-    fim_em TIMESTAMP NULL,
+    -- Ciclo de vida e rastreabilidade da sessão
+    ultima_atividade_em         TIMESTAMP NULL,
+    pausada_em                  TIMESTAMP NULL,
+    retomada_em                 TIMESTAMP NULL,
+    objetivo                    VARCHAR(255) NULL,
+    contexto_json               JSON NULL,
+    status_termino              VARCHAR(120) NULL,
+    inicio_em                   TIMESTAMP NULL,
+    fim_em                      TIMESTAMP NULL,
 
     CONSTRAINT fk_sessao_aluno
         FOREIGN KEY (aluno_id)
@@ -532,15 +532,22 @@ CREATE TABLE resultado_habilidade (
 
 CREATE TABLE trilhas (
     id                              INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(300) NULL,
 
     aluno_id                        VARCHAR(255) NOT NULL,
     tentativa_origem_id             INT NULL,
+    nome                            VARCHAR(300) NULL,
 
-    tipo ENUM('diagnostico','reforco','aprendizagem','pratica','revisao','dominio') NOT NULL DEFAULT 'diagnostico',
+    tipo                            ENUM(
+                                        'diagnostico',
+                                        'reforco',
+                                        'aprendizagem',
+                                        'pratica',
+                                        'revisao',
+                                        'dominio'
+                                    ) NOT NULL DEFAULT 'diagnostico',
 
     pontuacao_diagnostico           DECIMAL(5,2),
-    habilidade_atual_id INT NULL,
+    habilidade_atual_id             INT NULL,
 
     status                          ENUM(
                                         'ativa',
@@ -563,7 +570,10 @@ CREATE TABLE trilhas (
         REFERENCES tentativas_teste(id)
         ON DELETE SET NULL,
 
-    CONSTRAINT fk_trilha_habilidade_atual FOREIGN KEY (habilidade_atual_id) REFERENCES habilidades(id) ON DELETE SET NULL    
+    CONSTRAINT fk_trilha_habilidade_atual
+        FOREIGN KEY (habilidade_atual_id)
+        REFERENCES habilidades(id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -579,9 +589,21 @@ CREATE TABLE trilha_itens (
     ordem                       INT NOT NULL,
 
     questao_id                  INT,
-    material_aprendizagem_id    INT NULL,
 
-    bloco ENUM('revisao','pratica','checkpoint','diagnostico','aprendizagem','reforco','dominio') NOT NULL DEFAULT 'pratica',
+    -- Metadados da atividade (20260829_add_activity_state.js)
+    atividade_tipo              VARCHAR(120) NULL,
+    meta_json                   JSON NULL,
+
+    bloco                       ENUM(
+                                    'revisao',
+                                    'pratica',
+                                    'checkpoint',
+                                    'diagnostico',
+                                    'aprendizagem',
+                                    'reforco',
+                                    'dominio',
+                                    'microcheck'
+                                ) NOT NULL DEFAULT 'pratica',
 
     status                      ENUM(
                                     'pendente',
@@ -591,15 +613,11 @@ CREATE TABLE trilha_itens (
 
     resposta_aluno              TEXT NULL,
     acertou                     BOOLEAN NULL,
-
-    tentativa INT NOT NULL DEFAULT 1,
-    decisao_motor VARCHAR(80) NULL,
+    tentativa                   INT NOT NULL DEFAULT 1,
+    decisao_motor               VARCHAR(80) NULL,
 
     criado_em                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     concluido_em                TIMESTAMP NULL,
-
-    atividade_tipo VARCHAR(120) NULL,
-    meta_json JSON NULL,
 
     CONSTRAINT fk_item_sessao
         FOREIGN KEY (sessao_id)
@@ -615,11 +633,6 @@ CREATE TABLE trilha_itens (
         FOREIGN KEY (questao_id)
         REFERENCES questoes(id)
         ON DELETE CASCADE,
-
-    CONSTRAINT fk_item_material
-        FOREIGN KEY (material_aprendizagem_id)
-        REFERENCES materiais_aprendizagem(id)
-        ON DELETE SET NULL,
 
     UNIQUE KEY uk_trilha_ordem (
         trilha_id,
@@ -640,13 +653,28 @@ CREATE TABLE usuario_habilidades (
     percentual_dominio                  DECIMAL(5,2)
                                             DEFAULT 0.00,
 
-    status_dominio ENUM('nao_iniciado','em_progresso','dominado','reforco','precisa_reforco','em_desenvolvimento','proficiente','dominada') NOT NULL DEFAULT 'nao_iniciado',
+    status_dominio                      ENUM(
+                                            'nao_iniciado',
+                                            'em_progresso',
+                                            'dominado',
+                                            'reforco',
+                                            'precisa_reforco',
+                                            'em_desenvolvimento',
+                                            'proficiente',
+                                            'dominada'
+                                        ) NOT NULL DEFAULT 'nao_iniciado',
 
     respostas_consistentes_acerto       INT DEFAULT 0,
+    n_tentativas                        INT NOT NULL DEFAULT 0,
+    n_acertos_consecutivos             INT NOT NULL DEFAULT 0,
+    n_erros_consecutivos                INT NOT NULL DEFAULT 0,
 
-    n_tentativas INT NOT NULL DEFAULT 0,
-    n_acertos_consecutivos INT NOT NULL DEFAULT 0,
-    n_erros_consecutivos INT NOT NULL DEFAULT 0,
+    -- Perfil probabilístico de domínio
+    probabilidade_dominio               DECIMAL(6,4) NULL,
+    incerteza                           DECIMAL(6,4) NULL,
+    tendencia                           VARCHAR(30) NULL,
+    risco_esquecimento                  DECIMAL(6,4) NULL,
+    ultima_resposta_em                  TIMESTAMP NULL,
 
     ultima_vez_praticado                TIMESTAMP NULL,
 
@@ -660,6 +688,8 @@ CREATE TABLE usuario_habilidades (
         habilidade_id
     ),
 
+    INDEX idx_usuario_habilidades_aluno (aluno_id),
+
     CONSTRAINT fk_usuario_habilidade_aluno
         FOREIGN KEY (aluno_id)
         REFERENCES alunos(id)
@@ -669,23 +699,6 @@ CREATE TABLE usuario_habilidades (
         FOREIGN KEY (habilidade_id)
         REFERENCES habilidades(id)
         ON DELETE CASCADE
-) ENGINE=InnoDB;
-
-CREATE TABLE trilha_decisoes (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  trilha_id INT NOT NULL,
-  aluno_id VARCHAR(255) NOT NULL,
-  habilidade_id INT NULL,
-  acao VARCHAR(50) NOT NULL,
-  etapa VARCHAR(50) NOT NULL,
-  dificuldade ENUM('facil','medio','dificil') NULL,
-  motivo VARCHAR(120) NOT NULL,
-  contexto_json JSON NULL,
-  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_decisao_trilha FOREIGN KEY (trilha_id) REFERENCES trilhas(id) ON DELETE CASCADE,
-  CONSTRAINT fk_decisao_aluno FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
-  CONSTRAINT fk_decisao_habilidade FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE SET NULL,
-  INDEX idx_decisao_aluno_trilha (aluno_id, trilha_id, criado_em)
 ) ENGINE=InnoDB;
 
 -- ============================================================
@@ -744,6 +757,9 @@ CREATE TABLE revisao_agendada (
 
     atualizado_em                   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                                         ON UPDATE CURRENT_TIMESTAMP,
+
+    ultima_apresentacao_em          TIMESTAMP NULL,
+    n_apresentacoes                 INT NOT NULL DEFAULT 0,
 
     UNIQUE KEY uk_revisao_aluno_questao (
         aluno_id,
@@ -839,83 +855,6 @@ CREATE TABLE aluno_prerequisito_proficiencia (
 ) ENGINE=InnoDB;
 
 -- ============================================================
--- TABELA: CONTEÚDOS DE APOIO
--- ============================================================
-
-CREATE TABLE conteudos_apoio (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-
-    tipo                            ENUM(
-                                        'video',
-                                        'artigo',
-                                        'link_externo',
-                                        'flashcard'
-                                    ) NOT NULL,
-
-    titulo                          VARCHAR(255) NOT NULL,
-
-    url_ou_conteudo                 TEXT NOT NULL,
-
-    duracao_estimada_seg            INT NULL,
-
-    criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- ============================================================
--- RELAÇÃO: PRÉ-REQUISITOS ↔ CONTEÚDOS
--- ============================================================
-
-CREATE TABLE prerequisito_conteudos_apoio (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-
-    prerequisito_id                 INT NOT NULL,
-    conteudo_id                     INT NOT NULL,
-
-    CONSTRAINT fk_pca_prerequisito
-        FOREIGN KEY (prerequisito_id)
-        REFERENCES prerequisitos(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_pca_conteudo
-        FOREIGN KEY (conteudo_id)
-        REFERENCES conteudos_apoio(id)
-        ON DELETE CASCADE,
-
-    UNIQUE KEY uk_prerequisito_conteudo (
-        prerequisito_id,
-        conteudo_id
-    )
-) ENGINE=InnoDB;
-
--- ============================================================
--- TABELA: CONSUMO DE CONTEÚDO
--- ============================================================
-
-CREATE TABLE aluno_conteudo_consumido (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-
-    aluno_id                        VARCHAR(255) NOT NULL,
-    conteudo_id                     INT NOT NULL,
-
-    consumido_em                    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_acc_aluno
-        FOREIGN KEY (aluno_id)
-        REFERENCES alunos(id)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_acc_conteudo
-        FOREIGN KEY (conteudo_id)
-        REFERENCES conteudos_apoio(id)
-        ON DELETE CASCADE,
-
-    UNIQUE KEY uk_aluno_conteudo (
-        aluno_id,
-        conteudo_id
-    )
-) ENGINE=InnoDB;
-
--- ============================================================
 -- TABELA: CHAT
 -- ============================================================
 
@@ -987,6 +926,7 @@ CREATE TABLE denuncias (
     conteudo_info                   JSON NULL, -- Ex: { "tipo": "comentario", "id": 123 }
     email                           VARCHAR(255),
     evidencia                       VARCHAR(500),
+    evidencia_arquivo               VARCHAR(500),
     anonimo                         BOOLEAN DEFAULT FALSE,
     prioridade                      VARCHAR(255) DEFAULT 'baixa',
     sla                             DATETIME,
@@ -1020,37 +960,89 @@ CREATE TABLE IF NOT EXISTS alertas_operacionais (
 -- TABELA: PAGAMENTOS
 -- ============================================================
 
-CREATE TABLE pagamentos (
-    id                              INT AUTO_INCREMENT PRIMARY KEY,
-
-    preference_id                   VARCHAR(200),
-    payment_id                      VARCHAR(200),
-
-    sala                            VARCHAR(200),
-
-    descricao                       VARCHAR(300),
-
-    valor                           DECIMAL(10,2)
-                                        NOT NULL DEFAULT 0,
-
-    criado_por                      VARCHAR(255),
-
-    status                          VARCHAR(50)
-                                        DEFAULT 'pending',
-
-    criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS platform_config (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    chave VARCHAR(100) NOT NULL UNIQUE,
+    valor VARCHAR(500) NOT NULL,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS repasses (
+-- Valor padrão da taxa da plataforma (20%)
+INSERT IGNORE INTO platform_config (chave, valor) VALUES ('platform_fee_percent', '20');
+
+CREATE TABLE pagamentos (
+      id                              INT AUTO_INCREMENT PRIMARY KEY,
+
+      checkout_id                     VARCHAR(36) UNIQUE,
+
+      preference_id                   VARCHAR(200),
+      payment_id                      VARCHAR(200),
+
+      sala                            VARCHAR(200),
+
+      descricao                       VARCHAR(300),
+
+      valor                           DECIMAL(10,2)
+                                          NOT NULL DEFAULT 0,
+
+      taxa_plataforma                 DECIMAL(10,2)
+                                          NOT NULL DEFAULT 0,
+
+      valor_liquido                   DECIMAL(10,2)
+                                          NOT NULL DEFAULT 0,
+
+      criado_por                      VARCHAR(255),
+
+      professor_id                    VARCHAR(255),
+
+      status                          VARCHAR(50)
+                                          DEFAULT 'pending',
+
+      criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      pago_em                         TIMESTAMP NULL,
+      liberado_em                     TIMESTAMP NULL,
+
+      INDEX idx_pagamentos_checkout_id (checkout_id),
+      INDEX idx_pagamentos_preference_id (preference_id),
+      INDEX idx_pagamentos_payment_id (payment_id)
+  ) ENGINE=InnoDB;
+
+CREATE TABLE repasses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     professor_id VARCHAR(255) NOT NULL,
     valor DECIMAL(10, 2) NOT NULL,
-    status ENUM('pendente', 'pago', 'falhou') NOT NULL DEFAULT 'pendente',
+    status ENUM('retido', 'pendente', 'pago', 'falhou', 'estornado') NOT NULL DEFAULT 'retido',
     data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_pagamento TIMESTAMP NULL,
     metodo_pagamento VARCHAR(255),
     referencia_transacao VARCHAR(255),
+    INDEX idx_repasses_referencia_transacao (referencia_transacao),
     FOREIGN KEY (professor_id) REFERENCES professores(id)
+);
+
+CREATE TABLE reembolsos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    agendamento_id INT NOT NULL UNIQUE,
+    aluno_id VARCHAR(255) NOT NULL,
+    professor_id VARCHAR(255) NOT NULL,
+    valor_reembolso DECIMAL(10,2) NOT NULL,
+    status ENUM('pendente', 'processando', 'concluido', 'recusado') NOT NULL DEFAULT 'pendente',
+    tipo ENUM('inteiro', 'parcial') NOT NULL DEFAULT 'inteiro',
+    motivo TEXT,
+    data_solicitacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_processamento TIMESTAMP NULL,
+    FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
+);
+
+CREATE TABLE reembolso_pagamentos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reembolso_id INT NOT NULL,
+    payment_id VARCHAR(200) NOT NULL UNIQUE,
+    mercadopago_refund_id VARCHAR(200),
+    valor_reembolso DECIMAL(10,2) NOT NULL,
+    status ENUM('pendente', 'processando', 'concluido', 'recusado') NOT NULL DEFAULT 'pendente',
+    data_processamento TIMESTAMP NULL,
+    FOREIGN KEY (reembolso_id) REFERENCES reembolsos(id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -1074,6 +1066,8 @@ CREATE TABLE notificacoes (
     lida                            BOOLEAN DEFAULT FALSE,
 
     link_relacionado VARCHAR(255) DEFAULT NULL,
+
+    resolvida BOOLEAN DEFAULT FALSE,
 
     criado_em                       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -1129,6 +1123,13 @@ CREATE INDEX idx_qp_prerequisito
 CREATE INDEX idx_app_aluno
     ON aluno_prerequisito_proficiencia(aluno_id);
 
+-- ============================================================
+-- FINALIZAÇÃO
+-- ============================================================
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Índices adicionais consolidados das migrations de performance.
 CREATE INDEX idx_trilha_itens_trilha_status_ordem
     ON trilha_itens (trilha_id, status, ordem);
 
@@ -1141,17 +1142,85 @@ CREATE INDEX idx_historico_questoes_aluno_habilidade_data
 CREATE INDEX idx_revisao_agendada_aluno_data
     ON revisao_agendada (aluno_id, data_revisao);
 
-CREATE INDEX idx_usuario_habilidades_aluno
-    ON usuario_habilidades (aluno_id);
-
 CREATE INDEX idx_historico_questoes_aluno_questao
     ON historico_questoes (aluno_id, questao_id);
 
-CREATE INDEX idx_sessoes_adaptativas_aluno
-    ON sessoes_adaptativas (aluno_id);    
+-- Tabelas adicionais da trilha adaptativa.
+CREATE TABLE IF NOT EXISTS trilha_decisoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    trilha_id INT NOT NULL,
+    aluno_id VARCHAR(255) NOT NULL,
+    habilidade_id INT NULL,
+    acao VARCHAR(50) NOT NULL,
+    etapa VARCHAR(50) NOT NULL,
+    dificuldade ENUM('facil','medio','dificil') NULL,
+    motivo VARCHAR(120) NOT NULL,
+    contexto_json JSON NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_decisao_trilha
+        FOREIGN KEY (trilha_id) REFERENCES trilhas(id) ON DELETE CASCADE,
+    CONSTRAINT fk_decisao_aluno
+        FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_decisao_habilidade
+        FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE SET NULL,
+    INDEX idx_decisao_aluno_trilha (aluno_id, trilha_id, criado_em)
+) ENGINE=InnoDB;
 
--- ============================================================
--- FINALIZAÇÃO
--- ============================================================
+CREATE TABLE IF NOT EXISTS curriculo_aluno (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id VARCHAR(255) NOT NULL,
+    disciplina_id VARCHAR(255) NOT NULL,
+    ano_escolar INT NOT NULL,
+    objetivo VARCHAR(255) NULL,
+    versao_mapa VARCHAR(120) NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_curriculo_aluno
+        FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+    INDEX idx_curriculo_aluno_ano (aluno_id, disciplina_id, ano_escolar)
+) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS habilidades_curriculo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    curriculo_id INT NOT NULL,
+    habilidade_id INT NOT NULL,
+    ordem INT NOT NULL DEFAULT 0,
+    obrigatoria BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_hc_curriculo
+        FOREIGN KEY (curriculo_id) REFERENCES curriculo_aluno(id) ON DELETE CASCADE,
+    CONSTRAINT fk_hc_habilidade
+        FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_curriculo_habilidade (curriculo_id, habilidade_id),
+    INDEX idx_curriculo_habilidade_ordem (curriculo_id, ordem)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS revisao_habilidades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    aluno_id VARCHAR(255) NOT NULL,
+    habilidade_id INT NOT NULL,
+    data_revisao DATE NOT NULL,
+    intervalo_dias INT NOT NULL DEFAULT 1,
+    fator_facilidade DECIMAL(4,2) NOT NULL DEFAULT 2.50,
+    motivo VARCHAR(120) NULL,
+    criado_em TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_revisao_habilidade (aluno_id, habilidade_id),
+    CONSTRAINT fk_revisao_habilidad_aluno
+        FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_revisao_habilidad_skill
+        FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS questoes_habilidades_secundarias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    questao_id INT NOT NULL,
+    habilidade_id INT NOT NULL,
+    UNIQUE KEY uk_questao_habilidade_secundaria (questao_id, habilidade_id),
+    CONSTRAINT fk_qhs_questao
+        FOREIGN KEY (questao_id) REFERENCES questoes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_qhs_habilidade
+        FOREIGN KEY (habilidade_id) REFERENCES habilidades(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Reabilita a verificacao de chaves estrangeiras ao concluir a instalacao.
 SET FOREIGN_KEY_CHECKS = 1;

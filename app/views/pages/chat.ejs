@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="/css/chat.css">
     <link rel="stylesheet" href="../css/accessibility.css">
     <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
 <body>
     <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
@@ -27,11 +28,27 @@
     </header>
 
     <% if (user && user.tipo === 'professor') { %>
-        <section class="payment-request-ui">
-            <label for="payDescricao" class="ui-label">Criar Cobrança:</label>
-            <input id="payDescricao" placeholder="Descrição (ex: Aula 1h)" class="ui-input desc-input" maxlength="50" />
-            <input id="payValor" placeholder="Valor (ex: 50,00)" class="ui-input value-input" type="text" inputmode="decimal" />
-            <button id="sendPaymentReq" class="btn-billing btn-primary" disabled>Cobrar</button>
+        <section class="payment-request-ui is-collapsed" id="paymentRequestUi">
+            <button type="button" class="payment-toggle" id="paymentToggle" aria-expanded="false" aria-controls="paymentRequestBody">
+                <span><i class="fas fa-calendar-check"></i> Agendar aula pelo chat</span>
+                <i class="fas fa-chevron-down payment-toggle-icon" aria-hidden="true"></i>
+            </button>
+            <div class="payment-request-body" id="paymentRequestBody">
+                <select id="payHorario" class="ui-input desc-input" aria-label="Horário disponível">
+                    <option value="">Selecione um horário disponível</option>
+                    <% (horariosDisponiveis || []).forEach(h => { %>
+                        <option value="<%= h.id %>" data-preco="<%= h.preco %>" data-data="<%= h.data %>" data-inicio="<%= h.hora_inicio %>" data-fim="<%= h.hora_fim %>">
+                            <%= h.data.split('-').reverse().join('/') %> <%= h.hora_inicio %>-<%= h.hora_fim %> - R$ <%= Number(h.preco).toFixed(2).replace('.', ',') %>
+                        </option>
+                    <% }) %>
+                </select>
+                <input id="payDescricao" type="hidden" maxlength="80" />
+                <input id="payValor" class="ui-input value-input" type="text" inputmode="decimal" placeholder="Valor" readonly />
+                <button id="sendPaymentReq" class="btn-billing btn-primary" disabled>Cobrar</button>
+                <% if (!horariosDisponiveis || horariosDisponiveis.length === 0) { %>
+                    <p class="payment-empty-note">Sem horários disponíveis. Cadastre horários no seu perfil.</p>
+                <% } %>
+            </div>
         </section>
     <% } %>
 
@@ -52,6 +69,8 @@
             nome: CHAT_USER_DATA.nome || 'Visitante',
         };
         const CHAT_ROOM = "<%= room %>";
+        const CHAT_PARTNER = JSON.parse('<%- JSON.stringify(partner || {}) %>');
+        const CHAT_HORARIOS = JSON.parse('<%- JSON.stringify(horariosDisponiveis || []) %>');
     </script>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -65,6 +84,9 @@
             const sendPaymentBtn = document.getElementById('sendPaymentReq');
             const payDescInput = document.getElementById('payDescricao');
             const payValorInput = document.getElementById('payValor');
+            const payHorarioSelect = document.getElementById('payHorario');
+            const paymentToggle = document.getElementById('paymentToggle');
+            const paymentRequestUi = document.getElementById('paymentRequestUi');
 
             const scrollToBottom = () => {
                 chatBody.scrollTop = chatBody.scrollHeight;
@@ -85,24 +107,41 @@
                 input.value = value;
             };
 
-            const checkPaymentInputs = () => {
-                if (!sendPaymentBtn) return;
-                const desc = payDescInput.value.trim();
-                const valor = payValorInput.value.replace(',', '.').replace(/[^\d.]/g, '');
-                if (desc && parseFloat(valor) > 0) {
-                    sendPaymentBtn.removeAttribute('disabled');
+            const syncPaymentMode = () => {
+                if (!payHorarioSelect) return;
+                const opt = payHorarioSelect.options[payHorarioSelect.selectedIndex];
+                if (opt && opt.value) {
+                    const preco = Number(opt.dataset.preco || 0);
+                    const data = opt.dataset.data || '';
+                    const ini = opt.dataset.inicio || '';
+                    const fim = opt.dataset.fim || '';
+                    payValorInput.value = preco.toFixed(2).replace('.', ',');
+                    payDescInput.value = `Aula agendada - ${data.split('-').reverse().join('/')} ${ini}-${fim}`;
                 } else {
-                    sendPaymentBtn.setAttribute('disabled', 'disabled');
+                    payValorInput.value = '';
+                    payDescInput.value = '';
                 }
+                checkPaymentInputs();
             };
 
-            if (payDescInput && payValorInput) {
-                payDescInput.addEventListener('input', checkPaymentInputs);
-                payValorInput.addEventListener('input', () => {
-                    formatCurrencyInput(payValorInput);
-                    checkPaymentInputs();
+            const checkPaymentInputs = () => {
+                if (!sendPaymentBtn) return;
+                const horarioId = payHorarioSelect ? payHorarioSelect.value : '';
+                const valor = payValorInput.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+                const ok = !!horarioId && parseFloat(valor) > 0;
+                if (ok) sendPaymentBtn.removeAttribute('disabled');
+                else sendPaymentBtn.setAttribute('disabled', 'disabled');
+            };
+
+            if (paymentToggle && paymentRequestUi) {
+                paymentToggle.addEventListener('click', () => {
+                    const collapsed = paymentRequestUi.classList.toggle('is-collapsed');
+                    paymentToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
                 });
             }
+
+            if (payHorarioSelect) payHorarioSelect.addEventListener('change', syncPaymentMode);
+            syncPaymentMode();
 
             function createMsg(msg) {
                 const isSent = msg.user.id === CHAT_USER.id;
@@ -131,16 +170,19 @@
 
             function createPaymentCard(data) {
                 const wrap = document.createElement('section');
-                const isSent = data.remetenteId === CHAT_USER.id;
+                const isSent = String(data.remetenteId) === String(CHAT_USER.id);
                 const valorFormatado = Number(data.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const isLesson = !!data.horarioId;
+                const title = isLesson ? 'Solicitação de Agendamento' : 'Solicitação de Pagamento';
+                const icon = isLesson ? 'fa-calendar-check' : 'fa-handshake';
+                const note = isLesson ? 'Ao pagar, a aula será agendada automaticamente.' : 'Checkout seguro do Mercado Pago.';
 
                 wrap.className = `message payment-card ${isSent ? 'sent' : 'received'}`;
-                
                 wrap.innerHTML = `
                     <section class="payment-header">
-                        <i class="fas fa-handshake payment-icon"></i>
-                        <strong class="payment-title">Solicitação de Pagamento</strong>
-                        <p class="payment-user">${isSent ? 'Você enviou:' : data.remetente + ' enviou:'}</p>
+                        <i class="fas ${icon} payment-icon"></i>
+                        <strong class="payment-title">${title}</strong>
+                        <p class="payment-user">${isSent ? 'Você enviou:' : (data.remetente || 'Professor') + ' enviou:'}</p>
                     </section>
                     <section class="payment-details">
                         <section class="payment-desc">${data.descricao || 'Pagamento de Serviço'}</section>
@@ -148,9 +190,9 @@
                     </section>
                     ${!isSent ? `
                         <a href="${data.link || '#'}" target="_blank" rel="noopener noreferrer" class="btn-pagar btn-success">
-                            <i class="fas fa-wallet"></i> Pagar Agora
+                            <i class="fas fa-wallet"></i> ${isLesson ? 'Pagar e Agendar' : 'Pagar Agora'}
                         </a>
-                        <small class="payment-note">Checkout seguro do Mercado Pago.</small>
+                        <small class="payment-note">${note}</small>
                     ` : '<small class="payment-note sent-note">Link de pagamento criado.</small>'}
                 `;
                 return wrap;
@@ -208,26 +250,29 @@
 
             if (sendPaymentBtn) {
                 sendPaymentBtn.addEventListener('click', () => {
-                    const desc = payDescInput.value.trim() || 'Aula';
-                    const valor = parseFloat(payValorInput.value.replace('.', '').replace(',', '.')) || 0;
-                    
-                    if (!valor || valor <= 0) {
-                        alert('Informe um valor válido.');
-                        payValorInput.focus();
+                    const horarioId = payHorarioSelect ? payHorarioSelect.value : '';
+                    const desc = payDescInput.value.trim() || 'Aula agendada';
+                    const valor = parseFloat(payValorInput.value.replace(/\./g, '').replace(',', '.')) || 0;
+                    if (!horarioId) {
+                        Swal.fire("Selecione um horário disponível.");
                         return;
                     }
-                    
+                    if (!valor || valor <= 0) {
+                        Swal.fire("Horário com valor inválido.");
+                        return;
+                    }
                     socket.emit('requestPayment', {
                         room: CHAT_ROOM,
                         valor: valor.toFixed(2),
                         descricao: desc,
+                        horarioId,
                         createdBy: CHAT_USER.nome,
                         remetenteId: CHAT_USER.id
                     });
-
+                    if (payHorarioSelect) payHorarioSelect.value = '';
                     payDescInput.value = '';
                     payValorInput.value = '';
-                    checkPaymentInputs(); 
+                    syncPaymentMode();
                 });
             }
         })();

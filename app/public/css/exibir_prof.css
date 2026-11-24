@@ -360,6 +360,11 @@ body.no-scroll {
     font-size: 0.9rem;
     margin: 4px 0 2px;
     color: var(--color-text-secondary);
+    
+    /* ADICIONE ESTAS LINHAS PARA FORÇAR A QUEBRA DE TEXTOS LONGOS */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 small.data {
@@ -407,6 +412,20 @@ small.data {
     color: var(--color-primary);
     text-decoration: underline;
 }
+
+.btn-primary.disabled,
+    .btn-secondary.disabled {
+        pointer-events: none; /* Garante que não há interação */
+        cursor: not-allowed;
+        opacity: 0.6;
+        background: #ccc !important;
+        color: #222 !important;
+        border-color: #bbb !important;
+    }
+
+    .btn-secondary.disabled i {
+        color: #222 !important;
+    }
 
 /* -------- ANIMAÇÃO -------- */
 @keyframes fadeIn {
@@ -458,10 +477,6 @@ small.data {
     .btn-primary, .btn-secondary {
         max-width: 300px; 
     }
-
-    .btn-primary.disabled {
-        pointer-events: none; /* Garante que não há interação */
-    }
 }
 
 /* =========================
@@ -469,12 +484,27 @@ small.data {
     ========================= */
 @media (min-width: 1024px) {
     .perfil-container {
-        grid-template-columns: 2fr 1fr; /* Coluna secundária mais estreita */
+        /* Configura o grid com 2 colunas em cima e a seção de comentários ocupando as 2 colunas embaixo */
+        grid-template-columns: 2fr 1fr; 
+        grid-template-areas: 
+            "info calendario"
+            "comentarios comentarios";
         max-width: 1200px;
         transition: max-width 1.5s ease;
     }
     
     .perfil-info {
+        grid-area: info;
         padding: 50px;
+    }
+
+    .secondary-column {
+        grid-area: calendario;
+        width: 100%;
+    }
+
+    .full-width-comentarios {
+        grid-area: comentarios;
+        width: 100%;
     }
 }

@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
         readerFont: false,
         dyslexiaFont: false,
         reduceMotion: false,
-        screenReaderFocus: false
+        screenReaderFocus: false,
+        readSelection: false
     };
 
     let preferences = { ...defaultPreferences };
@@ -40,12 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="a11y-group">
                     <h4>Leitura e Foco</h4>
                     <div class="a11y-control-grid tts-grid">
-                        <p>Leitor de Tela</p>
-                        <div id="tts-controls">
-                            <button id="tts-play" aria-label="Play"><i class="fas fa-play"></i></button>
-                            <button id="tts-pause" aria-label="Pause"><i class="fas fa-pause"></i></button>
-                            <button id="tts-stop" aria-label="Stop"><i class="fas fa-stop"></i></button>
-                        </div>
+                        <p>Ler Texto Selecionado</p>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-read-selection">
+                            <span class="toggle-slider"></span>
+                        </label>
                     </div>
                 </div>
 
@@ -78,10 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const accessibilityModal = document.getElementById('accessibility-modal');
     
     // Modal and Panel controls
-    const ttsPlayButton = document.getElementById('tts-play');
-    const ttsPauseButton = document.getElementById('tts-pause');
-    const ttsStopButton = document.getElementById('tts-stop');
-    const ttsControls = document.getElementById('tts-controls');
+    const toggleReadSelection = document.getElementById('toggle-read-selection');
     const increaseFontButton = document.getElementById('increase-font');
     const decreaseFontButton = document.getElementById('decrease-font');
     const increaseLetterSpacingButton = document.getElementById('increase-letter-spacing');
@@ -134,6 +131,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('reader-font', preferences.readerFont);
         document.body.classList.toggle('dyslexia-font', preferences.dyslexiaFont);
         document.body.classList.toggle('reduce-motion', preferences.reduceMotion);
+
+        // Aplica toggle de leitura por seleção
+        if (toggleReadSelection) {
+            toggleReadSelection.checked = preferences.readSelection;
+        }
     }
 
     loadPreferences = () => {
@@ -267,9 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // ==============================
-    // 🖱️ LEITURA POR SELEÇÃO
+    // 🖱️ LEITURA POR SELEÇÃO (apenas quando ativada no modal)
     // ==============================
     document.addEventListener("mouseup", () => {
+        if (!preferences.readSelection) return;
+
         const selected = window.getSelection().toString().trim();
 
         if (selected.length > 5) { // Evita leituras acidentais
@@ -299,25 +303,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ==============================
     // ⌨️ ATALHO DE TECLADO
-    // ALT + R = LER/PARAR
+    // ALT + R = PARAR LEITURA
     // ==============================
     document.addEventListener("keydown", (e) => {
         if (e.altKey && e.key.toLowerCase() === "r") {
             e.preventDefault(); // Previne qualquer comportamento padrão do navegador
-            if (isReading) {
-                stopSpeech();
-            } else {
-                playSpeech();
-            }
+            stopSpeech();
         }
     });
 
     // ==============================
     // 🔘 CONECTAR COM BOTÕES
     // ==============================
-    if(ttsPlayButton) ttsPlayButton.addEventListener('click', playSpeech);
-    if(ttsPauseButton) ttsPauseButton.addEventListener('click', pauseSpeech);
-    if(ttsStopButton) ttsStopButton.addEventListener('click', stopSpeech);
+    // (Botões de leitura de página inteira removidos — agora só leitura por seleção via toggle)
 
     // --- Event Handlers ---
     increaseFontButton.addEventListener('click', () => {
@@ -377,7 +375,16 @@ document.addEventListener('DOMContentLoaded', () => {
     readerFontButton.addEventListener('click', createToggleHandler('readerFont'));
     dyslexiaFontButton.addEventListener('click', createToggleHandler('dyslexiaFont'));
     reduceMotionButton.addEventListener('click', createToggleHandler('reduceMotion'));
-    
+
+    // Toggle: leitura de texto selecionado
+    if (toggleReadSelection) {
+        toggleReadSelection.addEventListener('change', () => {
+            preferences.readSelection = toggleReadSelection.checked;
+            savePreferences();
+            applyPreferences();
+        });
+    }
+
     // Botão para leitor de foco (se existir um botão específico para ele)
     const screenReaderFocusButton = document.getElementById('screen-reader-focus'); // Supondo que haja um botão com este ID
     if (screenReaderFocusButton) {

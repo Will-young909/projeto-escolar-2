@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/cadastro.css">
     <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png"/>
+    <link rel="stylesheet" href="../css/accessibility.css" />
     <style>
         .invalid { border-color: #c0392b !important; box-shadow: 0 0 4px rgba(192, 57, 43, 0.5) !important; }
         .valid { border-color: #27ae60 !important; box-shadow: 0 0 4px rgba(39, 174, 96, 0.5) !important; }
@@ -54,6 +55,7 @@
 </head>
 
 <body>
+    <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
     <header>
         <a href="/">
             <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
@@ -66,7 +68,7 @@
             Use este formulário para reportar comportamentos ou conteúdos inadequados.
         </p>
 
-        <form id="denunciaForm" action="/denuncia" method="POST" novalidate>
+        <form id="denunciaForm" action="/denuncia" method="POST" enctype="multipart/form-data" novalidate>
             <input type="hidden" name="denunciado_id" value="<%= dados.denunciado_id || '' %>">
             <input type="hidden" name="conteudo_tipo" value="<%= dados.conteudo_tipo || '' %>">
             <input type="hidden" name="conteudo_id" value="<%= dados.conteudo_id || '' %>">
@@ -128,6 +130,16 @@
                     aria-describedby="err-evidencia">
                 <p id="err-evidencia" class="error-feedback" aria-live="polite"><%= erros?.evidencia?.msg || '' %></p>
             </section>
+
+            <section class="form-group">
+                <label for="evidencia_arquivo"><i class="fas fa-paperclip"></i> Arquivo de evidência (opcional, imagem ou vídeo)</label>
+                <input id="evidencia_arquivo" name="evidencia_arquivo" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime,.jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.mov"
+                    class="<%= erros?.evidencia_arquivo ? 'invalid' : '' %>"
+                    aria-invalid="<%= erros?.evidencia_arquivo ? 'true' : 'false' %>"
+                    aria-describedby="err-evidencia_arquivo">
+                <small style="display:block; margin-top:4px; color:#555;">Formatos: JPG, PNG, WEBP, GIF, MP4, WEBM, MOV. Máx. 50MB.</small>
+                <p id="err-evidencia_arquivo" class="error-feedback" aria-live="polite"><%= erros?.evidencia_arquivo?.msg || '' %></p>
+            </section>
             
             <% if (!user) { %>
                 <section class="form-group">
@@ -139,13 +151,13 @@
                         aria-describedby="err-email">
                     <p id="err-email" class="error-feedback" aria-live="polite"><%= erros?.email?.msg || '' %></p>
                 </section>
-                <label style="margin-top:12px; display:flex; align-items:center; font-weight:400;">
+            <% } %>
+            <label style="margin-top:12px; display:flex; align-items:center; font-weight:400;">
                     <input type="checkbox" id="anonimo" name="anonimo" value="1" 
                         <%= dados?.anonimo ? 'checked' : '' %>
                         style="width:auto; margin-right:8px;">
                     Enviar como anônimo
                 </label>
-            <% } %>
 
             <button type="submit" class="btn-primary" id="btn-submit">
                 <i class="fas fa-paper-plane"></i> Enviar denúncia
@@ -156,7 +168,7 @@
             </section>
         </form>
     </main>
-
+<script src="../js/accessibility.js"></script>
 <script>
 /* ====== Validação Front-End ====== */
 (function() {
@@ -168,7 +180,8 @@
         titulo: document.getElementById('titulo'),
         descricao: document.getElementById('descricao'),
         email: document.getElementById('email-contato'),
-        evidencia: document.getElementById('evidencia')
+        evidencia: document.getElementById('evidencia'),
+        evidencia_arquivo: document.getElementById('evidencia_arquivo')
     };
     function validateField(input) {
         if (!input) return { isValid: true, errorMsg: '' };
@@ -195,6 +208,16 @@
             try { new URL(input.value.trim()); }
             catch(_) {
                 errorMsg = 'O link de evidência não é uma URL válida.';
+                isValid = false;
+            }
+        } else if (input.id === 'evidencia_arquivo' && input.files && input.files[0]) {
+            const file = input.files[0];
+            const okType = /^(image\/(jpeg|png|webp|gif)|video\/(mp4|webm|quicktime))$/i.test(file.type);
+            if (!okType) {
+                errorMsg = 'Arquivo inválido. Use imagem ou vídeo (JPG/PNG/WEBP/GIF/MP4/WEBM/MOV).';
+                isValid = false;
+            } else if (file.size > 50 * 1024 * 1024) {
+                errorMsg = 'O arquivo de evidência deve ter no máximo 50MB.';
                 isValid = false;
             }
         }
@@ -241,18 +264,23 @@
         if (!input) return;
         input.addEventListener('input', () => {
             const { isValid, errorMsg } = validateField(input);
-            const feedback = document.getElementById('err-' + (input.id.replace('-contato', ''))); // Adjust for email
+            const feedbackId = input.id === 'email-contato' ? 'err-email' : ('err-' + input.id);
+            const feedback = document.getElementById(feedbackId);
             input.classList.remove('invalid', 'valid');
-            if (!isValid && input.value.trim() !== '') {
+            const hasValue = input.type === 'file' ? !!(input.files && input.files[0]) : input.value.trim() !== '';
+            if (!isValid && hasValue) {
                 input.classList.add('invalid');
                 if (feedback) feedback.textContent = errorMsg;
-            } else if (isValid && input.value.trim() !== '') {
+            } else if (isValid && hasValue) {
                 input.classList.add('valid');
                 if (feedback) feedback.textContent = '';
             } else {
                 if (feedback) feedback.textContent = '';
             }
         });
+        if (input.type === 'file') {
+            input.addEventListener('change', () => input.dispatchEvent(new Event('input')));
+        }
     });
 })();
 </script>

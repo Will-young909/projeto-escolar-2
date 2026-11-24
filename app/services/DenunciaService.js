@@ -139,6 +139,85 @@ async function findUserDenunciaHistory(userId) {
      return denuncias;
 }
 
+async function deleteReportedComment(denunciaId, adminUserId) {
+    const [[denuncia]] = await pool.query('SELECT id, conteudo_info FROM denuncias WHERE id = ?', [denunciaId]);
+    if (!denuncia) throw new Error('Denúncia não encontrada.');
+
+    let info = denuncia.conteudo_info;
+    if (!info) throw new Error('Esta denúncia não possui conteúdo associado para exclusão.');
+    if (typeof info === 'string') {
+        try { info = JSON.parse(info); } catch (_) { info = null; }
+    }
+    if (!info || info.tipo !== 'comentario' || !info.id) {
+        throw new Error('Esta denúncia não está associada a um comentário.');
+    }
+
+    const commentId = info.id;
+    const connection = await pool.getConnection();
+    let deleted = false;
+    try {
+        await connection.beginTransaction();
+        await connection.query('DELETE FROM respostas_feedback WHERE feedback_id = ?', [commentId]);
+        const [result] = await connection.query('DELETE FROM comentarios WHERE id = ?', [commentId]);
+        deleted = result.affectedRows > 0;
+        await connection.commit();
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+
+    const details = deleted
+        ? `Comentário #${commentId} excluído.`
+        : `Comentário #${commentId} não encontrado (possivelmente já excluído).`;
+    await addHistory(denunciaId, 'Comentário Excluído', details, adminUserId);
+    return { commentId, deleted };
+}
+
+async function cleanupDenunciasResolvidas() {
+    // Remove denúncias resolvidas/rejeitadas há mais de 7 dias.
+    // denuncia_historico tem ON DELETE CASCADE; evidencia_arquivo é removida do disco quando possível.
+    const [rows] = await pool.query(
+        `SELECT id, evidencia_arquivo
+         FROM denuncias
+         WHERE status IN ('Resolvida', 'Rejeitada')
+           AND criado_em <= DATE_SUB(NOW(), INTERVAL 7 DAY)`
+    );
+    if (!rows.length) return { deleted: 0 };
+
+    const fs = require('fs');
+    const path = require('path');
+    const evidDir = path.join(__dirname, '..', 'private', 'denuncia_evidencias');
+    for (const r of rows) {
+        if (!r.evidencia_arquivo) continue;
+        const base = path.basename(String(r.evidencia_arquivo).replace(/\\/g, '/'));
+        const filePath = path.join(evidDir, base);
+        if (fs.existsSync(filePath)) {
+            try { fs.unlinkSync(filePath); } catch (_) {}
+        }
+    }
+
+    const ids = rows.map(r => r.id);
+    const placeholders = ids.map(() => '?').join(',');
+    const [result] = await pool.query(`DELETE FROM denuncias WHERE id IN (${placeholders})`, ids);
+    return { deleted: result.affectedRows || 0 };
+}
+
+async function autoReativarSuspensoesExpiradas() {
+    const agora = new Date();
+    // Reativa alunos cuja suspensão expirou
+    await pool.query(
+        "UPDATE alunos SET status = 'ativo', suspenso_ate = NULL WHERE status = 'suspenso' AND suspenso_ate IS NOT NULL AND suspenso_ate <= ?",
+        [agora]
+    );
+    // Reativa professores cuja suspensão expirou
+    await pool.query(
+        "UPDATE professores SET aprovacao_status = 'approved', suspenso_ate = NULL WHERE aprovacao_status = 'suspended' AND suspenso_ate IS NOT NULL AND suspenso_ate <= ?",
+        [agora]
+    );
+}
+
 module.exports = {
     findAll,
     findDenunciaHistory,
@@ -147,5 +226,8 @@ module.exports = {
     suspendUser,
     banUser,
     addInternalNote,
+    deleteReportedComment,
     findUserDenunciaHistory,
+    autoReativarSuspensoesExpiradas,
+    cleanupDenunciasResolvidas,
 };

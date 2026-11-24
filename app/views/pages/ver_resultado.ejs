@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="/css/ver_resultado.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
     <style>
         :root {
             --bordo: #800020;
@@ -41,19 +43,19 @@
             line-height: 1.6;
         }
         .text-answer-box.user-answer.correct {
-            background-color: #d4edda;
+            background-color: #28a745;
             border-color: #28a745;
-            color: #155724;
+            color: #fff;
         }
         .text-answer-box.user-answer.incorrect {
-            background-color: #f8d7da;
+            background-color: #dc3545;
             border-color: #dc3545;
-            color: #721c24;
+            color: #fff;
         }
         .text-answer-box.correct-answer {
-            background-color: #d4edda;
+            background-color: #28a745;
             border-color: #28a745;
-            color: #155724;
+            color: #fff;
         }
 
         .ai-tutor-section {
@@ -112,20 +114,56 @@
         #send-chat-message { border-radius: 5px; background-color: var(--bordo); color: var(--branco); }
 
         /* Modal Styles (reutilizados) */
-        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 16px 0; }
+        .modal-backdrop { align-items: center; align-items: safe center; }
         .modal-backdrop.visible { opacity: 1; visibility: visible; }
-        .modal { background: var(--branco); border-radius: 12px; width: 90%; max-width: 500px; transform: translateY(-20px); transition: all 0.3s; }
+        .modal { background: var(--branco); border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; transform: translateY(-20px); transition: all 0.3s; }
         .modal-backdrop.visible .modal { transform: translateY(0); }
-        .modal-header { padding: 20px 25px; border-bottom: 1px solid #eee; }
+        .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; color: var(--bordo); }
+        .close-button { background: none; border: none; font-size: 2rem; cursor: pointer; color: #888; }
         .modal-body { padding: 25px; }
         .modal-footer { padding: 15px 25px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
         .btn-modal { padding: 10px 20px; border: none; border-radius: 5px; font-weight: 600; cursor: pointer; }
         .btn-confirm { background-color: var(--verde-sucesso); color: white; }
         .btn-cancel { background-color: #eee; color: #333; }
+
+        /* Modal de Compra de Passe (mesmo conteúdo do modal de explorar_atividades) */
+        .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin-bottom: 0; color: var(--bordo); font-size: 1.5rem; }
+        .modal-intro-text { margin-bottom: 20px; text-align: center; font-size: 1.1rem; color: var(--cinza-texto); }
+        .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .pass-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; transition: all 0.2s ease; }
+        .pass-card:hover, .pass-card.featured { border-color: var(--bordo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
+        .pass-card.featured { border-width: 2px; position: relative; }
+        .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--bordo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+        .pass-card h4 { font-size: 1.4rem; color: var(--bordo-claro); margin-bottom: 10px; }
+        .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
+        .pass-card p { font-size: 0.9rem; color: var(--cinza-texto); min-height: 54px; }
+        .btn-purchase { display: block; background: var(--verde-sucesso); color: white; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+        .btn-purchase:hover { background: #2ecc71; }
+
+        /* Ajustes dos modais para telas pequenas (mobile) */
+        @media (max-width: 600px) {
+            .modal-backdrop { padding: 10px 0; }
+            .modal { width: 95%; border-radius: 10px; }
+            .modal-header, .modal-body { padding-left: 16px; padding-right: 16px; }
+            .modal-header h3 { font-size: 1.2rem; }
+            .pass-options { grid-template-columns: 1fr; gap: 24px; }
+            .pass-card { padding: 16px; }
+            .pass-card p { min-height: 0; }
+            .pass-card .price { font-size: 1.6rem; }
+        }
     </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 <body>
+    <button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button>
+    <header>
+       <a href="/">
+          <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+        </a>
+    </header>
     <div class="container">
         <h1>Resultado da Atividade: <%= atividade.title %></h1>
 
@@ -161,21 +199,64 @@
                         </ul>
 
                     <% } else { 
-                        // Lógica para questões escritas (short_text e long_text)
-                        const isCorrect = respostaDoUsuario.acertou;
+                        const _normKw = (text) => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+                        const _parseKws = (raw) => {
+                            const str = String(raw || '').trim();
+                            if (!str) return [];
+                            if (/(\([^)]*(obrigatoria|obrigat[oó]ria|opcional|required|optional|peso\s*=)\s*[^)]*\))/i.test(str) || str.includes(';')) {
+                                return str.split(/[;,]+/).map(p => p.trim()).filter(Boolean).map(p => {
+                                    const m = p.match(/^(.*?)(?:\(([^)]*)\))?\s*$/);
+                                    const text = (m ? m[1] : p).trim();
+                                    const meta = (m && m[2] ? m[2] : '').toLowerCase();
+                                    const required = /obrigat|required/.test(meta);
+                                    const pesoMatch = meta.match(/peso\s*=\s*(\d+(?:[\.,]\d+)?)/i);
+                                    const peso = pesoMatch ? Math.max(0.1, Number(pesoMatch[1].replace(',', '.')) || 1) : 1;
+                                    return text ? { text, required, peso } : null;
+                                }).filter(Boolean);
+                            }
+                            return str.split(/[,\n]+/).map(p => p.trim()).filter(Boolean).map(p => {
+                                const required = /\*$/.test(p) || /^\*/.test(p);
+                                const text = p.replace(/^\*+|\*+$/g, '').trim();
+                                return text ? { text, required, peso: 1 } : null;
+                            }).filter(Boolean);
+                        };
                         const userAnswer = respostaDoUsuario.resposta_marcada || 'Não respondida';
                         const correctAnswer = question.correctAnswer || respostaDoUsuario.resposta || '';
+                        const keywords = Array.isArray(question.keywords) && question.keywords.length ? question.keywords : _parseKws(correctAnswer);
+                        const normUser = _normKw(userAnswer);
+                        const kwDetails = keywords.map(k => ({ ...k, found: normUser.includes(_normKw(k.text)) }));
+                        const totalW = kwDetails.reduce((sum, k) => sum + (Number(k.peso) || 1), 0);
+                        const matchedW = kwDetails.reduce((sum, k) => sum + (k.found ? (Number(k.peso) || 1) : 0), 0);
+                        const missingRequired = kwDetails.some(k => k.required && !k.found);
+                        const kwScore = kwDetails.length ? (missingRequired ? 0 : (totalW > 0 ? (matchedW / totalW) * 100 : 0)) : (respostaDoUsuario.acertou ? 100 : 0);
+                        const isCorrect = kwScore >= 99.999;
                     %>
                         <div class="text-answer-section">
-                            <p><strong>Sua resposta:</strong></p>
+                            <p><strong style="color: var(--color-text-dark);">Sua resposta:</strong></p>
                             <div class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
-                                <p><%= userAnswer %></p>
+                                <p><%= isCorrect ? '✔' : '✘' %> <%= userAnswer %></p>
                             </div>
 
+                            <% if (kwDetails.length > 0) { %>
+                                <div class="keyword-feedback" style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                                    <p style="margin:0 0 8px;"><strong>Palavras-chave:</strong></p>
+                                    <ul style="list-style:none; padding:0; margin:0; display:grid; gap:6px;">
+                                        <% kwDetails.forEach(k => { %>
+                                            <li style="color:<%= k.found ? '#166534' : '#991b1b' %>;">
+                                                <%= k.found ? '✅' : '❌' %> <%= k.text %><% if (k.required) { %> <small>(obrigatória)</small><% } %><% if (Number(k.peso) && Number(k.peso) !== 1) { %> <small>(peso <%= k.peso %>)</small><% } %>
+                                            </li>
+                                        <% }) %>
+                                    </ul>
+                                    <div class="keyword-score" style="margin-top:10px; font-weight:600;">
+                                        Nota: <%= kwScore.toFixed(1).replace('.', ',') %>% (<%= kwDetails.filter(k => k.found).length %>/<%= kwDetails.length %> palavras-chave)
+                                    </div>
+                                </div>
+                            <% } %>
+
                             <% if (correctAnswer) { %>
-                                <p style="margin-top: 15px;"><strong>Resposta esperada:</strong></p>
+                                <p style="margin-top: 15px;"><strong style="color: var(--color-text-dark);">Resposta esperada:</strong></p>
                                 <div class="text-answer-box correct-answer">
-                                    <p><%= correctAnswer %></p>
+                                    <p>✔ <%= correctAnswer %></p>
                                 </div>
                             <% } %>
                         </div>
@@ -232,14 +313,13 @@
                         <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
                             <div>
                                 <h3><%= professor.nome %></h3>
-                                <p class="match-score"><%= professor.score %>% de aderência estimada</p>
-                                <p class="teacher-disciplines"><%= professor.disciplinas && professor.disciplinas.length ? professor.disciplinas.join(', ') : 'Matemática' %></p>
+                                <p class="match-score"><%= professor.score %>% de aderência estimada</p>                               
                                 <ul>
                                     <% professor.motivos.slice(0, 2).forEach(motivo => { %>
                                         <li><%= motivo %></li>
                                     <% }); %>
                                 </ul>
-                                <a href="/exibir_prof/<%= professor.id %>" class="recommendation-button">Ver professor</a>
+                                <a href="/exibir_prof/<%= professor.id %>" class="recommendation-button btn-ver-perfil" data-professor-id="<%= professor.id %>" data-tentativa-id="<%= tentativa.id || '' %>" data-posicao="<%= recs.recomendacoes.indexOf(professor) + 1 %>" data-score="<%= professor.score %>">Ver professor</a>
                             </div>
                     </article>
                 <% }); %>
@@ -248,6 +328,7 @@
         <% } %>
 
         <a href="/historico_formularios" class="back-button">Voltar ao Histórico</a>
+        <a href="/explorar_atividades" class="back-button">Voltar para as atividades</a>
     </div>
 
     <!-- MODAIS -->
@@ -269,15 +350,47 @@
                 <div class="modal-header"><h3><i class="fas fa-shopping-cart"></i> Adquira um Passe</h3></div>
                 <div class="modal-body">
                     <p>Para acessar a Tutoria Inteligente, você precisa de um Passe de Estudos. Adquira um para continuar!</p>
-                    <a href="/comprar-passe/semanal" class="btn-primary">Ver Passes de Estudo</a>
+                    <a href="/comprar-passe/semanal" id="view-pass-options-link" class="btn-primary">Ver Passes de Estudo</a>
                 </div>
                 <div class="modal-footer">
                      <button type="button" class="btn-modal btn-cancel">Continuar sem IA</button>
                 </div>
             </div>
         </div>
+        <div id="passOptionsModal" class="modal-backdrop">
+            <div class="modal" style="max-width: 800px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-ticket-alt"></i> Passe de Estudos</h3>
+                    <button type="button" class="close-button">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-intro-text">Escolha o Passe de Estudos ideal para você e continue aprendendo!</p>
+                    <div class="pass-options">
+                        <div class="pass-card">
+                            <h4>Passe +10</h4>
+                            <p>+10 atividades para usar quando quiser.</p>
+                            <p class="price">R$ 10,00</p>
+                            <a href="/comprar-passe/quantidade_10" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                        <div class="pass-card featured">
+                            <h4>Passe Diário</h4>
+                            <p>Atividades ilimitadas pelas próximas 24 horas.</p>
+                            <p class="price">R$ 15,00</p>
+                            <a href="/comprar-passe/diario" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                        <div class="pass-card">
+                            <h4>Passe Semanal</h4>
+                            <p>Atividades ilimitadas por 7 dias.</p>
+                            <p class="price">R$ 25,00</p>
+                            <a href="/comprar-passe/semanal" class="btn-purchase">Comprar Agora</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     <% } %>
 
+    <script src="../js/accessibility.js"></script>
     <script>
     if (<%- JSON.stringify(user || null) %> && <%- JSON.stringify(user.tipo) %> === 'aluno') {
         const pageData = {
@@ -293,8 +406,18 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId)?.classList.remove('visible');
-            document.body.classList.remove('no-scroll');
+            // Só libera o scroll do body se nenhum outro modal ainda estiver aberto.
+            if (document.querySelectorAll('.modal-backdrop.visible').length === 0) {
+                document.body.classList.remove('no-scroll');
+            }
         }
+
+        // O link "Ver Passes de Estudo" abre o modal com as opções de passe
+        // (igual ao de explorar_atividades) em vez de navegar para o link.
+        document.getElementById('view-pass-options-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            openModal('passOptionsModal');
+        });
 
         document.getElementById('unlock-ai-button')?.addEventListener('click', () => {
             if (pageData.hasAvailablePass.passeAtivo) {
@@ -321,7 +444,7 @@
 
             } catch (error) {
                 console.error("Erro ao ativar passe:", error);
-                alert('Ocorreu um erro ao ativar seu passe. Por favor, tente novamente.');
+                Swal.fire("Ocorreu um erro ao ativar seu passe. Por favor, tente novamente.");
                 button.disabled = false;
                 button.textContent = 'Sim, ativar!';
             }
@@ -420,7 +543,40 @@
             const modal = btn.closest('.modal-backdrop');
             if (modal) btn.addEventListener('click', () => closeModal(modal.id));
         });
+        document.querySelectorAll('.close-button').forEach(btn => {
+            const modal = btn.closest('.modal-backdrop');
+            if (modal) btn.addEventListener('click', () => closeModal(modal.id));
+        });
     }
     </script>
+    <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var returnTo = window.location.href;
+            document.querySelectorAll('a[href^="/exibir_prof/"]').forEach(function(a) {
+              var href = a.getAttribute('href');
+              if (href && href.indexOf('returnTo=') === -1) {
+                var sep = href.indexOf('?') >= 0 ? '&' : '?';
+                a.setAttribute('href', href + sep + 'returnTo=' + encodeURIComponent(returnTo));
+              }
+            });
+            document.querySelectorAll('.btn-ver-perfil').forEach(function(btn) {
+              btn.addEventListener('click', function() {
+                var payload = JSON.stringify({
+                  professorId: btn.dataset.professorId,
+                  tentativaId: btn.dataset.tentativaId || null,
+                  posicao: btn.dataset.posicao || null,
+                  score: btn.dataset.score || null
+                });
+                try {
+                  if (navigator.sendBeacon) {
+                    navigator.sendBeacon('/api/recomendacao/registrar-clique', new Blob([payload], { type: 'application/json' }));
+                  } else {
+                    fetch('/api/recomendacao/registrar-clique', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+                  }
+                } catch (e) {}
+              });
+            });
+          });
+        </script>
 </body>
 </html>

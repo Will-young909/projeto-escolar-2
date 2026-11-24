@@ -92,7 +92,7 @@ body {
 
 .status-message {
   font-size: 1rem;
-  color: #555;
+  color: var(--texto);
   margin-bottom: 12px;
   line-height: 1.6;
 }
@@ -138,7 +138,7 @@ body {
 
 .btn.primary {
   background: var(--vinho);
-  color: var(--branco);
+  color: #fff;
 }
 
 .btn.primary:hover {
@@ -148,7 +148,7 @@ body {
 
 .btn.secondary {
   background: #e9ecef;
-  color: var(--texto);
+  color: #222;
   border: 1px solid #d0d0d0;
 }
 

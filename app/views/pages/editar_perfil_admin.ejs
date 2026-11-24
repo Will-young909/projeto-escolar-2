@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editar Perfil Admin | <%= user.nome %> - Regimath</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/editar_perfil.css" />
+  <link rel="stylesheet" href="../css/accessibility.css" />
+  <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png" type="image/png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/js/all.min.js" crossorigin="anonymous" defer></script>
+  <style>
+    .error-feedback {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 4px;
+      margin-bottom: 0;
+      font-style: italic;
+    }
+    .input-error {
+      color: #c0392b;
+      font-size: 0.85rem;
+      margin-top: 4px;
+      font-style: italic;
+    }
+    .required {
+      color: #c0392b;
+      display: inline;
+    }
+    .input-dica {
+      color: #555;
+      font-size: 0.85rem;
+    }
+    .invalid {
+      border-color: #c0392b !important;
+    }
+    .valid {
+      border-color: #2e7d32 !important;
+    }
+    /* Modal de alterar senha */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1200;
+      padding: 1rem;
+    }
+    .modal.active,
+    .modal[aria-hidden="false"] {
+      display: flex;
+    }
+    .modal-content {
+      background: #fff;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 8px;
+      padding: 1.25rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      position: relative;
+      color: #222;
+    }
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    #changePasswordForm .form-group {
+      margin-bottom: 1rem;
+    }
+    .btns {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="password"]::-ms-reveal {
+  filter: invert(100%) sepia(95%) saturate(3500%) hue-rotate(335deg) brightness(65%) contrast(110%);
+}
+  </style>
+</head>
+
+<body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
+  <header class="topbar">
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo" />
+    </a>
+    <button type="button" class="subheader__back" onclick="history.back()">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+    </button>
+  </header>
+
+  <div id="overlay" aria-hidden="true"></div>
+
+  <main class="perfil-container">
+    <section class="conteudo-principal" aria-label="Edição de perfil administrativo">
+
+      <article class="card form-card width-fix" aria-labelledby="titulo-editar">
+        <h2 id="titulo-editar"><i class="fas fa-user-shield" aria-hidden="true"></i> Editar Perfil</h2>
+
+        <form action="/perfil_admin/editar" method="POST" class="form-edicao" id="editarPerfilAdminForm" novalidate>
+
+          <div class="form-group">
+            <label for="nome">Nome <span class="required">*</span></label>
+            <input
+              type="text"
+              id="nome"
+              name="nome"
+              value="<%= dados?.nome || user.nome %>"
+              required
+              class="<%= erros?.nome ? 'invalid' : '' %>"
+              aria-invalid="<%= erros?.nome ? 'true' : 'false' %>"
+              aria-describedby="err-nome"
+            />
+            <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
+          </div>
+
+          <div class="form-group">
+            <label for="email">E-mail <span class="required">*</span></label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value="<%= dados?.email || user.email %>"
+              required
+              class="<%= erros?.email ? 'invalid' : '' %>"
+              aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
+              aria-describedby="err-email"
+            />
+            <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-salvar"><i class="fas fa-save" aria-hidden="true"></i> Salvar</button>
+            <a href="/perfil_adm" class="btn-cancelar">Cancelar</a>
+          </div>
+        </form>
+      </article>
+
+      <article class="card seguranca-card" aria-labelledby="titulo-seguranca">
+        <h2 id="titulo-seguranca"><i class="fas fa-lock" aria-hidden="true"></i> Segurança</h2>
+        <p>Deseja mudar sua senha? Clique abaixo:</p>
+        <button id="open-change-password" type="button" class="btn-alterar-senha">Alterar Senha</button>
+
+        <!-- Modal: Alterar Senha -->
+        <div id="change-password-modal" class="modal" aria-hidden="true">
+          <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
+            <button type="button" class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
+            <h3 id="change-password-title" style="color: var(--vinho-escuro);">Alterar Senha</h3>
+            <form id="changePasswordForm" action="/alterar-senha" method="POST">
+              <div class="form-group">
+                <label for="current_password">Senha atual <span class="required">*</span></label>
+                <input
+                  type="password"
+                  id="current_password"
+                  name="current_password"
+                  required
+                  value="<%= (!user.password && user.initial_password) ? user.initial_password : '' %>"
+                />
+                <div id="currentPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="new_password">Nova senha <span class="required">*</span></label>
+                <input type="password" id="new_password" name="new_password" required minlength="6" />
+                <div id="newPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
+
+              <div class="btns">
+                <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
+                <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  </main>
+
+  <script src="../js/accessibility.js"></script>
+  <script>
+    // Validação do formulário de edição do admin
+    document.addEventListener('DOMContentLoaded', () => {
+      const formAdmin = document.getElementById('editarPerfilAdminForm');
+      if (!formAdmin) return;
+
+      function validateField(input) {
+        let errorMsg = '';
+        let isValid = true;
+        if (input.hasAttribute('required') && !input.value.trim()) {
+          errorMsg = 'Este campo é obrigatório.';
+          isValid = false;
+        } else if (input.id === 'email' && input.value.trim()) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(input.value.trim())) {
+            errorMsg = 'Por favor, insira um email válido.';
+            isValid = false;
+          }
+        } else if (input.id === 'nome' && input.value.trim().length < 3) {
+          errorMsg = 'O nome deve ter pelo menos 3 caracteres.';
+          isValid = false;
+        }
+        return { isValid, errorMsg };
+      }
+
+      formAdmin.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fieldIds = ['nome', 'email'];
+        let allValid = true;
+
+        fieldIds.forEach((id) => {
+          const input = document.getElementById(id);
+          if (input) {
+            const { isValid, errorMsg } = validateField(input);
+            const errorElement = document.getElementById(`err-${id}`);
+            if (!isValid) {
+              input.classList.add('invalid');
+              input.classList.remove('valid');
+              input.setAttribute('aria-invalid', 'true');
+              if (errorElement) {
+                errorElement.textContent = errorMsg;
+                errorElement.style.display = 'block';
+              }
+              allValid = false;
+            } else {
+              input.classList.remove('invalid');
+              input.classList.add('valid');
+              input.setAttribute('aria-invalid', 'false');
+              if (errorElement) {
+                errorElement.textContent = '';
+                errorElement.style.display = 'none';
+              }
+            }
+          }
+        });
+
+        if (allValid) {
+          const submitBtn = formAdmin.querySelector('button[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
+          formAdmin.submit();
+        }
+      });
+
+      const inputs = formAdmin.querySelectorAll('input[type="text"], input[type="email"]');
+      inputs.forEach((input) => {
+        const onChange = () => {
+          const { isValid, errorMsg } = validateField(input);
+          const errorElement = document.getElementById(`err-${input.id}`);
+          if (!isValid) {
+            input.classList.add('invalid');
+            input.classList.remove('valid');
+            input.setAttribute('aria-invalid', 'true');
+            if (errorElement) {
+              errorElement.textContent = errorMsg;
+              errorElement.style.display = 'block';
+            }
+          } else {
+            input.classList.remove('invalid');
+            input.classList.add('valid');
+            input.setAttribute('aria-invalid', 'false');
+            if (errorElement) {
+              errorElement.textContent = '';
+              errorElement.style.display = 'none';
+            }
+          }
+        };
+        input.addEventListener('input', onChange);
+        input.addEventListener('change', onChange);
+      });
+    });
+
+    // Modal de alterar senha + validação
+    (function () {
+      const openBtn = document.getElementById('open-change-password');
+      const modal = document.getElementById('change-password-modal');
+      const closeBtn = document.getElementById('close-change-password');
+      const cancelBtn = document.getElementById('btn-cancel-change');
+      const form = document.getElementById('changePasswordForm');
+      const currentInput = document.getElementById('current_password');
+      const newInput = document.getElementById('new_password');
+      const curErr = document.getElementById('currentPasswordError');
+      const newErr = document.getElementById('newPasswordError');
+      let currentVerified = false;
+      let verifyTimer = null;
+
+      function openModal() {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        currentInput.focus();
+      }
+      function closeModal() {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        currentVerified = false;
+        curErr.textContent = '';
+        newErr.textContent = '';
+        currentInput.classList.remove('valid', 'invalid');
+        newInput.classList.remove('valid', 'invalid');
+        form.reset();
+      }
+
+      if (openBtn) openBtn.addEventListener('click', openModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+      });
+
+      function setCurrentValid(valid, msg) {
+        currentVerified = !!valid;
+        curErr.textContent = msg || '';
+        currentInput.classList.toggle('valid', !!valid);
+        currentInput.classList.toggle('invalid', !valid && currentInput.value.length > 0);
+      }
+
+      function setNewValid(valid, msg) {
+        newErr.textContent = msg || '';
+        newInput.classList.toggle('valid', !!valid);
+        newInput.classList.toggle('invalid', !valid && newInput.value.length > 0);
+      }
+
+      function verifyCurrentPasswordDebounced() {
+        clearTimeout(verifyTimer);
+        currentVerified = false;
+        curErr.textContent = '';
+        currentInput.classList.remove('valid', 'invalid');
+        verifyTimer = setTimeout(async () => {
+          const val = (currentInput.value || '').trim();
+          if (!val) {
+            setCurrentValid(false, 'Informe sua senha atual.');
+            return;
+          }
+          try {
+            const resp = await fetch('/api/verify-current-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ current_password: val })
+            });
+            const data = await resp.json();
+            if (resp.ok && data.valid) {
+              setCurrentValid(true);
+            } else {
+              setCurrentValid(false, data.msg || 'Senha atual incorreta.');
+            }
+          } catch (err) {
+            setCurrentValid(false, 'Erro ao verificar senha.');
+          }
+        }, 500);
+      }
+
+      currentInput.addEventListener('input', () => {
+        setCurrentValid(false);
+        verifyCurrentPasswordDebounced();
+      });
+
+      newInput.addEventListener('input', () => {
+        const v = newInput.value || '';
+        if (v.length < 6) {
+          setNewValid(false, 'A nova senha precisa ter ao menos 6 caracteres.');
+        } else {
+          setNewValid(true);
+        }
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const newVal = (newInput.value || '').trim();
+        if (newVal.length < 6) {
+          setNewValid(false, 'A nova senha precisa ter ao menos 6 caracteres.');
+          newInput.focus();
+          return;
+        }
+
+        if (!currentVerified) {
+          try {
+            const resp = await fetch('/api/verify-current-password', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ current_password: (currentInput.value || '').trim() })
+            });
+            const data = await resp.json();
+            if (!(resp.ok && data.valid)) {
+              setCurrentValid(false, data.msg || 'Senha atual incorreta.');
+              currentInput.focus();
+              return;
+            }
+            setCurrentValid(true);
+          } catch (err) {
+            setCurrentValid(false, 'Erro ao verificar senha.');
+            return;
+          }
+        }
+
+        form.submit();
+      });
+    })();
+  </script>
+</body>
+</html>

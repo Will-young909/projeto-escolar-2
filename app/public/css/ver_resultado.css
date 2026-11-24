@@ -28,17 +28,29 @@
   }
 
 /* Estilos para a página de resultados */
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
-    line-height: 1.6;
-    padding: 20px;
-}
+:root {
+            --bordo: #800020;
+            --bordo-claro: #a83244;
+            --dourado: #ffd700;
+            --branco: #fff;
+            --cinza-fundo: #f7f8fa;
+            --cinza-texto: #555;
+            --verde: #27ae60;
+            --laranja: #f39c12;
+            --radius: 12px;
+            --font: "Poppins", sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--cinza-fundo); color: #333; margin: 0; }
+        body.no-scroll { overflow: hidden; }
+        header { background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12); display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid var(--bordo); height: 60px; }
+        .logo { margin-top: 10px; margin-left: -15px; width: 120px; height: 70px; object-fit: contain; }
 
 .container {
     max-width: 800px;
     margin: auto;
+    margin-top: 50px;
     background-color: var(--color-card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
@@ -48,13 +60,14 @@ body {
 
 h1 {
     text-align: center;
-    color: #800020;
+    color: var(--color-primary);
 }
 
 .summary {
     text-align: center;
     margin-bottom: 20px;
     font-size: 1.2em;
+    color: var(--color-text-dark);
 }
 
 .questions-container {
@@ -121,11 +134,11 @@ h1 {
     padding: 22px;
     border: 1px solid rgba(128, 0, 32, 0.15);
     border-radius: var(--border-radius);
-    background: linear-gradient(180deg, #fff, #fff7f9);
+    background: var(--color-card-bg);
 }
 
-.recommendation-header h2 {
-    color: var(--color-primary);
+.recommendation-header > h2, .recommendation-header > p {
+    color: var(--color-text-dark);
     margin: 8px 0;
 }
 
@@ -162,11 +175,12 @@ h1 {
 
 .teacher-card {
     display: grid;
-    gap: 14px;
-    padding: 14px;
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    background: #fff;
+  grid-template-columns: 72px 1fr;
+  gap: .9rem;
+  padding: 1rem;
+  border: 1px solid rgba(128, 0, 32, .14);
+  border-radius: var(--radius);
+  background: var(--cinza-fundo);
 }
 
 .teacher-card img {
@@ -176,21 +190,21 @@ h1 {
     object-fit: cover;
 }
 
-.teacher-card h3 {
+.teacher-card div h3 {
     margin: 0;
     color: var(--color-text-dark);
 }
 
-.match-score,
-.teacher-disciplines {
-    margin: 4px 0;
-    color: var(--color-primary);
-    font-weight: 700;
+.match-score {
+    color: var(--verde);
+  font-weight: 700;
+  margin-bottom: .3rem;
 }
 
 .teacher-card ul {
     margin: 8px 0;
     padding-left: 18px;
+    color: var(--color-text-dark);
 }
 
 .recommendation-button {

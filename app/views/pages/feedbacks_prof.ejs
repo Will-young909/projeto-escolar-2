@@ -97,7 +97,8 @@
         cursor: not-allowed;
     }
 </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
 <body>
   <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
@@ -308,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', (e) => {
                 const alunoId = e.currentTarget.dataset.alunoId;
                 if (!alunoId || alunoId === 'null') {
-                    alert('Não é possível responder a um feedback anônimo.');
+                    Swal.fire("Não é possível responder a um feedback anônimo.");
                     return;
                 }
                 const feedbackId = e.currentTarget.dataset.feedbackId;
@@ -353,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 closeModal();
-                alert('Resposta enviada com sucesso!');
+                Swal.fire("Resposta enviada com sucesso!");
                 // Opcional: Desabilitar o botão de resposta para indicar que já foi respondido
                 const respondedButton = document.querySelector(`.fb-card__responder[data-feedback-id="${data.feedbackId}"]`);
                 if(respondedButton) {
@@ -363,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Erro ao enviar resposta:', error);
-                alert(error.message || 'Ocorreu um erro de conexão. Tente novamente.');
+                Swal.fire(error.message || 'Ocorreu um erro de conexão. Tente novamente.');
             } finally {
                 button.disabled = false;
                 button.textContent = 'Enviar Resposta';

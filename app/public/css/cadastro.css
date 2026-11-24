@@ -41,7 +41,7 @@ header {
   display: flex;
   justify-content: flex-start; /* Alinha o logo à esquerda */
   align-items: center;
-  background: var(--color-card-bg);
+  background: #fff;
   padding: 8px var(--spacing-md);
   height: 60px;
   border-bottom: var(--color-primary) solid 2px;

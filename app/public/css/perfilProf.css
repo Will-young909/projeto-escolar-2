@@ -378,6 +378,10 @@ textarea {
   gap: 5px;
 }
 
+.dia:hover {
+  color: #222;
+}
+
 .dia-header {
     font-size: 0.8rem;
     font-weight: 700;
@@ -401,6 +405,18 @@ textarea {
 
 .dia:hover {
   background: #ebebeb;
+}
+
+/* Dias já passados — não selecionáveis */
+.dia-passado {
+    background: #e8e8e8 !important;
+    color: #999 !important;
+    cursor: default !important;
+    pointer-events: none;
+}
+
+.dia-passado:hover {
+    background: #e8e8e8 !important;
 }
 
 .dia-vazio {

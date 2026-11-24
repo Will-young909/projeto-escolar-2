@@ -48,9 +48,26 @@ async function updateByPreferenceId(prefId, update) {
     }
     return p;
   });
-  if (!found && update.paymentId) {
-    // create record if not found but have payment info
+  if (!found && (update.paymentId || update.checkoutId)) {
     data.preferences.push(Object.assign({ preferenceId: prefId }, update));
+  }
+  await write(data);
+  return found;
+}
+
+async function updateByCheckoutId(checkoutId, update) {
+  const data = await read();
+  data.preferences = data.preferences || [];
+  let found = false;
+  data.preferences = data.preferences.map(p => {
+    if (p.checkoutId == checkoutId) {
+      found = true;
+      return Object.assign({}, p, update);
+    }
+    return p;
+  });
+  if (!found) {
+    data.preferences.push(Object.assign({ checkoutId }, update));
   }
   await write(data);
   return found;
@@ -81,11 +98,19 @@ async function getByPreferenceId(prefId) {
   return data.preferences.find(p => p.preferenceId == prefId) || null;
 }
 
+async function getByCheckoutId(checkoutId) {
+  const data = await read();
+  data.preferences = data.preferences || [];
+  return data.preferences.find(p => p.checkoutId == checkoutId) || null;
+}
+
 module.exports = {
   addPreference,
   updateByPreferenceId,
+  updateByCheckoutId,
   updateByPaymentId,
   getByPreferenceId,
+  getByCheckoutId,
   read,
   write
 };

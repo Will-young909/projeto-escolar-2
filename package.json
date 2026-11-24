@@ -8,7 +8,9 @@
     "db:migrate": "knex migrate:latest",
     "db:rollback": "knex migrate:rollback",
     "db:seed": "knex seed:run",
-    "db:setup": "knex migrate:latest && knex seed:run"
+    "db:setup": "knex migrate:latest && knex seed:run",
+    "db:check": "node check_schema_drift.js",
+    "db:check:sql": "node check_schema_drift.js --sql"
   },
   "author": "William",
   "license": "ISC",
@@ -37,6 +39,7 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^9.0.3",
     "redis": "^5.12.1",
+    "sheetjs": "^2.0.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

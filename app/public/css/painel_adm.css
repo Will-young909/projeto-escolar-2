@@ -139,7 +139,7 @@ nav.active {
 .badge {
     margin-left: auto;
     background: var(--color-accent);
-    color: var(--color-text-dark);
+    color: #222;
     font-size: 0.8rem;
     font-weight: 700;
     padding: 2px 8px;
@@ -317,7 +317,7 @@ main {
 }
 
 .data-table tr:hover {
-    background: #fdfafb;
+    background: var(--color-background);
 }
 
 /* Botões */
@@ -353,7 +353,7 @@ main {
             font-weight: 600;
             margin-bottom: 8px;
         }
-        .form-group input, input {
+        .form-group input, input, select {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--color-border);
@@ -475,7 +475,7 @@ main {
     border-radius: 8px;
     background: #fff;
     font-size: 1rem;
-    color: var(--color-text-dark);
+    color: #222;
     outline: none;
 }
 
@@ -526,7 +526,7 @@ main {
     border: 1px solid var(--color-border);
     border-radius: 8px;
     font-size: 0.95rem;
-    color: var(--color-text-dark);
+    color: #222;
     outline: none;
 }
 

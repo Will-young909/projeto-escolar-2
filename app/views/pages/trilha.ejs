@@ -48,11 +48,6 @@
     .page-subtitle { color: var(--texto-claro); font-size: 0.95rem; line-height: 1.6; }
     
     .content-box { padding: 1rem; border-radius: var(--raio-sm); margin-bottom: 1.25rem; }
-    .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--raio-sm); box-shadow: var(--sombra); background-color: #eee; }
-    .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .article-content { line-height: 1.8; font-size: 1rem; } .article-content h2 { margin-bottom: 1rem; color: var(--roxo-escuro); } .article-content p { margin-bottom: 1rem; }
-    .content-badge { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(59, 130, 246, 0.1); color: var(--azul); border: 1px solid rgba(59, 130, 246, 0.2); padding: 0.55rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin-bottom: 1rem; }
-
     .revisao-indicator { display: inline-flex; align-items: center; gap: 0.55rem; background: linear-gradient(135deg, #fff7ed, var(--amarelo-claro)); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.25); padding: 0.75rem 0.95rem; border-radius: 999px; font-size: 0.9rem; font-weight: 700; margin: 1rem 0 1.25rem; box-shadow: 0 8px 18px rgba(245, 158, 11, 0.10); }
     .skill-badge { display: inline-flex; align-items: center; gap: 0.45rem; background: rgba(124, 58, 237, 0.08); color: var(--roxo-escuro); border: 1px solid rgba(124, 58, 237, 0.12); padding: 0.55rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.88rem; margin-bottom: 1rem; }
     .question-box { background: var(--fundo); border: 1px solid rgba(124, 58, 237, 0.08); border-radius: var(--raio-sm); padding: 1rem; margin-bottom: 1.25rem; box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05); }
@@ -73,23 +68,89 @@
 
     .home-link { display: inline-flex; justify-content: center; align-items: center; width: 100%; margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 14px; text-decoration: none; color: var(--roxo-escuro); background: rgba(124, 58, 237, 0.06); border: 1px solid rgba(124, 58, 237, 0.12); font-weight: 700; transition: var(--transicao); }
     
-    .feedback-box { margin-top: 1.5rem; padding: 1rem; border-radius: var(--raio-sm); background: #f7f7f8; border: 1px solid #e2e8f0; animation: fadeIn 0.5s ease-out; }
+    .feedback-box { margin-top: 1.5rem; padding: 1rem; border-radius: var(--raio-sm); background: var(--fundo); border: 1px solid #e2e8f0; animation: fadeIn 0.5s ease-out; }
     .feedback-box h3 { font-size: 1.1rem; color: var(--roxo-escuro); margin-bottom: 0.5rem; }
     .feedback-box p { line-height: 1.7; color: var(--texto-claro); }
+    .skill-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.45rem; margin-top: 0.5rem; }
+    .skill-row.sem-pratica { color: #9ca3af; }
+    .skill-pct { font-weight: 700; color: var(--roxo-escuro); }
+    .skill-status { font-size: 0.78rem; font-weight: 600; padding: 0.1rem 0.55rem; border-radius: 999px; background: rgba(124, 58, 237, 0.08); color: var(--roxo-escuro); }
+    .progresso-aviso { margin-top: 0.6rem; font-size: 0.9rem; color: var(--texto-claro); }
+    .progresso-aviso a { color: var(--roxo); font-weight: 700; }
     .gamification-feedback { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+    .retry-box { border-color: rgba(245, 158, 11, 0.45); background: var(--amarelo-claro); }
+    .retry-box h3 { color: #92400e; }
+    .retry-hint { margin-top: 0.5rem; font-size: 0.88rem; color: #92400e; }
+    .streak-perdido { display: flex; align-items: flex-start; gap: 0.6rem; margin-top: 0.75rem; padding: 0.7rem 0.85rem; border-radius: var(--raio-sm); background: #fff7ed; border: 1px solid rgba(239, 68, 68, 0.28); font-size: 0.92rem; line-height: 1.55; color: #9a3412; }
+    .streak-perdido i { color: var(--vermelho); margin-top: 0.15rem; }
+    .streak-perdido strong { color: #7f1d1d; }
+    .reforco-plano { margin-top: 1rem; padding: 0.85rem 1rem; border-radius: var(--raio-sm); background: rgba(124, 58, 237, 0.06); border: 1px solid var(--borda); }
+    .reforco-plano strong { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; color: var(--roxo-escuro); }
+    .reforco-plano ol { margin: 0.6rem 0 0 1.15rem; display: grid; gap: 0.4rem; }
+    .reforco-plano li { font-size: 0.92rem; line-height: 1.55; color: var(--texto-claro); }
     .gamification-pill { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; font-size: 0.9rem; padding: 0.25rem 0.75rem; border-radius: 999px; animation: popIn 0.5s ease-out backwards; }
     .gamification-pill.xp { color: #059669; background-color: #d1fae5; }
     .gamification-pill.streak { color: #d97706; background-color: #fef3c7; animation-delay: 0.2s; }
     .gamification-pill i { font-size: 0.8rem; }
 
+    /* --- Tutor de IA (consome Passe de Estudos) --- */
+    .tutor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.9rem; }
+    .tutor-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; background: rgba(124, 58, 237, 0.08); color: var(--roxo-escuro); border: 1px solid rgba(124, 58, 237, 0.18); padding: 0.55rem 0.9rem; border-radius: 999px; font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all var(--transicao); }
+    .tutor-btn:hover:not(:disabled) { background: rgba(124, 58, 237, 0.15); }
+    .tutor-btn:disabled { opacity: 0.6; cursor: wait; }
+    .tutor-box { margin-top: 1rem; padding: 0.85rem 1rem; border-radius: var(--raio-sm); background: rgba(59, 130, 246, 0.06); border: 1px solid rgba(59, 130, 246, 0.22); font-size: 0.94rem; line-height: 1.6; color: var(--texto); animation: fadeIn 0.35s ease-out; }
+    .tutor-box .tutor-rotulo { display: flex; align-items: center; gap: 0.45rem; font-weight: 700; font-size: 0.85rem; color: var(--azul); margin-bottom: 0.4rem; }
+    .tutor-box.tutor-erro { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.25); }
+    .tutor-box.tutor-erro .tutor-rotulo { color: var(--vermelho); }
+    .tutor-nota { margin-top: 0.45rem; font-size: 0.82rem; color: var(--texto-claro); }
+
     .finish-state { text-align: center; padding: 1.5rem 1rem; }
     .finish-icon { width: 68px; height: 68px; margin: 0 auto 1rem; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(168, 85, 247, 0.18)); color: var(--roxo-escuro); font-size: 1.7rem; }
     .finish-state h2 { font-size: 1.4rem; color: var(--roxo-escuro); margin-bottom: 0.5rem; }
     .finish-state p { color: var(--texto-claro); line-height: 1.7; font-size: 0.98rem; }
+
+    /* Botão CTA de compra de passe */
+    .pass-cta-btn { display: inline-flex; align-items: center; gap: 0.55rem; margin-top: 0.85rem; border: none; border-radius: 999px; padding: 0.7rem 1.1rem; background: linear-gradient(135deg, var(--amarelo), #f59e0b); color: #222; font-weight: 800; font-size: 0.9rem; cursor: pointer; box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25); transition: all var(--transicao); font-family: inherit; }
+    .pass-cta-btn:hover { transform: translateY(-2px); box-shadow: var(--sombra-hover); }
+
+    /* Modal de Compra de Passe */
+    body.no-scroll { overflow: hidden; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 16px 0; }
+    .modal-backdrop { align-items: center; align-items: safe center; }
+    .modal { background: #fff; border-radius: var(--raio); box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; animation: fadeIn 0.3s ease-out; }
+    .modal-header { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { margin: 0; color: var(--roxo); font-size: 1.5rem; }
+    .close-button { background: none; border: none; font-size: 2rem; cursor: pointer; color: #888; line-height: 1; }
+    .modal-body { padding: 20px 25px; }
+    .modal-intro-text { text-align: center; font-size: 1.05rem; color: #6b7280; margin-bottom: 20px; }
+    .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .pass-card { border: 1px solid #ddd; border-radius: var(--raio-sm); padding: 20px; text-align: center; transition: all 0.2s ease; }
+    .pass-card:hover, .pass-card.featured { border-color: var(--roxo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
+    .pass-card.featured { border-width: 2px; position: relative; }
+    .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--roxo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+    .pass-card h4 { font-size: 1.4rem; color: var(--roxo); margin-bottom: 10px; }
+    .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
+    .pass-card p { font-size: 0.9rem; color: #6b7280; min-height: 54px; }
+    .btn-purchase { display: block; background: var(--verde); color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: background 0.2s; }
+    .btn-purchase:hover { background: #059669; }
+
+    /* Ajustes dos modais para telas pequenas (mobile) */
+    @media (max-width: 600px) {
+      .modal-backdrop { padding: 10px 0; }
+      .modal { width: 95%; border-radius: 14px; }
+      .modal-header, .modal-body { padding-left: 16px; padding-right: 16px; }
+      .modal-header h3 { font-size: 1.2rem; }
+      .pass-options { grid-template-columns: 1fr; gap: 24px; }
+      .pass-card { padding: 16px; }
+      .pass-card p { min-height: 0; }
+      .pass-card .price { font-size: 1.6rem; }
+    }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
   </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 <body>
   <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
   <div class="page-shell">
@@ -97,23 +158,62 @@
 
       <% if (tarefa && tarefa.tarefaTipo !== 'CONCLUIDO') { %>
         
-        <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO', 'QUESTAO', 'MICROCHECK'].includes(tarefa.tarefaTipo)) { %>
+        <% if (['NIVELAMENTO', 'DIAGNOSTICO', 'REVISAO', 'QUESTAO'].includes(tarefa.tarefaTipo)) { %>
           <% const questao = tarefa.proximaQuestao; %>
           <header class="page-header">
             <h1 class="page-title"><i class="fa-regular fa-circle-question" style="color: var(--roxo);"></i> Trilha de Aprendizagem</h1>
-            <p class="page-subtitle"><%= tarefa.tarefaTipo === 'MICROCHECK' ? 'Responda rapidamente para confirmar seu entendimento.' : 'Resolva a questão para avançar ou revise um conceito importante.' %></p>
+            <p class="page-subtitle">Resolva a questão para avançar ou revise um conceito importante.</p>
+            <% if (!locals.passeAtivo || !passeAtivo.passeAtivo) { %>
+              <button type="button" class="pass-cta-btn" id="open-pass-modal-btn">
+                <i class="fas fa-ticket-alt"></i> Comprar Passe de Estudos
+              </button>
+            <% } %>
           </header>
 
           <% if (tarefa.tarefaTipo === 'REVISAO') { %><div class="revisao-indicator"> <i class="fas fa-history"></i> Hora da revisão! </div><% } %>
-          <% if (tarefa.tarefaTipo === 'MICROCHECK') { %><div class="revisao-indicator"> <i class="fas fa-clipboard-check"></i> Microchecagem </div><% } %>
           <% if (progresso) { %>
             <section class="feedback-box" aria-label="Progresso da trilha">
               <h3>Progresso da trilha: <%= progresso.progressoGeral %>%</h3>
               <p>Etapa atual: <%= tarefa.etapa || 'aprendizagem' %> · Dificuldade: <%= tarefa.dificuldade || questao.dificuldade || 'gradual' %></p>
               <% if (progresso.revisoesPendentes) { %><p>Você tem <%= progresso.revisoesPendentes %> revisão(ões) pendente(s).</p><% } %>
-              <% progresso.habilidades.slice(0, 5).forEach(habilidade => { %>
-                <p><strong><%= habilidade.habilidade_nome %></strong>: <%= Number(habilidade.percentual_dominio || 0).toFixed(0) %>%</p>
-              <% }) %>
+
+              <% if (progresso.semCurriculo) { %>
+                <p class="progresso-aviso">Complete o <a href="/nivel_escolar">teste de nivelamento</a> para acompanhar seu domínio por habilidade.</p>
+              <% } else if (progresso.totalSkills === 0) { %>
+                <p class="progresso-aviso">Seu currículo ainda não tem habilidades cadastradas.</p>
+              <% } else { %>
+                <%
+                  // O backend já ordena por evidência de prática e depois por
+                  // domínio, e já corta a amostra. Antes a view fazia .slice(0,5)
+                  // sobre a lista crua, que vinha sem WHERE: o corte pegava as
+                  // habilidades de menor id do banco inteiro.
+                  const rotulos = {
+                    dominada: 'Dominada',
+                    proficiente: 'Proficiente',
+                    em_desenvolvimento: 'Em desenvolvimento',
+                    precisa_reforco: 'Precisa de reforço',
+                    nao_iniciado: 'Não iniciada'
+                  };
+                %>
+                <% progresso.habilidades.forEach(habilidade => { %>
+                  <%
+                    const semPratica = Number(habilidade.n_tentativas || 0) === 0;
+                    const pct = Number(habilidade.percentual_dominio || 0).toFixed(0);
+                  %>
+                  <p class="skill-row<%= semPratica ? ' sem-pratica' : '' %>">
+                    <strong><%= habilidade.habilidade_nome %></strong>:
+                    <% if (semPratica) { %>
+                      <span class="skill-pct">ainda não praticada</span>
+                    <% } else { %>
+                      <span class="skill-pct"><%= pct %>%</span>
+                      <span class="skill-status"><%= rotulos[habilidade.status_dominio] || habilidade.status_dominio %></span>
+                    <% } %>
+                  </p>
+                <% }) %>
+                <% if (progresso.habilidadesOmitidas > 0) { %>
+                  <p class="progresso-aviso">+ <%= progresso.habilidadesOmitidas %> outra(s) habilidade(s) do seu currículo.</p>
+                <% } %>
+              <% } %>
             </section>
           <% } %>
           <% if (questao.habilidade_nome) { %><span class="skill-badge"> <i class="fas fa-bolt"></i> Habilidade: <%= questao.habilidade_nome %> </span><% } %>
@@ -130,43 +230,15 @@
             </div>
             <div class="actions">
               <button type="submit" class="submit-btn" id="submit-btn"> <i class="fas fa-paper-plane"></i> Enviar resposta </button>
+              <!-- Dica da IA: só enquanto a questão está em aberto (tentativas 1-2).
+                   Não revela o gabarito — por isso convive com o formulário. -->
+              <button type="button" class="tutor-btn" id="btn-dica" title="Peça uma dica antes de responder">
+                <i class="fas fa-lightbulb"></i> Pedir dica
+              </button>
             </div>
           </form>
+          <div id="tutor-container"></div>
           <div id="feedback-container"></div>
-        <% } %>
-
-        <% if (tarefa.tarefaTipo === 'VIDEO_APOIO') { %>
-          <% const conteudo = tarefa.proximoConteudo; %>
-          <header class="page-header">
-            <h1 class="page-title"><i class="fas fa-video"></i> Pausa para o Reforço</h1>
-            <p class="page-subtitle">Detectamos uma oportunidade de reforçar um conceito. Assista ao vídeo abaixo.</p>
-          </header>
-          <span class="content-badge"> <i class="fas fa-film"></i> Vídeo de Apoio </span>
-          <div class="content-box">
-            <h2><%= conteudo.titulo %></h2>
-            <div class="video-wrapper">
-              <iframe src="<%= conteudo.url_ou_conteudo.replace('watch?v=', 'embed/') %>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-            </div>
-          </div>
-          <div class="actions">
-             <button id="conteudo-consumido-btn" data-item-id="<%= conteudo.item_id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
-          </div>
-        <% } %>
-
-        <% if (tarefa.tarefaTipo === 'ARTIGO_APOIO') { %>
-            <% const conteudo = tarefa.proximoConteudo; %>
-            <header class="page-header">
-                <h1 class="page-title"><i class="fas fa-newspaper"></i> Leitura Rápida</h1>
-                <p class="page-subtitle">Um artigo para solidificar seu conhecimento antes de prosseguir.</p>
-            </header>
-            <span class="content-badge"> <i class="fas fa-book-open"></i> Artigo de Apoio </span>
-            <div class="content-box article-content">
-                <h2><%= conteudo.titulo %></h2>
-                <div><%- conteudo.url_ou_conteudo %></div>
-            </div>
-            <div class="actions">
-                <button id="conteudo-consumido-btn" data-item-id="<%= conteudo.item_id %>" class="submit-btn"> <i class="fas fa-check"></i> Entendi, quero continuar </button>
-            </div>
         <% } %>
 
       <% } else { %>
@@ -177,38 +249,50 @@
         </div>
       <% } %>
 
-      <a href="/dashboard_aluno" class="home-link"> <i class="fas fa-house"></i> Voltar para o Painel </a>
+      <a href="/dashboard_aluno" class="home-link"> <i class="fas fa-arrow-left"></i> Voltar para o Painel </a>
     </div>
   </div>
+
+  <% if (!locals.passeAtivo || !passeAtivo.passeAtivo) { %>
+    <!-- Modal de Compra de Passe (igual ao de explorar_atividades) -->
+    <div id="purchaseModal" class="modal-backdrop" style="display: none;">
+      <div class="modal">
+        <div class="modal-header">
+          <h3><i class="fas fa-ticket-alt"></i> Passe de Estudos</h3>
+          <button type="button" class="close-button" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-intro-text">Escolha o Passe de Estudos ideal para você e continue aprendendo!</p>
+          <div class="pass-options">
+            <div class="pass-card">
+              <h4>Passe +10</h4>
+              <p>+10 atividades para usar quando quiser.</p>
+              <p class="price">R$ 10,00</p>
+              <a href="/comprar-passe/quantidade_10" class="btn-purchase">Comprar Agora</a>
+            </div>
+            <div class="pass-card featured">
+              <h4>Passe Diário</h4>
+              <p>Atividades ilimitadas pelas próximas 24 horas.</p>
+              <p class="price">R$ 15,00</p>
+              <a href="/comprar-passe/diario" class="btn-purchase">Comprar Agora</a>
+            </div>
+            <div class="pass-card">
+              <h4>Passe Semanal</h4>
+              <p>Atividades ilimitadas por 7 dias.</p>
+              <p class="price">R$ 25,00</p>
+              <a href="/comprar-passe/semanal" class="btn-purchase">Comprar Agora</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
 
 <script src="../js/accessibility.js"></script>  
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const startedAt = Date.now();
+  let startedAt = Date.now();
   const userId = '<%= user.id %>'; // Injeta o ID do usuário no script
-
-  // Lógica para marcar conteúdo de apoio como consumido
-  const btnConteudoConsumido = document.getElementById('conteudo-consumido-btn');
-  if (btnConteudoConsumido) {
-    btnConteudoConsumido.addEventListener('click', async () => {
-      const itemId = btnConteudoConsumido.dataset.itemId;
-      btnConteudoConsumido.disabled = true;
-      btnConteudoConsumido.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Carregando...';
-
-      try {
-        await fetch('/api/trilha-adaptativa/marcar-consumido', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ itemId })
-        });
-        window.location.href = '/trilha'; // Recarrega para obter a próxima tarefa
-      } catch (error) {
-        console.error('Falha ao marcar conteúdo como consumido', error);
-        btnConteudoConsumido.disabled = false;
-        btnConteudoConsumido.innerHTML = 'Tentar Novamente <i class="fas fa-redo"></i>';
-      }
-    });
-  }
 
   // Lógica para submissão de questões via API
   const form = document.getElementById('trilha-form');
@@ -224,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemId = formData.get('item_id');
 
         if (!respostaDada) {
-          alert('Por favor, selecione uma resposta.');
+          Swal.fire("Por favor, selecione uma resposta.");
           return;
         }
 
@@ -260,14 +344,119 @@ document.addEventListener('DOMContentLoaded', () => {
 
       form.addEventListener('submit', handleSubmit);
 
+      // --- Tutor de IA (dica e explicação) ---
+      // O texto vem da IA e entra SEMPRE via textContent: innerHTML com string
+      // remota seria um vetor de XSS direto na tela do aluno.
+      const tutorContainer = document.getElementById('tutor-container');
+      const btnDica = document.getElementById('btn-dica');
+
+      const MENSAGENS_TUTOR = {
+        401: 'Faça login novamente para usar o tutor.',
+        400: 'Não consegui identificar a questão. Recarregue a página.',
+        404: 'Esta questão não faz parte da sua trilha.',
+        409: 'Este pedido não está disponível agora: a dica vale enquanto a questão está em aberto, e a explicação depois de resolvida.',
+        402: 'Você precisa de um Passe de Estudos para usar a IA. Adquira um para continuar.',
+        502: 'A IA não respondeu. Tente de novo em alguns segundos.'
+      };
+
+      function mostrarTutor(titulo, texto, nota, ehErro) {
+        tutorContainer.innerHTML = '';
+        const box = document.createElement('div');
+        box.className = `tutor-box${ehErro ? ' tutor-erro' : ''}`;
+        const h = document.createElement('p');
+        h.className = 'tutor-rotulo';
+        h.textContent = ehErro ? `⚠ ${titulo}` : `✨ ${titulo}`;
+        const p = document.createElement('p');
+        p.textContent = texto;
+        box.appendChild(h);
+        box.appendChild(p);
+        if (nota) {
+          const n = document.createElement('p');
+          n.className = 'tutor-nota';
+          n.textContent = nota;
+          box.appendChild(n);
+        }
+        tutorContainer.appendChild(box);
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      async function pedirTutor(caminho, botao, titulo) {
+        const itemId = new FormData(form).get('item_id');
+        const rotuloOriginal = botao.innerHTML;
+        botao.disabled = true;
+        botao.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regi está pensando...';
+        try {
+          const response = await fetch(`/api/trilha-adaptativa${caminho}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemId: Number(itemId) })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            mostrarTutor('Tutor indisponível', data.message || MENSAGENS_TUTOR[response.status] || 'Erro no servidor.', null, true);
+            return;
+          }
+          const texto = data.dica || data.explicacao || '(sem texto)';
+          const nota = [
+            data.cache ? 'Você já tinha pedido isto para esta questão: respondendo de graça.' : '',
+            typeof data.restantes === 'number' ? `Passe de estudos: ${data.restantes} utilização(ões) restante(s).` : ''
+          ].filter(Boolean).join(' ') || null;
+          mostrarTutor(titulo, texto, nota, false);
+        } catch (error) {
+          console.error('Erro no tutor:', error);
+          mostrarTutor('Tutor indisponível', 'Falha de conexão. Verifique sua internet e tente de novo.', null, true);
+        } finally {
+          botao.disabled = false;
+          botao.innerHTML = rotuloOriginal;
+        }
+      }
+
+      if (btnDica) {
+        btnDica.addEventListener('click', () => pedirTutor('/tutor/dica', btnDica, 'Dica do Regi'));
+      }
+
       function displayFeedback(result, respostaDada) {
         const { feedback } = result;
         if (!feedback) {
             feedbackContainer.innerHTML = `<div class="feedback-box"><p>Ocorreu um erro ao processar o feedback.</p></div>`;
             return;
         }
-        const { acertou, gabarito, explicacao, xpGanho, novoStreak } = feedback;
-        
+        const { acertou, gabarito, explicacao, xpGanho, novoStreak, streakAnterior, planoReforco, podeTentarNovamente, tentativasRestantes } = feedback;
+
+        // --- Repetição: errar ainda não encerra a questão ---
+        // O item segue pendente no backend, então o aluno deve ver a MESMA
+        // questão e poder escolher de novo. Não marcamos alternativas (o
+        // gabarito não vem nessa resposta, senão a nova tentativa não valeria)
+        // e o formulário volta a aceitar envio.
+        if (podeTentarNovamente) {
+            optionsGroup.querySelectorAll('.option-card label').forEach(label => label.classList.remove('incorreta', 'correta'));
+            optionsGroup.querySelectorAll('input[type="radio"]').forEach(radio => { radio.checked = false; radio.disabled = false; });
+
+            // Aviso da sequência perdida. Só aparece quando havia streak de fato:
+            // sem essa checagem, quem já estava em 0 veria um aviso mentiroso.
+            const streakHTML = streakAnterior > 0
+              ? `<div class="streak-perdido">
+                   <i class="fas fa-fire"></i>
+                   <span>Você perdeu sua sequência de <strong>${streakAnterior}</strong> acerto(s) seguido(s). Acerte na próxima para recomeçar!</span>
+                 </div>`
+              : '';
+
+            feedbackContainer.innerHTML = `
+              <div class="feedback-box retry-box">
+                <h3>Ainda não é essa.</h3>
+                <p>${explicacao || 'Reveja o enunciado com atenção e tente novamente.'}</p>
+                ${streakHTML}
+                <p class="retry-hint">Você ainda pode errar ${tentativasRestantes} vez(es) antes de esta resposta ser definitiva.</p>
+              </div>`;
+            submitBtn.innerHTML = '<i class="fas fa-rotate-right"></i> Tentar novamente';
+            submitBtn.classList.remove('continuar');
+            submitBtn.disabled = false;
+            // O tempo da nova tentativa conta do zero: senão a ida e volta do
+            // feedback inflaria o tempo e o motor a trataria como resposta lenta.
+            startedAt = Date.now();
+            return;
+        }
+
         optionsGroup.querySelectorAll('input[type="radio"]').forEach(radio => radio.disabled = true);
 
         optionsGroup.querySelectorAll('.option-card label').forEach(label => {
@@ -293,13 +482,43 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         }
 
+        // Escada de intervenção: o backend já devolve os passos em texto legível
+        // (`planoReforco`), mas nada os exibia — o aluno errava e não recebia o
+        // plano de reforço que o motor havia montado.
+        const reforcoHTML = (planoReforco && planoReforco.length)
+          ? `<div class="reforco-plano">
+               <strong><i class="fas fa-stairs"></i> Vamos reforçar esse conteúdo:</strong>
+               <ol>${planoReforco.map(passo => `<li>${passo}</li>`).join('')}</ol>
+             </div>`
+          : '';
+
         const feedbackHTML = `
           <div class="feedback-box">
             <h3>${acertou ? 'Resposta Correta!' : 'Quase lá!'}</h3>
             <p>${explicacao || "Nenhuma explicação fornecida."}</p>
+            ${reforcoHTML}
             ${gamificationHTML}
           </div>`;
         feedbackContainer.innerHTML = feedbackHTML;
+
+        // Resolvido: a dica deixa de fazer sentido (o item já está fechado no
+        // backend, que responderia 409). O aluno passa a pedir a EXPLICAÇÃO.
+        const btnDicaFinal = document.getElementById('btn-dica');
+        if (btnDicaFinal) btnDicaFinal.style.display = 'none';
+
+        // A explicação da IA só existe para erro definitivo: no acerto o
+        // feedback já entregou o caminho, e a rota exige item CONCLUIDO.
+        if (!acertou) {
+          const acoesTutor = document.createElement('div');
+          acoesTutor.className = 'tutor-actions';
+          const btnExplicacao = document.createElement('button');
+          btnExplicacao.type = 'button';
+          btnExplicacao.className = 'tutor-btn';
+          btnExplicacao.innerHTML = '<i class="fas fa-graduation-cap"></i> Explicar meu erro (IA)';
+          btnExplicacao.addEventListener('click', () => pedirTutor('/tutor/explicacao', btnExplicacao, 'Explicação do Regi'));
+          acoesTutor.appendChild(btnExplicacao);
+          feedbackContainer.appendChild(acoesTutor);
+        }
 
         submitBtn.innerHTML = 'Próxima Tarefa <i class="fas fa-arrow-right"></i>';
         submitBtn.classList.add('continuar');
@@ -311,6 +530,28 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = '/trilha'; // Ação de continuar para a próxima tarefa
         };
       }
+  }
+
+  // Modal de Compra de Passe: o botão e o modal só existem no HTML quando o
+  // aluno não tem nenhum passe ativo (renderização condicional na view).
+  const purchaseModal = document.getElementById('purchaseModal');
+  const openPassModalBtn = document.getElementById('open-pass-modal-btn');
+
+  const closePurchaseModal = () => {
+    if (purchaseModal) purchaseModal.style.display = 'none';
+    document.body.classList.remove('no-scroll');
+  };
+
+  if (openPassModalBtn && purchaseModal) {
+    openPassModalBtn.addEventListener('click', () => {
+      purchaseModal.style.display = 'flex';
+      document.body.classList.add('no-scroll');
+    });
+    purchaseModal.querySelector('.close-button')?.addEventListener('click', closePurchaseModal);
+    // Clique no fundo escuro também fecha o modal
+    purchaseModal.addEventListener('click', (e) => {
+      if (e.target === purchaseModal) closePurchaseModal();
+    });
   }
 });
 </script>

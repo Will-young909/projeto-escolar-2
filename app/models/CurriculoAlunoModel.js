@@ -17,7 +17,7 @@ const CurriculoAlunoModel = {
   },
 
   async listHabilidades(curriculoId) {
-    const [rows] = await pool.query('SELECT h.* FROM habilidades_curriculo hc JOIN habilidades h ON h.id = hc.habilidade_id WHERE hc.curriculo_id = ? ORDER BY hc.ordem ASC', [curriculoId]);
+    const [rows] = await pool.query('SELECT h.*, hc.ordem FROM habilidades_curriculo hc JOIN habilidades h ON h.id = hc.habilidade_id WHERE hc.curriculo_id = ? ORDER BY hc.ordem ASC', [curriculoId]);
     return rows;
   }
 };

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Comentário | Regimath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
+  <link rel="stylesheet" href="/css/accessibility.css" />
+  <style>
+    /* ============ VARIÁVEIS CSS (PALETA REGIMATH) ============ */
+    :root {
+      --color-primary: #800020;
+      --color-secondary: #b22222;
+      --color-accent: #E8AE1E;
+      --color-star: #f4b400;
+      --color-background: #f7f8fa;
+      --color-card-bg: #fff;
+      --color-text-dark: #222;
+      --color-text-secondary: #4a4a4a;
+      --color-text-light: #fff;
+      --color-error: #cc0000;
+      --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --font-family: "Poppins", Arial, sans-serif;
+    }
+
+    /* ============ RESET & GERAIS ============ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+    }
+
+    body {
+      background-color: var(--color-background);
+      color: var(--color-text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ============ HEADER ============ */
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      background: #fff;
+      padding: 8px var(--spacing-md);
+      height: 60px;
+      border-bottom: var(--color-primary) solid 2px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .logo {
+      width: 120px;
+      height: 70px;
+      object-fit: contain;
+    }
+
+    /* ============ MAIN / FORMULÁRIO ============ */
+    main {
+      width: 100%;
+      max-width: 600px;
+      margin: 2rem auto;
+      padding: var(--spacing-lg);
+      background-color: var(--color-card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      color: var(--color-primary);
+      font-size: 1.8rem;
+      margin-bottom: var(--spacing-lg);
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: var(--spacing-md);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--color-text-dark);
+    }
+
+    label i {
+      color: var(--color-primary);
+      margin-right: 6px;
+    }
+
+    /* ============ TEXTAREA ============ */
+    textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 4px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1em;
+      font-family: var(--font-family);
+      resize: vertical;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      background: var(--color-card-bg);
+      color: var(--color-text-dark);
+    }
+
+    textarea:focus,
+    textarea.invalid {
+      border-color: var(--color-primary);
+      outline: none;
+      box-shadow: 0 0 5px rgba(128, 0, 32, 0.3);
+    }
+
+    textarea.invalid {
+      border-color: var(--color-error) !important;
+      box-shadow: 0 0 4px rgba(204, 0, 0, 0.3) !important;
+    }
+
+    /* ============ SISTEMA DE AVALIAÇÃO POR ESTRELAS ============ */
+    .rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      gap: 5px;
+      margin-top: 6px;
+      border: none;
+      padding: 0;
+    }
+
+    .rating input {
+      display: none;
+    }
+
+    .rating label {
+      font-size: 1.5rem;
+      color: #ddd;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      margin-bottom: 0;
+    }
+
+    .rating label::before {
+      content: "\f005"; /* Ícone de estrela do FontAwesome */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+
+    /* Cores ao passar o mouse ou selecionar */
+    .rating input:checked ~ label,
+    .rating label:hover,
+    .rating label:hover ~ label {
+      color: var(--color-star);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    /* ============ BOTÃO ============ */
+    .btn-primary {
+      margin-top: var(--spacing-lg);
+      padding: 14px;
+      background-color: var(--color-primary);
+      color: var(--color-text-light);
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.3s ease, transform 0.1s;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-secondary);
+      transform: translateY(-1px);
+    }
+
+    /* ============ LINKS INFERIORES ============ */
+    .links-footer {
+      margin-top: var(--spacing-lg);
+      text-align: center;
+    }
+
+    .link-secundario {
+      color: var(--color-secondary);
+      text-decoration: none;
+      font-size: 1em;
+      font-weight: 600;
+      transition: 0.3s ease;
+    }
+
+    .link-secundario:hover {
+      color: var(--color-primary);
+      text-decoration: underline;
+    }
+
+    /* ============ MENSAGENS DE ERRO ============ */
+    .error-feedback {
+      color: var(--color-error);
+      font-size: 0.85rem;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    .error-summary {
+      border: 1px solid var(--color-error);
+      background: #ffebeb;
+      color: var(--color-error);
+      padding: 12px 16px;
+      margin-bottom: var(--spacing-lg);
+      border-radius: var(--border-radius);
+    }
+
+    .error-summary h4 {
+      margin: 0 0 8px;
+      font-weight: 700;
+    }
+
+    .error-summary ul {
+      padding-left: 20px;
+      margin-top: 5px;
+      list-style-type: disc;
+    }
+
+    /* ============ RESPONSIVIDADE ============ */
+    @media (max-width: 768px) {
+      main {
+        margin: 1rem;
+        padding: var(--spacing-md);
+        width: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
+  <header>
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+  </header>
+
+  <main>
+    <form id="editarComentarioForm" action="/exibir_prof/<%= professorId %>/comentario/<%= comentario.id %>/editar" method="POST" novalidate>
+      <h2>Editar Comentário</h2>
+
+      <% if (typeof erros !== 'undefined' && Object.keys(erros).length > 0) { %>
+        <section class="error-summary" role="alert" aria-live="assertive">
+          <h4>⚠️ Por favor, corrija os seguintes erros:</h4>
+          <ul>
+            <% Object.keys(erros).forEach(key => { %>
+              <li><%= erros[key].msg %></li>
+            <% }); %>
+          </ul>
+        </section>
+      <% } %>
+
+      <section class="form-group">
+        <label for="texto"><i class="fas fa-comment"></i> Seu Comentário *</label>
+        <textarea id="texto" name="texto" required rows="4"><%= comentario.texto %></textarea>
+        <p id="err-texto" class="error-feedback"><%= erros?.texto?.msg || '' %></p>
+      </section>
+
+      <section class="form-group">
+        <label for="nota"><i class="fas fa-star"></i> Avaliação *</label>
+        <fieldset class="rating">
+          <legend class="visually-hidden">Avalie o professor</legend>
+          <input type="radio" id="star5" name="nota" value="5" <%= comentario.nota === 5 ? 'checked' : '' %> />
+          <label for="star5" title="5 estrelas"></label>
+          <input type="radio" id="star4" name="nota" value="4" <%= comentario.nota === 4 ? 'checked' : '' %> />
+          <label for="star4" title="4 estrelas"></label>
+          <input type="radio" id="star3" name="nota" value="3" <%= comentario.nota === 3 ? 'checked' : '' %> />
+          <label for="star3" title="3 estrelas"></label>
+          <input type="radio" id="star2" name="nota" value="2" <%= comentario.nota === 2 ? 'checked' : '' %> />
+          <label for="star2" title="2 estrelas"></label>
+          <input type="radio" id="star1" name="nota" value="1" <%= comentario.nota === 1 ? 'checked' : '' %> />
+          <label for="star1" title="1 estrela"></label>
+        </fieldset>
+        <p id="err-nota" class="error-feedback"><%= erros?.nota?.msg || '' %></p>
+      </section>
+
+      <button type="submit" class="btn-primary" id="btn-submit">
+        <i class="fas fa-save"></i> Salvar Alterações
+      </button>
+
+      <section class="links-footer">
+        <p><a href="/exibir_prof/<%= professorId %>" class="link-secundario">Cancelar e voltar ao perfil</a></p>
+      </section>
+    </form>
+  </main>
+  <script src="/js/accessibility.js"></script>
+</body>
+</html>

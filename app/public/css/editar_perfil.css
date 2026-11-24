@@ -56,86 +56,9 @@ body.no-scroll {
   height: 70px;
   object-fit: contain;
 }
-.menu-btn {
-  font-size: 1.8rem;
-  background: none;
-  border: none;
-  color: #800020;
-  cursor: pointer;
-}
 
-/* ============ MENU LATERAL ============ */
-nav {
-  position: fixed;
-  top: 0;
-  left: -260px; /* Largura base aumentada para 260px */
-  width: 260px;
-  height: 100vh;
-  background: var(--vinho);
-  padding-top: 60px; /* Espaço para o header */
-  transition: 0.3s;
-  z-index: 1002;
-}
-
-nav.active {
-  left: 0px;
-}
-
-.nav-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-links li, button {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-nav a, nav li button {
-  color: #fff;
-  text-decoration: none;
-  padding: 8px 24px;
-  font-size: 1rem;
-  transition: background 0.3s;
-  display: block;
-}
-
-nav a:hover {
-  background: var(--vinho-escuro);
-}
-
-#close-menu {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #fff;
-  cursor: pointer;
-}
-
-/* Botão de recolher (desktop) */
-#toggle-menu {
-  position: absolute;
-  top: 15px;
-  right: -17px; /* Posicionado fora do painel */
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: var(--vinho);
-  border: 2px solid rgba(255,255,255,0.2);
-  display: none; 
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1003;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-#toggle-menu:hover { transform: scale(1.05); }
-
-#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+.subheader__back { border: none; background: none; color: var(--bordo); font-weight: 600; font-size: 0.9rem; padding: 0.35rem 0.6rem; border-radius: 999px; cursor: pointer; transition: 0.25s ease; }
+.subheader__back:hover { background: rgba(128, 0, 32, 0.06); }
 
 /* Overlay */
 #overlay {
@@ -207,6 +130,7 @@ label {
 }
 
 input, textarea, #changePasswordForm input {
+  color: var(--cinza);
   background: var(--branco);
   padding: 14px;
   border: 1.5px solid #ccc;
@@ -324,7 +248,7 @@ input:focus, textarea:focus, #changePasswordForm input:focus {
 
 .btn-alterar-senha {
   background: var(--vinho);
-  color: var(--cinza);
+  color: #fff;
   padding: 12px 28px;
   border-radius: 30px;
   font-weight: 700;
@@ -520,7 +444,7 @@ select {
     margin-left: 260px;
     transition: margin-left 0.3s ease;
     position: sticky;
-    left: 25%;
+    left: 20%;
   }
 
   .conteudo-principal {
@@ -559,19 +483,11 @@ select {
     width: 200%;
     margin: 0 auto;
     }
-
-    .logo {
-    position: absolute;
-    top: -10px;
-    left: 265px;
-    width: 175px;
-    }
 }
 
 @media (min-width: 1024px) {
   .perfil-container {
     max-width: 1000px;
     position: sticky;
-    left: 25%;
   }
 }

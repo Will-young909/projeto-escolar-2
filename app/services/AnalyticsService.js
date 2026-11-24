@@ -29,10 +29,14 @@ const AnalyticsService = {
 
             // 3. Buscar resumo de habilidades (pontos fortes e a melhorar)
             const [habilidades] = await pool.query(
-                `SELECT habilidade_id, AVG(percentual) as mediaPercentual
-                 FROM resultado_habilidade
-                 WHERE aluno_id = ?
-                 GROUP BY habilidade_id
+                `SELECT rh.habilidade_id,
+                          h.descricao as habilidade_nome,
+                          AVG(rh.percentual) as mediaPercentual,
+                          COUNT(*) as n_resultados
+                 FROM resultado_habilidade rh
+                 JOIN habilidades h ON h.id = rh.habilidade_id
+                 WHERE rh.aluno_id = ?
+                 GROUP BY rh.habilidade_id, h.descricao
                  ORDER BY mediaPercentual DESC`,
                 [alunoId]
             );

@@ -437,6 +437,11 @@ h1 {
   font-size: 0.9rem;
   color: var(--cinza-escuro);
   margin-bottom: 0.5rem;
+
+  /* ADICIONE ESTAS LINHAS PARA FORÇAR A QUEBRA DE TEXTOS LONGOS */
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .fb-card__rodape {

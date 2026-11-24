@@ -69,7 +69,9 @@ const GamificationService = {
                 await AlunoModel.update(alunoId, { streak_acertos: 0 });
 
                 console.log(`[Gamification] Resultado (ERROU A QUESTÃO) para ${alunoId}. Streak de acertos zerado (era ${streakAntes}).`);
-                return { xpGanho: 0, novoStreak: 0 };
+                // `streakAnterior` permite à tela avisar que houve perda real — sem
+                // ele, quem já estava em 0 veria um aviso mentiroso.
+                return { xpGanho: 0, novoStreak: 0, streakAnterior: streakAntes };
             }
         } catch (error) {
             console.error(`[Gamification] Erro ao registrar resultado para ${alunoId}:`, error);

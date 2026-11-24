@@ -12,7 +12,9 @@
 
   <!-- Estilos -->
   <link rel="stylesheet" href="/css/painel_adm.css">
-</head>
+  <link rel="stylesheet" href="../css/accessibility.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
 <body>
   <!-- Header -->
@@ -40,8 +42,11 @@
       <li><a href="#page-users" class="admin-nav-link"><i class="fa-solid fa-users"></i><p class="label">Usuários</p><p class="badge" id="pending-teachers-badge"><%= pagination.totalItems %></p></a></li>
       <li><a href="#page-finance" class="admin-nav-link"><i class="fa-solid fa-wallet"></i><p class="label">Financeiro</p></a></li>
       <li><a href="#page-moderation" class="admin-nav-link"><i class="fa-solid fa-shield-halved"></i><p class="label">Moderação</p><p class="badge" id="open-reports-badge"><%= typeof openReports !== 'undefined' ? openReports : 0 %></p></a></li>
-      <li><a href="#page-settings" class="admin-nav-link"><i class="fa-solid fa-gear"></i><p class="label">Configurações</p></a></li>
+      <% if (typeof adminUser !== 'undefined' && adminUser && adminUser.role === 'superadmin') { %>
+      <li><a href="#page-admins" class="admin-nav-link"><i class="fa-solid fa-user-shield"></i><p class="label">Administradores</p></a></li>
+      <% } %>
       <li><a href="/" class="admin-nav-link"><i class="fas fa-home"></i><p class="label">Home</p></a></li>
+      <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
       <li><a href="/logout" class="admin-nav-link"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg><p class="label">Sair</p></a></li>
     </ul>
   </nav>
@@ -63,7 +68,7 @@
           <section id="kpi-revenue" class="kpi-value">Carregando...</section>
         </section>
         <section class="kpi-card warning">
-          <section class="kpi-label">Repasse Pendente (Professores)</section>
+          <section class="kpi-label">Valores retidos e repasses devidos</section>
           <section id="kpi-pending-payments" class="kpi-value">Carregando...</section>
         </section>
         <section class="kpi-card">
@@ -105,6 +110,8 @@
                         <tr>
                             <th>Nome</th>
                             <th>Email</th>
+                            <th>Formação</th>
+                            <th>Perfil enviado em</th>
                             <th>Registrado em</th>
                             <th>Ações</th>
                         </tr>
@@ -115,8 +122,11 @@
                                 <tr>
                                     <td><%= teacher.nome %></td>
                                     <td><%= teacher.email %></td>
-                                    <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR') %></td>
+                                    <td><%= teacher.formacao || '—' %></td>
+                                    <td><%= teacher.perfil_enviado_em ? new Date(teacher.perfil_enviado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—' %></td>
+                                    <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                     <td class="actions-buttons">
+                                        <a href="/admin/teachers/<%= teacher.id %>" title="Ver detalhes" class="btn btn-primary" style="display: inline-flex; align-items: center; justify-content: center;"><i class="fa-solid fa-eye"></i>Ver detalhes</a>
                                         <form action="/admin/teachers/<%= teacher.id %>/approve" method="POST" style="display: inline;">
                                             <button title="Aprovar" type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i></button>
                                         </form>
@@ -129,7 +139,7 @@
                             <% }); %>
                         <% } else { %>
                             <tr>
-                                <td colspan="4">Nenhum professor encontrado com os filtros atuais.</td>
+                                <td colspan="6">Nenhum professor encontrado com os filtros atuais.</td>
                             </tr>
                         <% } %>
                     </tbody>
@@ -176,7 +186,7 @@
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
                                 <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
-                                <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR') %></td>
+                                <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                     <form action="/admin/teachers/<%= teacher.id %>/suspend" method="POST" style="display: inline;">
                                         <textarea name="reason" placeholder="Motivo da suspensão..." required style="width: 100px; height: 30px; vertical-align: middle;"></textarea>
@@ -209,7 +219,7 @@
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
                                 <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
-                                <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR') %></td>
+                                <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                      <form action="/admin/teachers/<%= teacher.id %>/reactivate" method="POST" style="display: inline;">
                                         <button title="Reativar" type="submit" class="btn btn-primary"><i class="fa-solid fa-redo"></i></button>
@@ -228,12 +238,14 @@
     <section class="content-page" id="page-finance">
         <section class="card">
             <h2 class="section-title">Repasses Pendentes</h2>
+            <p>Pagamentos brutos ficam retidos até a aula ser concluída; depois, o valor líquido do professor fica disponível para repasse.</p>
             <div class="table-wrapper">
                 <table class="data-table" id="pending-payouts-table">
                     <thead>
                         <tr>
                             <th>Professor</th>
-                            <th>Valor</th>
+                            <th>Valor retido / líquido a repassar</th>
+                            <th>Situação</th>
                             <th>Data da Solicitação</th>
                             <th>Ações</th>
                         </tr>
@@ -252,7 +264,9 @@
                         <tr>
                             <th>ID Transação</th>
                             <th>Descrição</th>
-                            <th>Valor</th>
+                            <th>Valor bruto</th>
+                            <th>Taxa plataforma</th>
+                            <th>Líquido professor</th>
                             <th>Status</th>
                             <th>Data</th>
                             <th>Aluno</th>
@@ -346,33 +360,45 @@
 
                 <div class="admin-actions">
                     <h4>Ações de Moderação</h4>
+                    <p id="denuncia-action-feedback" style="margin: 0 0 8px 0; font-size: 0.9em;"></p>
                     <form id="denuncia-actions-form"></form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CONFIGURAÇÕES -->
-    <section class="content-page" id="page-settings">
+    <% if (typeof adminUser !== 'undefined' && adminUser && adminUser.role === 'superadmin') { %>
+    <!-- ADMINISTRADORES -->
+    <section class="content-page" id="page-admins">
       <section class="card">
-        <h2 class="section-title">Configurações da Plataforma</h2>
-        <form id="settings-form">
+        <h2 class="section-title">Cadastrar Administrador</h2>
+        <p>Cadastre um novo administrador da plataforma (acesso restrito a superadmin).</p>
+        <form id="create-admin-form">
           <section class="form-group">
-            <label for="platform-fee">Taxa da Plataforma (%)</label>
-            <input type="number" id="platform-fee" value="20" min="0" max="100" step="1">
-            <small>Percentual que a Regimath retém sobre cada aula.</small>
+            <label for="new-admin-email">E-mail</label>
+            <input type="email" id="new-admin-email" name="email" required placeholder="email@exemplo.com">
           </section>
           <section class="form-group">
-            <label for="admin-email">E-mail de Suporte</label>
-            <input type="email" id="admin-email" value="contato@regimath.com">
+            <label for="new-admin-password">Senha</label>
+            <input type="password" id="new-admin-password" name="senha" minlength="6" required placeholder="Mínimo 6 caracteres">
           </section>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Salvar</button>
+          <section class="form-group">
+            <label for="new-admin-role">Role</label>
+            <select id="new-admin-role" name="role" required>
+              <option value="admin">admin</option>
+              <option value="superadmin">superadmin</option>
+            </select>
+          </section>
+          <p id="create-admin-feedback" style="margin: 8px 0; font-size: 0.9em;"></p>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Cadastrar Administrador</button>
         </form>
       </section>
     </section>
+    <% } %>
   </main>
 
   <!-- Scripts -->
+   <script src="../js/accessibility.js"></script>
   <script>
     async function openDenunciaModal(denuncia) {
         document.getElementById('modal-title').innerText = `Detalhes da Denúncia: ${denuncia.titulo}`;
@@ -456,11 +482,23 @@
         }
 
         const evidenciaInfoEl = document.getElementById('evidencia-info');
+        const evidenciaParts = [];
         if (denuncia.evidencia) {
-            evidenciaInfoEl.innerHTML = `<p><strong>Evidência:</strong> <a href="${denuncia.evidencia}" target="_blank">Abrir link</a></p>`;
-        } else {
-            evidenciaInfoEl.innerHTML = '';
+            evidenciaParts.push(`<p><strong>Evidência (link):</strong> <a href="${denuncia.evidencia}" target="_blank" rel="noopener noreferrer">Abrir link</a></p>`);
         }
+        if (denuncia.evidencia_arquivo) {
+            const fileUrl = `/denuncia/evidencia/${denuncia.id}`;
+            const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(denuncia.evidencia_arquivo);
+            const isVideo = /\.(mp4|webm|mov)$/i.test(denuncia.evidencia_arquivo);
+            if (isImage) {
+                evidenciaParts.push(`<p><strong>Evidência (arquivo):</strong></p><p><a href="${fileUrl}" target="_blank" rel="noopener noreferrer"><img src="${fileUrl}" alt="Evidência da denúncia" style="max-width:320px; max-height:240px; border-radius:8px; border:1px solid #ddd;"></a></p>`);
+            } else if (isVideo) {
+                evidenciaParts.push(`<p><strong>Evidência (arquivo):</strong></p><video src="${fileUrl}" controls style="max-width:320px; max-height:240px; border-radius:8px; border:1px solid #ddd;"></video><p><a href="${fileUrl}" target="_blank" rel="noopener noreferrer">Abrir arquivo</a></p>`);
+            } else {
+                evidenciaParts.push(`<p><strong>Evidência (arquivo):</strong> <a href="${fileUrl}" target="_blank" rel="noopener noreferrer">Abrir arquivo</a></p>`);
+            }
+        }
+        evidenciaInfoEl.innerHTML = evidenciaParts.join('');
 
         const historicoListaEl = document.getElementById('historico-lista');
         historicoListaEl.innerHTML = '<li>Carregando histórico...</li>';
@@ -486,55 +524,153 @@
         }
 
         const actionsFormEl = document.getElementById('denuncia-actions-form');
+        const feedbackEl = document.getElementById('denuncia-action-feedback');
+        const setFeedback = (msg, ok) => {
+            if (!feedbackEl) return;
+            feedbackEl.textContent = msg || '';
+            feedbackEl.style.color = ok ? '#15803d' : '#b91c1c';
+        };
+        const refreshDenunciaHistorico = async () => {
+            const historicoListaEl = document.getElementById('historico-lista');
+            try {
+                const histRes = await fetch(`/admin/denuncias/${denuncia.id}/historico`, { headers: { 'Accept': 'application/json' } });
+                if (!histRes.ok) throw new Error('Falha ao carregar histórico');
+                const historico = await histRes.json();
+                if (Array.isArray(historico) && historico.length > 0) {
+                    historicoListaEl.innerHTML = historico.map(h => {
+                        const dataAcao = h.criado_em ? new Date(h.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'data indisponível';
+                        return `<li><strong>${h.acao || 'Ação desconhecida'}</strong> por ${h.usuario_nome || 'Sistema'} em ${dataAcao}: <em>${h.detalhes || '(sem detalhes)'}</em></li>`;
+                    }).join('');
+                } else {
+                    historicoListaEl.innerHTML = '<li>Nenhuma ação registrada.</li>';
+                }
+            } catch (e) {
+                historicoListaEl.innerHTML = '<li>Erro ao carregar histórico.</li>';
+            }
+        };
+        const updateStatusUI = (newStatus) => {
+            if (!newStatus) return;
+            denuncia.status = newStatus;
+            const statusEl = document.getElementById('modal-status');
+            if (statusEl) {
+                statusEl.innerText = newStatus;
+                statusEl.className = `status-badge status-${String(newStatus).toLowerCase().replace(/ /g, '-')}`;
+            }
+            const sel = actionsFormEl.querySelector('select[name="status"]');
+            if (sel) sel.value = newStatus;
+            document.querySelectorAll('.data-table tbody tr').forEach(tr => {
+                const first = tr.querySelector('td');
+                if (first && first.textContent.trim() === ('#' + denuncia.id)) {
+                    const badge = tr.querySelector('.status-badge');
+                    if (badge) {
+                        badge.innerText = newStatus;
+                        badge.className = `status-badge status-${String(newStatus).toLowerCase().replace(/ /g, '-')}`;
+                    }
+                }
+            });
+        };
+        setFeedback('', true);
         actionsFormEl.innerHTML = `
             <input type="hidden" name="denunciaId" value="${denuncia.id}">
-            <input type="hidden" name="userId" value="${denuncia.denunciado_id}">
+            <input type="hidden" name="userId" value="${denuncia.denunciado_id || ''}">
             
             <div class="form-group-row">
                 <div class="form-group">
                     <label>Mudar Status:</label>
-                    <select name="status">
+                    <select name="status" class="select">
                         <option value="aberta" ${denuncia.status === 'aberta' ? 'selected' : ''}>Aberta</option>
                         <option value="em_analise" ${denuncia.status === 'em_analise' ? 'selected' : ''}>Em Análise</option>
                         <option value="resolvida" ${denuncia.status === 'resolvida' ? 'selected' : ''}>Resolvida</option>
                         <option value="rejeitada" ${denuncia.status === 'rejeitada' ? 'selected' : ''}>Rejeitada</option>
                     </select>
                 </div>
-                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/status" formmethod="POST" class="btn btn-primary">Atualizar</button>
+                <button type="button" data-action="status" data-url="/admin/denuncias/${denuncia.id}/status" class="btn btn-primary">Atualizar</button>
             </div>
             <hr>
             <div class="form-group">
                 <label>Advertir Usuário:</label>
                 <textarea name="message" placeholder="Mensagem de advertência para o usuário..."></textarea>
-                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/warn" formmethod="POST" class="btn btn-warning">Advertir</button>
+                <button type="button" data-action="warn" data-url="/admin/denuncias/${denuncia.id}/warn" class="btn btn-warning">Advertir</button>
             </div>
             <hr>
             <div class="form-group">
                 <label>Suspender Usuário:</label>
                 <input type="number" name="duration" placeholder="Dias de suspensão (ex: 7)" min="1">
                 <textarea name="reason" placeholder="Motivo da suspensão para o usuário..."></textarea>
-                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/suspend" formmethod="POST" class="btn btn-danger">Suspender</button>
+                <button type="button" data-action="suspend" data-url="/admin/denuncias/${denuncia.id}/suspend" class="btn btn-danger">Suspender</button>
             </div>
             <hr>
             <div class="form-group">
                 <label>Banir Usuário:</label>
                 <textarea name="reasonBan" placeholder="Motivo do banimento para o usuário..."></textarea>
-                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/ban" formmethod="POST" class="btn btn-danger">Banir Permanentemente</button>
+                <button type="button" data-action="ban" data-url="/admin/denuncias/${denuncia.id}/ban" class="btn btn-danger">Banir Permanentemente</button>
             </div>
              <hr>
             <div class="form-group">
                 <label>Adicionar Observação Interna:</label>
                 <textarea name="note" placeholder="Observação visível apenas para admins..."></textarea>
-                <button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/note" formmethod="POST" class="btn btn-primary">Salvar Nota</button>
+                <button type="button" data-action="note" data-url="/admin/denuncias/${denuncia.id}/note" class="btn btn-primary">Salvar Nota</button>
             </div>
         `;
         if (denuncia.conteudo_info) {
-            const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
-            if (info.tipo === 'comentario') {
-                const deleteButton = `<button type="submit" form="denuncia-actions-form" formaction="/admin/denuncias/${denuncia.id}/delete-comment" formmethod="POST" class="btn btn-danger">Excluir Comentário</button>`;
-                actionsFormEl.innerHTML += deleteButton;
-            }
+            try {
+                const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
+                if (info && info.tipo === 'comentario') {
+                    actionsFormEl.insertAdjacentHTML('beforeend', `<hr><div class="form-group" id="delete-comment-group"><label>Conteúdo denunciado:</label><button type="button" data-action="delete-comment" data-url="/admin/denuncias/${denuncia.id}/delete-comment" class="btn btn-danger">Excluir Comentário</button></div>`);
+                }
+            } catch (_) {}
         }
+
+        actionsFormEl.onsubmit = (e) => e.preventDefault();
+        actionsFormEl.onclick = async (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const url = btn.dataset.url;
+            if (!url) return;
+            e.preventDefault();
+            const original = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Processando...';
+            setFeedback('', true);
+            try {
+                const formData = new FormData(actionsFormEl);
+                const body = new URLSearchParams(formData);
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body
+                });
+                let data = {};
+                try { data = await res.json(); } catch (_) {}
+                if (!res.ok || data.success === false) {
+                    throw new Error((data && data.message) || ('Falha ao executar ação (' + res.status + ').'));
+                }
+                setFeedback(data.message || 'Ação realizada com sucesso.', true);
+                if (action === 'status') {
+                    updateStatusUI(formData.get('status'));
+                } else if (action === 'warn') {
+                    const ta = actionsFormEl.querySelector('textarea[name="message"]'); if (ta) ta.value = '';
+                } else if (action === 'suspend') {
+                    const d = actionsFormEl.querySelector('input[name="duration"]'); if (d) d.value = '';
+                    const r = actionsFormEl.querySelector('textarea[name="reason"]'); if (r) r.value = '';
+                } else if (action === 'ban') {
+                    const r = actionsFormEl.querySelector('textarea[name="reasonBan"]'); if (r) r.value = '';
+                } else if (action === 'note') {
+                    const n = actionsFormEl.querySelector('textarea[name="note"]'); if (n) n.value = '';
+                } else if (action === 'delete-comment') {
+                    const grp = document.getElementById('delete-comment-group'); if (grp) grp.remove(); else btn.closest('.form-group')?.remove();
+                }
+                await refreshDenunciaHistorico();
+            } catch (err) {
+                setFeedback(err.message || 'Erro ao executar ação.', false);
+            } finally {
+                if (document.body.contains(btn)) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                }
+            }
+        };
 
         const modal = document.getElementById('denuncia-modal');
         modal.style.display = 'block';
@@ -579,7 +715,7 @@
         });
       }
 
-      const showPage = (targetId) => {
+      let showPage = (targetId) => {
         pages.forEach(p => p.classList.toggle('active', p.id === targetId.substring(1)));
         navLinks.forEach(l => {
           const active = l.getAttribute('href') === targetId;
@@ -639,7 +775,8 @@
       const fetchPendingPayouts = async () => {
         const tableBody = document.querySelector('#pending-payouts-table tbody');
         try {
-            const response = await fetch('/admin/financeiro/repasses?status=pendente');
+            const response = await fetch('/admin/financeiro/repasses');
+            if (!response.ok) throw new Error('Falha ao carregar repasses');
             const payouts = await response.json();
 
             tableBody.innerHTML = ''; // Limpa a tabela
@@ -649,19 +786,22 @@
                     row.innerHTML = `
                         <td>${payout.professor_nome}</td>
                         <td>${formatCurrency(payout.valor)}</td>
-                        <td>${new Date(payout.data_solicitacao).toLocaleDateString('pt-BR')}</td>
+                        <td>${payout.status === 'retido' ? 'Aguardando realização da aula' : 'Disponível para repasse'}</td>
+                        <td>${new Date(payout.data_solicitacao).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td>
                         <td class="actions-buttons">
-                            <button class="btn btn-success" onclick="markAsPaid(${payout.id})">Pagar</button>
+                            ${payout.status === 'pendente'
+                                ? `<button type="button" class="btn btn-success" data-payout-id="${payout.id}">Registrar pagamento</button>`
+                                : '—'}
                         </td>
                     `;
                     tableBody.appendChild(row);
                 });
             } else {
-                tableBody.innerHTML = '<tr><td colspan="4">Nenhum repasse pendente.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="5">Nenhum repasse pendente.</td></tr>';
             }
         } catch (error) {
             console.error('Error fetching pending payouts:', error);
-            tableBody.innerHTML = '<tr><td colspan="4">Erro ao carregar repasses.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5">Erro ao carregar repasses.</td></tr>';
         }
     };
 
@@ -680,15 +820,17 @@
                         <td>${tx.pagamento_id}</td>
                         <td>${tx.descricao}</td>
                         <td>${formatCurrency(tx.valor)}</td>
+                        <td>${formatCurrency(tx.taxa_plataforma)}</td>
+                        <td>${formatCurrency(tx.valor_liquido)}</td>
                         <td><span class="status-badge status-${tx.status}">${tx.status}</span></td>
-                        <td>${new Date(tx.criado_em).toLocaleString('pt-BR')}</td>
+                        <td>${new Date(tx.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td>
                         <td>${tx.aluno_nome || 'N/A'}</td>
                         <td>${tx.professor_nome || 'N/A'}</td>
                     `;
                     tableBody.appendChild(row);
                 });
             } else {
-                tableBody.innerHTML = '<tr><td colspan="7">Nenhuma transação encontrada.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="9">Nenhuma transação encontrada.</td></tr>';
             }
 
             // Paginação
@@ -736,7 +878,16 @@
     };
 
     const markAsPaid = async (payoutId) => {
-        if (!confirm('Você tem certeza que deseja marcar este repasse como pago?')) {
+        const result = await Swal.fire({
+            title: 'Registrar pagamento realizado',
+            text: 'Confirme somente se o valor já foi transferido ao professor. Esta ação registra o pagamento no sistema, mas não movimenta dinheiro.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar pagamento realizado',
+            cancelButtonText: 'Não',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) {
             return;
         }
 
@@ -746,17 +897,61 @@
             });
 
             if (response.ok) {
-                alert('Repasse marcado como pago com sucesso!');
+                Swal.fire("Repasse marcado como pago com sucesso!");
                 fetchPendingPayouts(); // Atualiza a tabela
             } else {
                 const errorText = await response.text();
-                alert(`Erro ao marcar como pago: ${errorText}`);
+                Swal.fire(`Erro ao marcar como pago: ${errorText}`);
             }
         } catch (error) {
             console.error('Error marking payout as paid:', error);
-            alert('Ocorreu um erro na comunicação com o servidor.');
+            Swal.fire("Ocorreu um erro na comunicação com o servidor.");
         }
     };
+
+    document.querySelector('#pending-payouts-table tbody').addEventListener('click', event => {
+        const button = event.target.closest('button[data-payout-id]');
+        if (button) markAsPaid(button.dataset.payoutId);
+    });
+
+    // --- Cadastro de Administradores (superadmin) ---
+    const createAdminForm = document.getElementById('create-admin-form');
+    if (createAdminForm) {
+        createAdminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const feedback = document.getElementById('create-admin-feedback');
+            const email = (document.getElementById('new-admin-email')?.value || '').trim();
+            const senha = document.getElementById('new-admin-password')?.value || '';
+            const role = document.getElementById('new-admin-role')?.value || 'admin';
+            const submitBtn = createAdminForm.querySelector('button[type="submit"]');
+            if (feedback) { feedback.textContent = ''; feedback.style.color = ''; }
+            if (submitBtn) { submitBtn.disabled = true; }
+            try {
+                const response = await fetch('/admin/admins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ email, senha, role })
+                });
+                let data = {};
+                try { data = await response.json(); } catch (_) {}
+                if (!response.ok || data.success === false) {
+                    throw new Error(data.message || ('Falha ao cadastrar (' + response.status + ').'));
+                }
+                if (feedback) { feedback.style.color = '#15803d'; feedback.textContent = data.message || 'Administrador cadastrado com sucesso.'; }
+                createAdminForm.reset();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ title: 'Sucesso', text: data.message || 'Administrador cadastrado com sucesso.', icon: 'success', timer: 2000, showConfirmButton: false });
+                }
+            } catch (error) {
+                if (feedback) { feedback.style.color = '#b91c1c'; feedback.textContent = error.message || 'Erro ao cadastrar administrador.'; }
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire('Erro', error.message || 'Erro ao cadastrar administrador.', 'error');
+                }
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; }
+            }
+        });
+    }
 
       const currentHash = window.location.hash || '#page-users';
       if (currentHash && document.querySelector(currentHash)) {

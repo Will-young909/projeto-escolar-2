@@ -2,6 +2,19 @@ const pool = require('../../config/pool');
 const DenunciaService = require('../services/DenunciaService');
 const RecentActivityService = require('../services/RecentActivityService');
 
+// Middleware de auto-reativação de suspensões expiradas
+async function autoReativarSuspensoesExpiradas() {
+    const agora = new Date();
+    await pool.query(
+        "UPDATE alunos SET status = 'ativo', suspenso_ate = NULL WHERE status = 'suspenso' AND suspenso_ate IS NOT NULL AND suspenso_ate <= ?",
+        [agora]
+    );
+    await pool.query(
+        "UPDATE professores SET aprovacao_status = 'approved', suspenso_ate = NULL WHERE aprovacao_status = 'suspended' AND suspenso_ate IS NOT NULL AND suspenso_ate <= ?",
+        [agora]
+    );
+}
+
 exports.getDashboard = async (req, res) => {
     const { status = 'pending', search, page = 1 } = req.query;
     const limit = 10; // Itens por página
@@ -9,6 +22,9 @@ exports.getDashboard = async (req, res) => {
 
     try {
         const connection = await pool.getConnection();
+
+        // Auto-reativa suspensões expiradas antes de carregar o painel
+        await autoReativarSuspensoesExpiradas();
 
         // Lógica de filtragem e paginação para a tabela principal (professores pendentes)
         let whereClauses = ['aprovacao_status = ?'];
@@ -22,7 +38,7 @@ exports.getDashboard = async (req, res) => {
         const whereSql = `WHERE ${whereClauses.join(' AND ')}`;
 
         const mainQuery = `
-            SELECT id, nome, email, aprovacao_status, criado_em 
+            SELECT id, nome, email, aprovacao_status, criado_em, perfil_enviado_em, formacao
             FROM professores 
             ${whereSql} 
             ORDER BY criado_em DESC 
@@ -40,12 +56,12 @@ exports.getDashboard = async (req, res) => {
         const totalPages = Math.ceil(totalItems / limit);
 
         // Busca as outras listas sem filtro para as demais tabelas
-        const [approvedTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status = \'approved\' ORDER BY criado_em DESC');
-        const [inactiveTeachers] = await connection.query('SELECT * FROM professores WHERE aprovacao_status IN (\'rejected\', \'suspended\') ORDER BY criado_em DESC');
+        const [approvedTeachers] = await connection.query("SELECT * FROM professores WHERE aprovacao_status = 'approved' ORDER BY criado_em DESC");
+        const [inactiveTeachers] = await connection.query("SELECT * FROM professores WHERE aprovacao_status = 'rejected' OR (aprovacao_status = 'suspended' AND (suspenso_ate IS NULL OR suspenso_ate > NOW())) ORDER BY criado_em DESC");
         
         // Utiliza o DenunciaService para buscar as denúncias
         const denuncias = await DenunciaService.findAll(req.query);
-        const openReports = denuncias.filter(d => d.status !== 'resolvida').length;
+        const openReports = denuncias.filter(d => d.status !== 'resolvida' && d.status !== 'rejeitada').length;
         
         connection.release();
 
@@ -64,7 +80,9 @@ exports.getDashboard = async (req, res) => {
                 search,
                 totalItems
             },
-            kpis: {}
+            kpis: {},
+            adminUser: req.user || (req.session && req.session.user_admin) || null,
+            session: req.session
         });
 
     } catch (error) {
@@ -105,10 +123,14 @@ exports.getDashboardSummary = async (req, res) => {
         );
 
         const [revenueResult] = await connection.query(
-            `SELECT SUM(h.preco) as total FROM agendamentos a
-             JOIN horarios_disponiveis h ON a.horario_id = h.id
-             WHERE a.status = 'concluido' AND a.data >= ?`,
+            `SELECT COALESCE(SUM(taxa_plataforma), 0) as total
+             FROM pagamentos
+             WHERE status = 'pago' AND liberado_em >= ?`,
             [startDate]
+        );
+
+        const [pendingPayoutsResult] = await connection.query(
+            "SELECT COALESCE(SUM(valor), 0) as total FROM repasses WHERE status IN ('retido', 'pendente')"
         );
 
         const [openReportsResult] = await connection.query(
@@ -124,7 +146,7 @@ exports.getDashboardSummary = async (req, res) => {
             canceledClasses: canceledClassesResult[0].count,
             monthlyRevenue: revenueResult[0].total || 0,
             openReports: openReportsResult[0].count,
-            pendingPayments: 0, 
+            pendingPayments: pendingPayoutsResult[0].total,
             avgResolutionTime: 0,
             recentActivities: recentActivities.map(activity => {
                 let message = '';

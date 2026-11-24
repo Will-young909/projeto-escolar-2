@@ -31,22 +31,26 @@ body {
 
 /* ===== HEADER ===== */
 header {
-    background: #fff;
-    box-shadow: var(--shadow);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 2px solid var(--color-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 8px 16px;
+  height: 60px;
+  width: 100%;
+  border-bottom: 2px solid var(--color-primary);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .logo {
-    width: 110px;
-    height: 60px;
-    object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 70px;
+  object-fit: contain;
 }
 
 .btn-back {
@@ -254,7 +258,11 @@ header {
 
 /* ===== AÇÕES ===== */
 .actions {
-    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary {
@@ -293,6 +301,14 @@ header {
     .info-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+
+    .actions {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items:flex-start;
+    justify-content:flex-start ;
+}
 }
 
 @media (prefers-reduced-motion: reduce) {

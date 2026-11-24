@@ -7,26 +7,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="../css/status.css" />
+  <link rel="stylesheet" href="../css/accessibility.css">
   <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
 </head>
 <body>
+  <button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button>
   <section class="status-card pending">
     <section class="icon-section">
       <i class="fas fa-hourglass-half pending-icon"></i>
     </section>
     <h1 class="status-title">Pagamento Pendente</h1>
-    <p class="status-message">Sua transação foi registrada e está aguardando confirmação do pagamento.</p>
+    <p class="status-message">
+      Sua transação foi registrada e está aguardando confirmação do pagamento.<br>
+      <% if (paymentId) { %>
+      <small>ID do pagamento: <strong><%= paymentId %></strong></small>
+      <% } %>
+    </p>
 
     <p class="status-tip">
-      💡 <strong>Dica:</strong> Assim que o pagamento for confirmado, você receberá um e-mail com os detalhes.
+      💡 <strong>Dica:</strong> Se você pagou com PIX ou boleto, a confirmação pode levar alguns minutos. Assim que o pagamento for aprovado, você será redirecionado automaticamente para sua agenda de aulas.
     </p>
 
     <section class="actions">
-      <a href="/painel" class="btn primary">
-        <i class="fas fa-arrow-right"></i> Ir para o Painel
+      <a href="/agenda" class="btn primary">
+        <i class="fas fa-calendar-alt"></i> Minhas Aulas
       </a>
-      <a href="/" class="btn secondary">Voltar à Home</a>
+      <a href="/" class="btn secondary">
+        <i class="fas fa-home"></i> Voltar à Home
+      </a>
     </section>
   </section>
 </body>
+<script src="../js/accessibility.js"></script>
 </html>

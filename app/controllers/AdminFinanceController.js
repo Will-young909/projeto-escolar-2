@@ -15,21 +15,28 @@ const AdminFinanceController = {
                 p.id as pagamento_id,
                 p.descricao,
                 p.valor,
+                p.taxa_plataforma,
+                p.valor_liquido,
                 p.status,
-                p.criado_em,
+                COALESCE(p.pago_em, p.criado_em) as criado_em,
                 ag.aluno_id,
                 al.nome as aluno_nome,
-                ag.professor_id,
+                COALESCE(ag.professor_id, p.professor_id) as professor_id,
                 prof.nome as professor_nome
             FROM pagamentos p
             LEFT JOIN agendamentos ag ON p.sala = ag.sala_id
             LEFT JOIN alunos al ON ag.aluno_id = al.id
-            LEFT JOIN professores prof ON ag.professor_id = prof.id
+            LEFT JOIN professores prof ON prof.id = COALESCE(ag.professor_id, p.professor_id)
+            WHERE p.payment_id IS NOT NULL OR p.sala IS NOT NULL
             ORDER BY p.criado_em DESC
             LIMIT ? OFFSET ?;
         `;
 
-        const countQuery = `SELECT COUNT(*) as total FROM pagamentos;`;
+        const countQuery = `
+            SELECT COUNT(*) as total
+            FROM pagamentos p
+            WHERE p.payment_id IS NOT NULL OR p.sala IS NOT NULL
+        `;
 
         const [transactions] = await pool.query(query, params);
         const [countResult] = await pool.query(countQuery);
@@ -56,7 +63,16 @@ const AdminFinanceController = {
         }
 
         const [result] = await pool.query(
-            'UPDATE repasses SET status = ?, data_pagamento = NOW() WHERE id = ?', 
+            `UPDATE repasses r
+             JOIN pagamentos p ON p.payment_id = r.referencia_transacao
+             JOIN agendamentos ag ON ag.sala_id = p.sala
+             SET r.status = ?, r.data_pagamento = NOW()
+             WHERE r.id = ? AND r.status = 'pendente'
+               AND ag.status = 'concluido'
+               AND p.status = 'pago'
+               AND p.liberado_em IS NOT NULL
+               AND r.professor_id = ag.professor_id
+               AND r.valor = p.valor_liquido`,
             ['pago', id]
         );
 
@@ -76,8 +92,11 @@ const AdminFinanceController = {
   async getRepasses(req, res) {
     try {
       const [repasses] = await pool.query(
-        'SELECT r.*, p.nome as professor_nome FROM repasses r JOIN professores p ON r.professor_id = p.id WHERE r.status = ?',
-        [req.query.status || 'pendente']
+        `SELECT r.*, p.nome as professor_nome
+         FROM repasses r
+         JOIN professores p ON r.professor_id = p.id
+         WHERE r.status IN ('retido', 'pendente')
+         ORDER BY r.data_solicitacao ASC`
       );
       res.json(repasses);
     } catch (error) {
@@ -88,16 +107,18 @@ const AdminFinanceController = {
   async getCarteiraProfessor(req, res) {
     try {
       const { professor_id } = req.params;
-      const [agendamentos] = await pool.query(
-        'SELECT SUM(preco) as total, COUNT(*) as aulas FROM horarios_disponiveis WHERE professor_id = ? AND status = \'agendado\'',
+      const [pagamentos] = await pool.query(
+        `SELECT SUM(valor_liquido) as total_liquido, COUNT(*) as aulas
+         FROM pagamentos
+         WHERE professor_id = ? AND status = 'pago' AND liberado_em IS NOT NULL`,
         [professor_id]
       );
       const [repasses] = await pool.query(
-        'SELECT SUM(valor) as total FROM repasses WHERE professor_id = ? AND status = \'pago\'',
+        "SELECT SUM(valor) as total FROM repasses WHERE professor_id = ? AND status = 'pago'",
         [professor_id]
       );
 
-      const total_ganho = agendamentos[0].total || 0;
+      const total_ganho = pagamentos[0].total_liquido || 0;
       const total_repassado = repasses[0].total || 0;
       const saldo_disponivel = total_ganho - total_repassado;
 
@@ -105,7 +126,7 @@ const AdminFinanceController = {
         total_ganho,
         total_repassado,
         saldo_disponivel,
-        aulas_realizadas: agendamentos[0].aulas
+        aulas_realizadas: pagamentos[0].aulas
       });
     } catch (error) {
       res.status(500).send(error.message);

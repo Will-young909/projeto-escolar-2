@@ -120,6 +120,8 @@ ESTRUTURA DO FORMULÁRIO
 }
 
 .form-control {
+  color: var(--color-text-dark);
+  background: transparent;
   width: 100%;
   border: none;
   border-bottom: 2px solid var(--color-border);
@@ -176,8 +178,13 @@ BLOCO DE QUESTÃO
   margin-bottom: var(--spacing-sm);
 }
 
+#ia-prompt {
+  border: 2px solid var(--color-text-dark);
+}
+
 .question-header input,
 .correct-answer-input {
+  color: var(--color-text-dark);
   flex-grow: 1;
   border: none;
   border-bottom: 1px solid var(--color-border);
@@ -235,7 +242,6 @@ BLOCO DE QUESTÃO
 .option-item input[type="text"] {
   flex-grow: 1;
   border: none;
-  background-color: var(--color-card-bg);
   color: var(--color-text-dark);
   padding: var(--spacing-sm);
   border-radius: 6px;
@@ -243,7 +249,6 @@ BLOCO DE QUESTÃO
 
 .option-item input[type="text"]:focus {
   outline: none;
-  background-color: var();
 }
 
 /* ============================

@@ -34,6 +34,29 @@ const updateTeacherStatus = async (teacherId, newStatus, adminId, reason = null)
     }
 };
 
+exports.getTeacherDetail = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT * FROM professores WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return res.status(404).send('Professor não encontrado.');
+        }
+        const professor = rows[0];
+
+        const [disciplinas] = await pool.query('SELECT nome FROM disciplinas WHERE professor_id = ? ORDER BY nome', [id]);
+        professor.disciplinas = disciplinas.map((d) => d.nome);
+
+        res.render('pages/admin_teacher_detail', {
+            layout: 'admin_layout',
+            professor,
+            session: req.session,
+        });
+    } catch (error) {
+        console.error('Error loading teacher detail:', error);
+        res.status(500).send('Error loading teacher detail');
+    }
+};
+
 exports.listTeachers = async (req, res) => {
     try {
         const [teachers] = await pool.query('SELECT id, nome, email, aprovacao_status, criado_em FROM professores ORDER BY criado_em DESC');
@@ -46,7 +69,10 @@ exports.listTeachers = async (req, res) => {
 
 exports.approveTeacher = async (req, res) => {
     const { id } = req.params;
-    const adminId = req.session.user_admin.id;
+    const adminId = req.session?.user_admin?.id;
+    if (!adminId) {
+        return res.status(401).send('Não autorizado.');
+    }
     try {
         await updateTeacherStatus(id, 'approved', adminId);
         res.redirect('/admin/dashboard#page-users');
@@ -58,7 +84,11 @@ exports.approveTeacher = async (req, res) => {
 exports.rejectTeacher = async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
-    const adminId = req.session.user_admin.id;
+    const adminId = req.session?.user_admin?.id;
+
+    if (!adminId) {
+        return res.status(401).send('Não autorizado.');
+    }
 
     if (!reason) {
         return res.status(400).send('A reason is required for rejection.');
@@ -75,7 +105,11 @@ exports.rejectTeacher = async (req, res) => {
 exports.suspendTeacher = async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
-    const adminId = req.session.user_admin.id;
+    const adminId = req.session?.user_admin?.id;
+
+    if (!adminId) {
+        return res.status(401).send('Não autorizado.');
+    }
 
     if (!reason) {
         return res.status(400).send('A reason is required for suspension.');
@@ -91,7 +125,12 @@ exports.suspendTeacher = async (req, res) => {
 
 exports.reactivateTeacher = async (req, res) => {
     const { id } = req.params;
-    const adminId = req.session.user_admin.id;
+    const adminId = req.session?.user_admin?.id;
+
+    if (!adminId) {
+        return res.status(401).send('Não autorizado.');
+    }
+
     try {
         await updateTeacherStatus(id, 'pending', adminId, 'Reactivated by admin');
         res.redirect('/admin/dashboard#page-users');

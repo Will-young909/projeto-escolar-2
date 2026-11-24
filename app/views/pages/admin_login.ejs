@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Administrativo | Regimath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="../css/cadastro.css">
+  <link rel="stylesheet" href="../css/accessibility.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
+  <style>
+    .invalid {
+      border-color: #c0392b !important;
+      box-shadow: 0 0 4px rgba(192, 57, 43, 0.5) !important;
+    }
+    .valid {
+      border-color: #27ae60 !important;
+      box-shadow: 0 0 4px rgba(39, 174, 96, 0.5) !important;
+    }
+    .error-feedback {
+      color: #c0392b;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+    .error-summary {
+      border: 1px solid #c0392b;
+      background: #fdecea;
+      color: #b71c1c;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .error-summary h4 {
+      margin: 0 0 8px;
+    }
+    .error-summary ul {
+      padding-left: 20px;
+      margin-top: 5px;
+      list-style-type: disc;
+    }
+  </style>
+</head>
+
+<body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
+  <header>
+    <a href="/">
+      <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
+    </a>
+  </header>
+  <main>
+    <form id="loginForm" action="/admin/login" method="POST" novalidate>
+      <h2>Acesso Administrativo</h2>
+
+      <% if (typeof erros !== 'undefined' && Object.keys(erros).length > 0) { %>
+        <section class="error-summary" role="alert" aria-live="assertive">
+          <h4>⚠️ Por favor, corrija os seguintes erros:</h4>
+          <ul>
+            <% Object.keys(erros).forEach(key => { %>
+              <li><%= erros[key].msg %></li>
+            <% }); %>
+          </ul>
+        </section>
+      <% } %>
+
+      <section class="form-group">
+        <label for="email"><i class="fas fa-envelope"></i> Email *</label>
+        <input type="email" id="email" name="email" required value="<%= dados?.email || '' %>"
+          class="<%= erros?.email ? 'invalid' : '' %>"
+          aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
+          aria-describedby="err-email">
+        <p id="err-email" class="error-feedback" aria-live="polite">
+          <%= erros?.email?.msg || '' %>
+        </p>
+      </section>
+
+      <section class="form-group">
+        <label for="senha"><i class="fas fa-lock"></i> Senha *</label>
+        <input type="password" id="senha" name="senha" required
+          class="<%= erros?.senha ? 'invalid' : '' %>"
+          aria-invalid="<%= erros?.senha ? 'true' : 'false' %>"
+          aria-describedby="err-senha">
+        <p id="err-senha" class="error-feedback" aria-live="polite">
+          <%= erros?.senha?.msg || '' %>
+        </p>
+      </section>
+
+      <button type="submit" class="btn-primary" id="btn-submit">
+        <i class="fas fa-sign-in-alt"></i> Fazer Login
+      </button>
+
+      <section class="links-footer">
+        <p><a href="/" class="link-secundario">Voltar ao início</a></p>
+      </section>
+    </form>
+  </main>
+</body>
+<script src="../js/accessibility.js"></script>
+</html>

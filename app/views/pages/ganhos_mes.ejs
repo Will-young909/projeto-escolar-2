@@ -29,8 +29,23 @@
       <p class="ganhos-resumo__mes"><%= resumo.mes %></p>
       <p class="ganhos-resumo__total">R$ <%= resumo.totalGanhos.toFixed(2) %></p>
       <p class="ganhos-resumo__info">
-        <%= resumo.aulasConcluidas %> aulas concluídas • <%= resumo.aulasAgendadas %> aulas agendadas
+        <%= resumo.aulasConcluidas %> aulas liberadas • <%= resumo.aulasAgendadas %> aulas agendadas
       </p>
+    </section>
+
+    <section class="ganhos-cards">
+      <article class="ganhos-card">
+        <h2>Total bruto das aulas</h2>
+        <p class="ganhos-card__valor">R$ <%= resumo.totalBruto.toFixed(2) %></p>
+      </article>
+      <article class="ganhos-card">
+        <h2>Taxa da plataforma</h2>
+        <p class="ganhos-card__valor">R$ <%= resumo.totalTaxas.toFixed(2) %></p>
+      </article>
+      <article class="ganhos-card">
+        <h2>Seu valor líquido</h2>
+        <p class="ganhos-card__valor">R$ <%= resumo.totalGanhos.toFixed(2) %></p>
+      </article>
     </section>
 
     <section class="ganhos-filtros">
@@ -53,14 +68,6 @@
       </label>
     </section>
 
-    <section class="ganhos-cards">
-      <article class="ganhos-card">
-        <h2>Aulas Concluídas</h2>
-        <p class="ganhos-card__valor">R$ <%= resumo.totalGanhos.toFixed(2) %></p>
-        <p class="ganhos-card__detalhe"><%= resumo.aulasConcluidas %> aulas • ticket médio R$ <%= resumo.ticketMedio.toFixed(2) %></p>
-      </article>
-    </section>
-
     <section class="ganhos-lista">
       <h2>Movimentações</h2>
 
@@ -69,7 +76,7 @@
           <article class="linha-mov">
             <section class="linha-mov__info">
               <strong><%= mov.titulo %></strong>
-              <p><%= mov.data %> • <%= mov.hora %></p>
+              <p><%= mov.data %> • <%= mov.hora %> • Bruto R$ <%= mov.valorBruto.toFixed(2) %> • Taxa R$ <%= mov.taxa.toFixed(2) %></p>
             </section>
             <section class="linha-mov__valor linha-mov__valor--positivo">
               + R$ <%= mov.valor.toFixed(2) %>

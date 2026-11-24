@@ -100,7 +100,7 @@ const AnalisePedagogicaService = {
             await connection.beginTransaction();
             for (const prereq of prereqs) {
                 const prerequisitoId = prereq.prerequisito_id;
-                const [rows] = await pool.query('SELECT * FROM aluno_prerequisito_proficiencia WHERE aluno_id = ? AND prerequisito_id = ? FOR UPDATE', [alunoId, prerequisitoId]);
+                const [rows] = await connection.query('SELECT * FROM aluno_prerequisito_proficiencia WHERE aluno_id = ? AND prerequisito_id = ? FOR UPDATE', [alunoId, prerequisitoId]);
                 let prof = rows[0] || { proficiencia: 0.5, erros_consecutivos: 0, acertos_consecutivos: 0, id: null };
                 let novaProficiencia = acertou ? prof.proficiencia + (1 - prof.proficiencia) * C.PEDAGOGICAL.FATOR_APRENDIZAGEM : prof.proficiencia - prof.proficiencia * C.PEDAGOGICAL.FATOR_APRENDIZAGEM;
                 prof.acertos_consecutivos = acertou ? prof.acertos_consecutivos + 1 : 0;

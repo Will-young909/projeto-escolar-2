@@ -127,14 +127,47 @@
             color: red;
         }
 
+        .dia.tem-horario {
+            position: relative;
+            font-weight: 600;
+        }
+
+        .dia.tem-horario::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #0f766e;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .time-slot.locked-slot {
+            opacity: 0.85;
+            background: #f3f4f6;
+        }
+
+        .slot-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            color: #374151;
+            margin-left: auto;
+            margin-top: 15px;
+        }
+
         .modal-footer {
             display: flex;
             justify-content: space-between;
             padding-top: 10px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #dacccc;
         }
     </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
 <body>
     <header>
@@ -155,36 +188,18 @@
             </svg>
         </button>
         <ul class="nav-links">
-            <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z" /></svg>Home</a></li>
+      <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
+
+      <% if (session.user_prof) { %>
+        <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Professor</a></li>    
+        <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Aulas</a></li>
+            <li><a href="/lista_atividades" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M220-180h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60ZM820-180H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Z"/></svg>Atividades</a></li>
+            <li><a href="/historico_aulas" class="pa"><i class="fa-solid fa-chalkboard-user fa-lg" style="color: #ffffff;"></i> Histórico de Aulas</a></li>
+            <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
             <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
-            <% if (session.user_prof) { %>
-                <li><a href="/perfil_prof"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
-                            viewBox="0 -960 960 960" width="24px" fill="#fff">
-                            <path
-                                d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z" />
-                        </svg>Perfil professor</a></li>
-                <li><a href="/dashboard_prof" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
-                            viewBox="0 -960 960 960" width="24px" fill="#fff">
-                            <path
-                                d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z" />
-                        </svg>Dashboard Professor</a></li>
-                <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px"
-                            viewBox="0 -960 960 960" width="20px" fill="#fff">
-                            <path
-                                d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z" />
-                        </svg>Aulas</a></li>
-                <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px"
-                            viewBox="0 -960 960 960" width="24px" fill="#fff">
-                            <path
-                                d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z" />
-                        </svg>Histórico de Chats</a></li>
-                <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960"
-                            width="20px" fill="#fff">
-                            <path
-                                d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z" />
-                        </svg>Sair</a></li>
-                <% } %>
-        </ul>
+          <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
+      <% } %>
+    </ul>
     </nav>
 
     <main class="perfil-container">
@@ -196,9 +211,25 @@
                 </h1>
                 <a href="/editar_perfil_prof" class="btn-edit" aria-label="Editar configurações do perfil">
                     <i class="fas fa-user-edit"></i> Editar Perfil
+                </a> <br><br>
+                <a href="/exibir_prof/<%= user.id %>" style="color: var(--color-primary); text-decoration: none; font-size: 1.1em; font-weight: 600; transition: 0.3s ease;" aria-label="Visualizar perfil público">
+                    <i class="fas fa-eye"></i> Ver Perfil
                 </a>
             </section>
             <h2>Informações</h2>
+            <% 
+              const fichaIncompleta = !user.formacao || !user.comprovante_formacao || !user.descricao || !user.disciplinas || user.disciplinas.length === 0;
+              const fichaJaEnviada = !!user.perfil_enviado_em || user.aprovacao_status === 'pending' || user.aprovacao_status === 'approved';
+              const fichaPendente = fichaIncompleta && !fichaJaEnviada;
+            %>
+            <% if (fichaPendente) { %>
+            <article class="form-group" style="border-left:4px solid #e67e22; background:#fff8ef;">
+                <p><strong>Ficha profissional incompleta.</strong> Preencha sua ficha para enviar seu perfil para análise.</p>
+                <a href="/professor/perfil-profissional?pendente=1" class="btn-edit" style="margin-top:10px; display:inline-flex;">
+                    <i class="fas fa-clipboard-list"></i> Completar ficha profissional
+                </a>
+            </article>
+            <% } %>
             <article class="form-group">
                 <p><strong>Descrição:</strong>
                     <%= user.descricao || 'Descrição profissional' %>
@@ -206,7 +237,13 @@
             </article>
             <article class="form-group">
                 <p><strong>Aula Prévia:</strong>
-                    <%= user.link_previa || 'Link da aula prévia' %>
+                    <% if (user.link_previa) { %>
+                        <a href="<%= user.link_previa %>" target="_blank" rel="noopener noreferrer">Link da aula prévia</a>
+                    <% } else if (user.previa_arquivo) { %>
+                        <a href="/professor/previa/<%= user.id %>" target="_blank" rel="noopener noreferrer">Vídeo da aula prévia</a>
+                    <% } else { %>
+                        Nenhuma aula prévia cadastrada
+                    <% } %>
                 </p>
             </article>
             <article class="form-group">
@@ -277,6 +314,9 @@
         </article>
     </dialog>
     
+    <script>
+        window.HORARIOS_PROFESSOR = <%- JSON.stringify((user && user.horariosDisponiveis) ? user.horariosDisponiveis : []) %>;
+    </script>
     <script src="../js/accessibility.js"></script>
     <script>
         // --- Menu lateral (código original preservado) ---
@@ -322,6 +362,26 @@
             const saveScheduleBtn = document.getElementById('save-schedule');
 
             let selectedFullDate = null;
+            let horariosData = Array.isArray(window.HORARIOS_PROFESSOR) ? window.HORARIOS_PROFESSOR.slice() : [];
+
+            function normalizeDate(value) {
+                if (!value) return '';
+                if (typeof value === 'string') return value.slice(0, 10);
+                if (value instanceof Date) {
+                    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+                }
+                try { return String(value).slice(0, 10); } catch (_) { return ''; }
+            }
+
+            function normalizeTime(value) {
+                if (!value) return '';
+                const s = String(value);
+                return s.length >= 5 ? s.slice(0, 5) : s;
+            }
+
+            function hasScheduleOnDate(dateStr) {
+                return horariosData.some(h => normalizeDate(h.data) === dateStr && h.status !== 'cancelado');
+            }
 
             function createCalendar(year, month) {
                 if (!calendarContainer) return;
@@ -350,6 +410,8 @@
                 }
 
                 const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
                 for (let d = 1; d <= lastDayOfMonth; d++) {
                     const dia = document.createElement('div');
                     dia.classList.add('dia');
@@ -358,7 +420,22 @@
                     dia.dataset.date = fullDateStr;
                     dia.setAttribute('role', 'button');
 
-                    dia.addEventListener('click', () => openModalForDate(fullDateStr));
+                    if (hasScheduleOnDate(fullDateStr)) {
+                        dia.classList.add('tem-horario');
+                        dia.title = 'Dia com horários cadastrados';
+                    }
+
+                    const dataObj = new Date(year, month, d);
+                    dataObj.setHours(0, 0, 0, 0);
+
+                    if (dataObj < hoje) {
+                        // Dias já passados não podem ser selecionados
+                        dia.classList.add('dia-passado');
+                        dia.title = 'Data já passou';
+                        dia.style.cursor = 'default';
+                    } else {
+                        dia.addEventListener('click', () => openModalForDate(fullDateStr));
+                    }
                     diasContainer.appendChild(dia);
                 }
                 calendarContainer.appendChild(diasContainer);
@@ -369,26 +446,50 @@
                 const dateObj = new Date(dateStr + 'T00:00:00');
                 modalDateElem.textContent = `Horários para ${dateObj.toLocaleDateString('pt-BR')}`;
                 timeSlotsContainer.innerHTML = '';
-                addTimeSlot();
+
+                const daySlots = horariosData.filter(h => normalizeDate(h.data) === dateStr && h.status !== 'cancelado');
+                daySlots.forEach(h => addTimeSlot(h));
+                if (!daySlots.some(h => h.status !== 'agendado')) {
+                    addTimeSlot();
+                }
+
                 modal.style.display = 'flex';
             }
 
-            function addTimeSlot() {
+            function addTimeSlot(slot = null) {
+                const isLocked = !!(slot && slot.status === 'agendado');
                 const slotLi = document.createElement('li');
                 slotLi.classList.add('time-slot');
+                if (isLocked) {
+                    slotLi.classList.add('locked-slot');
+                    slotLi.dataset.locked = '1';
+                }
+
+                const startVal = slot ? normalizeTime(slot.hora_inicio) : '';
+                const endVal = slot ? normalizeTime(slot.hora_fim) : '';
+                const priceVal = slot && slot.preco != null ? String(slot.preco) : '';
+
                 slotLi.innerHTML = `
                     <label>Início:</label>
-                    <input type="time" class="start-time" required>
+                    <input type="time" class="start-time" required ${isLocked ? 'disabled' : ''}>
                     <label>Fim:</label>
-                    <input type="time" class="end-time" required>
+                    <input type="time" class="end-time" required ${isLocked ? 'disabled' : ''}>
                     <label>Preço:</label>
-                    <input type="number" class="price" placeholder="R$" required>
-                    <button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>
+                    <input type="number" class="price" placeholder="R$" required ${isLocked ? 'disabled' : ''}>
+                    ${isLocked ? '<span class="slot-badge">Agendado</span>' : '<button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>'}
                 `;
+
+                slotLi.querySelector('.start-time').value = startVal;
+                slotLi.querySelector('.end-time').value = endVal;
+                slotLi.querySelector('.price').value = priceVal;
+
+                if (!isLocked) {
+                    slotLi.querySelector('.remove-slot-btn').addEventListener('click', () => {
+                        slotLi.remove();
+                    });
+                }
+
                 timeSlotsContainer.appendChild(slotLi);
-                slotLi.querySelector('.remove-slot-btn').addEventListener('click', () => {
-                    slotLi.remove();
-                });
             }
 
             function closeModal() {
@@ -401,21 +502,47 @@
                 saveScheduleBtn.addEventListener('click', async () => {
                     const slots = [];
                     const slotElements = timeSlotsContainer.querySelectorAll('.time-slot');
-                    let allValid = true;
+                    let errorMessage = '';
+                    const now = new Date();
 
                     slotElements.forEach(slot => {
+                        if (slot.dataset.locked === '1') return;
+
                         const start = slot.querySelector('.start-time').value;
                         const end = slot.querySelector('.end-time').value;
                         const price = slot.querySelector('.price').value;
-                        if (start && end && end > start && price) {
-                            slots.push({ start, end, price });
-                        } else {
-                            allValid = false;
+
+                        if (!start || !end || price === '') {
+                            errorMessage = 'Por favor, preencha todos os campos corretamente (início, fim e preço).';
+                            return;
                         }
+                        if (end <= start) {
+                            errorMessage = 'O horário final deve ser depois do horário inicial.';
+                            return;
+                        }
+                        if (Number(price) <= 0) {
+                            errorMessage = 'O preço deve ser maior que zero.';
+                            return;
+                        }
+                        const slotStart = new Date(`${selectedFullDate}T${start}:00`);
+                        if (Number.isNaN(slotStart.getTime()) || slotStart <= now) {
+                            errorMessage = 'Não é permitido cadastrar horários que já passaram.';
+                            return;
+                        }
+
+                        const hasOverlap = slots.some(s => start < s.end && end > s.start);
+                        if (hasOverlap) {
+                            errorMessage = 'Não é permitido cadastrar horários iguais ou sobrepostos no mesmo dia.';
+                            return;
+                        }
+
+                        slots.push({ start, end, price });
                     });
 
-                    if (!allValid) {
-                        alert('Por favor, preencha todos os campos corretamente (o horário final deve ser depois do inicial e o preço deve ser preenchido).');
+                    if (errorMessage) {
+                        Swal.fire({
+                            text: errorMessage
+                        });
                         return;
                     }
 
@@ -434,15 +561,30 @@
                         const result = await response.json();
 
                         if (result.success) {
-                            alert(result.message);
+                            horariosData = horariosData.filter(h => !(normalizeDate(h.data) === selectedFullDate && h.status !== 'agendado'));
+                            slots.forEach(s => horariosData.push({
+                                data: selectedFullDate,
+                                hora_inicio: s.start,
+                                hora_fim: s.end,
+                                preco: s.price,
+                                status: 'disponivel'
+                            }));
+                            const dayEl = calendarContainer.querySelector(`.dia[data-date="${selectedFullDate}"]`);
+                            if (dayEl) {
+                                const hasAny = hasScheduleOnDate(selectedFullDate);
+                                dayEl.classList.toggle('tem-horario', hasAny);
+                                if (hasAny && !dayEl.classList.contains('dia-passado')) {
+                                    dayEl.title = 'Dia com horários cadastrados';
+                                }
+                            }
+                            Swal.fire(result.message);
                             closeModal();
-                            // Opcional: Recarregar ou atualizar a visualização do calendário para mostrar os dias com horários.
                         } else {
-                            alert('Erro ao salvar: ' + result.message);
+                            Swal.fire('Erro ao salvar: ' + result.message);
                         }
                     } catch (error) {
                         console.error('Falha ao enviar os horários:', error);
-                        alert('Ocorreu uma falha na comunicação com o servidor.');
+                        Swal.fire("Ocorreu uma falha na comunicação com o servidor.");
                     }
                 });
             }
@@ -458,6 +600,17 @@
             createCalendar(today.getFullYear(), today.getMonth());
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const returnTo = window.location.href;
+          document.querySelectorAll('a[href^="/exibir_prof/"]').forEach(function(a) {
+            const href = a.getAttribute('href');
+            if (!href.includes('returnTo=')) {
+              const sep = href.includes('?') ? '&' : '?';
+              a.setAttribute('href', href + sep + 'returnTo=' + encodeURIComponent(returnTo));
+            }
+          });
+        });
+      </script>
 </body>
-
 </html>

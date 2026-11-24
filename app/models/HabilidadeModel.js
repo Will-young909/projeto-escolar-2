@@ -27,7 +27,7 @@ const HabilidadeModel = {
   // Adiciona um pré-requisito a uma habilidade
   async addPrerequisite(habilidadeId, prerequisitoId) {
     try {
-      await pool.query('INSERT INTO habilidades_prerequisitos (habilidade_id, prerequisito_id) VALUES (?, ?)', [habilidadeId, prerequisitoId]);
+      await pool.query('INSERT INTO habilidade_prerequisitos (habilidade_id, prerequisito_id) VALUES (?, ?)', [habilidadeId, prerequisitoId]);
       return true;
     } catch (error) {
       console.error('Erro ao adicionar pré-requisito:', error);
@@ -40,7 +40,7 @@ const HabilidadeModel = {
     try {
       const [rows] = await pool.query(`
         SELECT p.* FROM habilidades p
-        INNER JOIN habilidades_prerequisitos pr ON p.id = pr.prerequisito_id
+        INNER JOIN habilidade_prerequisitos pr ON p.id = pr.prerequisito_id
         WHERE pr.habilidade_id = ?
       `, [habilidadeId]);
       return rows;

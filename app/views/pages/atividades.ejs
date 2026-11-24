@@ -8,9 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/atividades.css">
-  <link rel="stylesheet" href="../css/accessibility.css">
+  <link rel="stylesheet" href="/css/accessibility.css">
   <link rel="icon" href="/imagens/Regimath_sem fundo cor preto2.png"/>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </head>
 <body>
   <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; left: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" ><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
 
@@ -42,13 +44,17 @@
       title="Importar Questões">
       <i class="fas fa-file-import"></i>
     </button>
+    <input type="file" id="import-file" accept=".csv" style="display: none;">
+    <a href="/modelo-importar-questoes.csv" download="modelo-importar-questoes.csv" class="btn-icon" aria-label="Baixar modelo CSV" title="Baixar modelo CSV">
+      <i class="fas fa-download"></i>
+    </a>
 
     <a href="/lista_atividades" class="btn-icon" aria-label="Ver atividades salvas">
         <i class="fas fa-list-alt"></i>
     </a>
   </div>
 
-  <div class="ia-generator-container card">
+  <div class="ia-generator-container">
     <textarea id="ia-prompt" class="correct-answer-input" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea><br>
     <button style="margin-top: 10px;" id="generate-with-ia" class="btn-primary">Gerar com IA</button>
      <button class="nivel" style="background: none; border: none; align-self: center; justify-self: center;"><a href="/nivel_escolar" style="text-decoration: none; margin-top: 10px; margin-bottom: 10px;" class="btn-primary">Gerar por Nível Escolar</a></button>
@@ -80,9 +86,13 @@
   </form>
 </main>
 
-<script src="../js/accessibility.js"></script>
+<script src="/js/accessibility.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Garante que o modal de preview começa escondido
+  const previewModal = document.getElementById('import-preview-modal');
+  if (previewModal) previewModal.style.display = 'none';
+
   const questionsContainer = document.getElementById('questions-container');
   const addQuestionBtn = document.getElementById('add-question');
   const generateWithIaBtn = document.getElementById('generate-with-ia');
@@ -188,14 +198,75 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-add-option" type="button">Adicionar opção</button>
       `;
     } else if (type === 'short_text' || type === 'long_text') {
+      const existingKeywords = Array.isArray(questionData?.keywords) && questionData.keywords.length
+        ? questionData.keywords
+        : String(questionData?.correctAnswer || '').split(',').map(p => p.trim()).filter(Boolean).map(p => {
+            const required = /\*$/.test(p);
+            return { text: p.replace(/^\*+|\*+$/g, '').trim(), required, peso: 1 };
+          }).filter(k => k.text);
+
+      const chipsHtml = existingKeywords.map((k, idx) => `
+        <div class="keyword-chip" style="display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;">
+          <input type="text" value="${String(k.text || '').replace(/"/g, '&quot;')}" class="kw-text" style="width:140px; border:none; outline:none;">
+          <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="kw-required" ${k.required ? 'checked' : ''}>Obrig.</label>
+          <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;">Peso<input type="number" class="kw-peso" min="0.1" step="0.1" value="${Number(k.peso) || 1}" style="width:58px;"></label>
+          <button type="button" class="btn-remove-keyword" aria-label="Remover palavra-chave" style="border:none; background:none; cursor:pointer; font-size:1rem;">×</button>
+        </div>`).join('');
+
       contentDiv.innerHTML = `
-        <input 
-          type="text" 
-          name="questions[${questionId}][correctAnswer]" 
-          placeholder="Gabarito ou palavras-chave para a resposta..."
-          class="correct-answer-input"
-          value="${questionData && questionData.correctAnswer ? questionData.correctAnswer : ''}">
+        <div class="keyword-manager" data-question-id="${questionId}">
+          <p style="margin:0 0 8px; font-size:.9rem; color:#555;">Palavras-chave do gabarito (separe por vírgula ou Enter). Marque obrigatórias e defina peso.</p>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <input type="text" class="correct-answer-input inp-nova-palavra" placeholder="Digite palavras-chave e pressione Enter...">
+            <button type="button" class="btn-primary btn-add-keywords" style="padding:8px 12px;">Adicionar</button>
+          </div>
+          <div class="palavras-chave-list">${chipsHtml}</div>
+          <input type="hidden" name="questions[${questionId}][correctAnswer]" class="kw-correct-answer" value="${questionData && questionData.correctAnswer ? String(questionData.correctAnswer).replace(/"/g, '&quot;') : ''}">
+        </div>
       `;
+
+      const manager = contentDiv.querySelector('.keyword-manager');
+      const list = manager.querySelector('.palavras-chave-list');
+      const hidden = manager.querySelector('.kw-correct-answer');
+      const input = manager.querySelector('.inp-nova-palavra');
+
+      const syncKeywords = () => {
+        const chips = Array.from(list.querySelectorAll('.keyword-chip'));
+        const keywords = chips.map(ch => ({
+          text: (ch.querySelector('.kw-text')?.value || '').trim(),
+          required: !!ch.querySelector('.kw-required')?.checked,
+          peso: Math.max(0.1, Number(ch.querySelector('.kw-peso')?.value) || 1)
+        })).filter(k => k.text);
+        hidden.value = keywords.map(k => k.required ? (k.text + '*') : k.text).join(', ');
+        manager.dataset.keywords = JSON.stringify(keywords);
+      };
+
+      const addKeywordsFromInput = () => {
+        const raw = (input.value || '').trim();
+        if (!raw) return;
+        raw.split(/[\n,;]+/).map(t => t.trim()).filter(Boolean).forEach(text => {
+          const required = /\*$/.test(text);
+          const clean = text.replace(/^\*+|\*+$/g, '').trim();
+          if (!clean) return;
+          const chip = document.createElement('div');
+          chip.className = 'keyword-chip';
+          chip.style.cssText = 'display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;';
+          chip.innerHTML = `<input type="text" value="${clean.replace(/"/g, '&quot;')}" class="kw-text" style="width:140px; border:none; outline:none;"><label style="font-size:.8rem; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="kw-required" ${required ? 'checked' : ''}>Obrig.</label><label style="font-size:.8rem; display:flex; gap:4px; align-items:center;">Peso<input type="number" class="kw-peso" min="0.1" step="0.1" value="1" style="width:58px;"></label><button type="button" class="btn-remove-keyword" aria-label="Remover palavra-chave" style="border:none; background:none; cursor:pointer; font-size:1rem;">×</button>`;
+          list.appendChild(chip);
+        });
+        input.value = '';
+        syncKeywords();
+      };
+
+      manager.querySelector('.btn-add-keywords').addEventListener('click', addKeywordsFromInput);
+      input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); addKeywordsFromInput(); } });
+      list.addEventListener('input', syncKeywords);
+      list.addEventListener('change', syncKeywords);
+      list.addEventListener('click', (ev) => {
+        const rm = ev.target.closest('.btn-remove-keyword');
+        if (rm) { rm.closest('.keyword-chip')?.remove(); syncKeywords(); }
+      });
+      syncKeywords();
     }
   };
 
@@ -235,6 +306,30 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   activityForm.addEventListener('submit', (event) => {
+    // Sincroniza keywords -> correctAnswer e popula hidden inputs de keywords estruturadas
+    document.querySelectorAll('.keyword-manager').forEach(manager => {
+      const qid = manager.dataset.questionId;
+      const list = manager.querySelector('.palavras-chave-list');
+      const hidden = manager.querySelector('.kw-correct-answer');
+      const keywords = Array.from(list.querySelectorAll('.keyword-chip')).map(ch => ({
+        text: (ch.querySelector('.kw-text')?.value || '').trim(),
+        required: !!ch.querySelector('.kw-required')?.checked,
+        peso: Math.max(0.1, Number(ch.querySelector('.kw-peso')?.value) || 1)
+      })).filter(k => k.text);
+      if (hidden) hidden.value = keywords.map(k => k.required ? (k.text + '*') : k.text).join(', ');
+      manager.querySelectorAll('input.kw-structured').forEach(el => el.remove());
+      keywords.forEach((k, idx) => {
+        [['text', k.text], ['required', k.required ? '1' : '0'], ['peso', String(k.peso)]].forEach(([field, val]) => {
+          const inp = document.createElement('input');
+          inp.type = 'hidden';
+          inp.className = 'kw-structured';
+          inp.name = `questions[${qid}][keywords][${idx}][${field}]`;
+          inp.value = val;
+          manager.appendChild(inp);
+        });
+      });
+    });
+
     const questions = document.querySelectorAll('.question-block');
     let allValid = true;
     let missingCorrectAnswer = false;
@@ -259,12 +354,18 @@ document.addEventListener('DOMContentLoaded', () => {
           question.title = 'Selecione uma resposta correta para esta questão.';
         }
       } else if (questionType === 'short_text' || questionType === 'long_text') {
-        const answerInput = question.querySelector('.correct-answer-input');
-        if (!answerInput || !answerInput.value.trim()) {
+        const manager = question.querySelector('.keyword-manager');
+        const keywordTexts = manager ? Array.from(manager.querySelectorAll('.kw-text')).map(i => (i.value || '').trim()).filter(Boolean) : [];
+        const answerInput = question.querySelector('.kw-correct-answer, .correct-answer-input');
+        const hasGabarito = keywordTexts.length > 0 || (answerInput && answerInput.value.trim());
+        if (!hasGabarito) {
           allValid = false;
           missingGabarito = true;
           question.style.border = '2px solid red';
           question.title = 'Forneça um gabarito para esta questão.';
+        } else if (answerInput && !answerInput.value.trim() && keywordTexts.length > 0) {
+          // garante sync caso o usuário não tenha disparado eventos
+          answerInput.value = keywordTexts.join(', ');
         }
       }
     });
@@ -278,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (missingGabarito) {
         alertMessage += '\n- Forneça um gabarito para as questões de resposta curta ou parágrafo.';
       }
-      alert(alertMessage);
+      Swal.fire(alertMessage);
     }
   });
 
@@ -286,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
   generateWithIaBtn.addEventListener('click', async () => {
     const prompt = iaPromptTextarea.value.trim();
     if (!prompt) {
-      alert('Por favor, descreva o exercício que deseja criar.');
+      Swal.fire("Por favor, descreva o exercício que deseja criar.");
       return;
     }
 
@@ -327,17 +428,167 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Erro ao gerar exercício com IA:', error);
-      alert('Não foi possível gerar o exercício. Verifique o console para mais detalhes.');
+      Swal.fire("Não foi possível gerar o exercício. Verifique o console para mais detalhes.");
     } finally {
       generateWithIaBtn.disabled = false;
       generateWithIaBtn.textContent = 'Gerar com IA';
     }
   });
 
+  // Lógica de importação de questões por CSV
+  const importBtn = document.querySelector('button[aria-label="Importar questões"]');
+  const importFileInput = document.getElementById('import-file');
+
+  if (importBtn && importFileInput) {
+    importBtn.addEventListener('click', () => {
+      importFileInput.click();
+    });
+
+    importFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        Swal.fire('Erro', 'Selecione um arquivo CSV válido.', 'error');
+        importFileInput.value = '';
+        return;
+      }
+
+      const text = await file.text();
+      const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== '');
+
+      if (lines.length < 2) {
+        Swal.fire('Erro', 'O arquivo CSV não contém dados.', 'error');
+        importFileInput.value = '';
+        return;
+      }
+
+      const headers = lines[0].split(';').map(h => h.trim().toLowerCase());
+      const requiredHeaders = ['enunciado', 'resposta'];
+      const missing = requiredHeaders.filter(h => !headers.includes(h));
+      if (missing.length > 0) {
+        Swal.fire('Erro', 'Cabeçalhos obrigatórios ausentes: ' + missing.join(', '), 'error');
+        importFileInput.value = '';
+        return;
+      }
+
+      const idx = {};
+      headers.forEach((h, i) => { idx[h] = i; });
+
+      const questoesExistentes = [];
+      document.querySelectorAll('.question-block').forEach(block => {
+        const titleInput = block.querySelector('input[name*="[title]"]');
+        if (titleInput) questoesExistentes.push(titleInput.value.trim());
+      });
+
+      const questoesParaImportar = [];
+      let invalidas = 0;
+      const linhasInvalidas = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(';').map(c => c.trim());
+        const enunciado = cols[idx['enunciado']] || '';
+        const resposta = cols[idx['resposta']] || '';
+
+        if (!enunciado || !resposta) {
+          invalidas++;
+          linhasInvalidas.push('Linha ' + (i + 1) + ': enunciado ou resposta vazios');
+          continue;
+        }
+
+        if (questoesExistentes.includes(enunciado)) {
+          linhasInvalidas.push('Linha ' + (i + 1) + ': duplicata - "' + enunciado + '"');
+          continue;
+        }
+
+        const optionsCols = ['alternativa_a', 'alternativa_b', 'alternativa_c', 'alternativa_d']
+          .map(k => cols[idx[k]] || null)
+          .filter(c => c && c !== '');
+        const isMultipleChoice = optionsCols.length >= 2;
+
+        questoesParaImportar.push({
+          title: enunciado,
+          type: isMultipleChoice ? 'multiple_choice' : 'short_text',
+          options: isMultipleChoice ? optionsCols : [],
+          correct: isMultipleChoice ? (optionsCols.findIndex(opt => opt === resposta) + 1 || 1) : undefined,
+          correctAnswer: resposta,
+          linha: i + 1
+        });
+      }
+
+      importFileInput.value = '';
+
+      if (questoesParaImportar.length === 0) {
+        let msg = 'Nenhuma questão válida para importar.';
+        if (invalidas > 0) msg += '\n' + invalidas + ' linha(s) inválida(s).';
+        if (linhasInvalidas.filter(l => l.includes('duplicata')).length > 0) msg += '\n' + linhasInvalidas.filter(l => l.includes('duplicata')).length + ' linha(s) duplicada(s).';
+        Swal.fire('Nenhuma questão válida', msg, 'warning');
+        return;
+      }
+
+      const previewModal = document.getElementById('import-preview-modal');
+      const previewStats = document.getElementById('preview-stats');
+      const previewRows = document.getElementById('preview-rows');
+      const previewAlertas = document.getElementById('preview-alertas');
+      const btnConfirmar = document.getElementById('preview-importar');
+      const btnCancelar = document.getElementById('preview-cancelar');
+
+      previewStats.textContent = questoesParaImportar.length + ' questão(ões) encontrada(s)';
+      if (invalidas > 0) previewStats.textContent += ' | ' + invalidas + ' linha(s) inválida(s) ignorada(s)';
+
+      previewRows.innerHTML = '';
+      questoesParaImportar.forEach((q, index) => {
+        const tipo = q.type === 'multiple_choice' ? 'Múltipla escolha' : 'Resposta curta';
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid #eee';
+        row.innerHTML =
+          '<td style="padding:8px;">' + (index + 1) + '</td>' +
+          '<td style="padding:8px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + q.title + '">' + q.title + '</td>' +
+          '<td style="padding:8px; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + q.correctAnswer + '">' + (q.correctAnswer || q.options[0] || '') + '</td>' +
+          '<td style="padding:8px; text-align:center;">' + tipo + '</td>';
+        previewRows.appendChild(row);
+      });
+
+      let alertasHtml = '';
+      if (linhasInvalidas.length > 0) {
+        alertasHtml = '<div style="color:#d32f2f; margin-bottom:12px;"><strong>Atenção:</strong></div><ul style="margin:0; padding-left:16px; font-size:0.85rem;">';
+        linhasInvalidas.slice(0, 10).forEach(l => {
+          alertasHtml += '<li>' + l + '</li>';
+        });
+        if (linhasInvalidas.length > 10) alertasHtml += '<li>... e mais ' + (linhasInvalidas.length - 10) + ' linha(s).</li>';
+        alertasHtml += '</ul>';
+      }
+      previewAlertas.innerHTML = alertasHtml;
+
+      function fecharModal() {
+        previewModal.style.display = 'none';
+        btnConfirmar.onclick = null;
+        btnCancelar.onclick = null;
+      }
+
+      btnCancelar.onclick = fecharModal;
+
+      btnConfirmar.onclick = () => {
+        questoesParaImportar.forEach(q => {
+          createQuestionBlock(q);
+        });
+
+        let resumo = 'Importadas: ' + questoesParaImportar.length;
+        if (invalidas > 0) resumo += '\nInválidas ignoradas: ' + invalidas;
+        if (linhasInvalidas.filter(l => l.includes('duplicata')).length > 0) resumo += '\nDuplicatas ignoradas: ' + linhasInvalidas.filter(l => l.includes('duplicata')).length;
+
+        Swal.fire('Importação concluída', resumo, 'success');
+        fecharModal();
+      };
+
+      previewModal.style.display = 'flex';
+    });
+  }
+
   if (activity) {
       if (activity.questions && Array.isArray(activity.questions)) {
         activity.questions.forEach(question => {
-            createQuestionBlock(question)
+          createQuestionBlock(question)
         });
       }
   } else {
@@ -345,6 +596,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+
+<!-- Modal de preview de importação CSV -->
+<div id="import-preview-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;">
+  <div style="background:#fff; border-radius:12px; padding:24px; max-width:600px; max-height:80vh; overflow-y:auto;position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:0 4px 20px rgba(0,0,0,0.25);">
+    <h2 style="margin-top:0; color:#800020;">Pré-visualização da Importação</h2>
+    <p style="margin-bottom:16px;">Confirme as questões que serão adicionadas à atividade:</p>
+    <div id="preview-stats" style="margin-bottom:16px; font-size:0.9rem; color:#666;"></div>
+    <table id="preview-table" style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+      <thead>
+        <tr style="border-bottom:2px solid #ddd;">
+          <th style="text-align:left; padding:8px;">#</th>
+          <th style="text-align:left; padding:8px;">Enunciado</th>
+          <th style="text-align:left; padding:8px;">Resposta</th>
+          <th style="text-align:center; padding:8px;">Tipo</th>
+        </tr>
+      </thead>
+      <tbody id="preview-rows"></tbody>
+    </table>
+    <div id="preview-alertas" style="margin-bottom:16px; font-size:0.85rem;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button id="preview-cancelar" style="padding:8px 16px; border:1px solid #ccc; background:#f5f5f5; border-radius:6px; cursor:pointer;">Cancelar</button>
+      <button id="preview-importar" style="padding:8px 16px; border:none; background:#800020; color:#fff; border-radius:6px; cursor:pointer;">Importar Questões</button>
+    </div>
+  </div>
+</div>
+
 
 </body>
 </html>

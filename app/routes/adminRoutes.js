@@ -2,6 +2,12 @@ const express = require('express');
 const router = express.Router();
 const requireAdmin = require('../middlewares/requireAdmin');
 
+// Auth (sem requireAdmin para permitir acesso ao login)
+const AdminAuthController = require('../controllers/AdminAuthController');
+router.get('/login', AdminAuthController.getLogin);
+router.post('/login', AdminAuthController.postLogin);
+router.get('/logout', AdminAuthController.logout);
+
 // Admin Dashboard
 const AdminDashboardController = require('../controllers/AdminDashboardController');
 // A rota /dashboard agora vai gerenciar a listagem de professores com filtros
@@ -10,6 +16,7 @@ router.get('/dashboard/summary', requireAdmin, AdminDashboardController.getDashb
 
 // Teacher Management Actions
 const AdminTeachersController = require('../controllers/AdminTeachersController');
+router.get('/teachers/:id', requireAdmin, AdminTeachersController.getTeacherDetail);
 router.post('/teachers/:id/approve', requireAdmin, AdminTeachersController.approveTeacher);
 router.post('/teachers/:id/reject', requireAdmin, AdminTeachersController.rejectTeacher);
 router.post('/teachers/:id/suspend', requireAdmin, AdminTeachersController.suspendTeacher);
@@ -35,5 +42,9 @@ router.post('/financeiro/repasses/:id/paid', requireAdmin, AdminFinanceControlle
 // Alertas
 const AlertasController = require('../controllers/AlertasController');
 router.get('/alertas', requireAdmin, AlertasController.getAlertas);
+
+// Cadastro de administradores (apenas superadmin)
+const AdminAdminsController = require('../controllers/AdminAdminsController');
+router.post('/admins', requireAdmin, AdminAdminsController.createAdmin);
 
 module.exports = router;

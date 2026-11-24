@@ -14,7 +14,8 @@
   <link rel="manifest" href="/manifest.json" />
   <script src="https://www.webrtc-experiment.com/RecordRTC.js"></script>
   <script src="../js/recording_composer.js"></script>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
 
 <body>
   <li class="a11y-fab pa" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
@@ -415,7 +416,7 @@ this.lastQualityChange = 0;
                     (err.message || err.name);
         }
 
-        alert(message);
+        Swal.fire(message);
 
         ELEMENTS.localPlaceholder.classList.add('active');
     }
@@ -1022,7 +1023,7 @@ try {
 
         async handleShareScreen() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
-                alert('Compartilhar tela não é suportado neste navegador.');
+                Swal.fire("Compartilhar tela não é suportado neste navegador.");
                 return;
             }
 
@@ -1036,10 +1037,20 @@ try {
 
         handleEndCall(e) {
             e.preventDefault();
-            if (confirm('Tem certeza que deseja encerrar a chamada para você e seu parceiro?')) {
-                socket.emit('end-call', this.currentRoom);
-                this.closePeerConnection();
-            }
+            Swal.fire({
+                title: 'Encerrar chamada',
+                text: 'Tem certeza que deseja encerrar a chamada para você e seu parceiro?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Não',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    socket.emit('end-call', this.currentRoom);
+                    this.closePeerConnection();
+                }
+            });
         }
         
         handleStartRec() {

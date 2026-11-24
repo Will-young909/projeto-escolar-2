@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/accessibility.css">
+  <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
   <style>
     :root {
       --bordo: #800020;
@@ -81,86 +82,9 @@ header {
   object-fit: contain;
 }
 
-.menu-btn {
-  font-size: 1.8rem;
-  background: none;
-  border: none;
-  color: #800020;
-  cursor: pointer;
-}
+.subheader__back { border: none; background: none; color: var(--bordo); font-weight: 600; font-size: 0.9rem; padding: 0.35rem 0.6rem; border-radius: 999px; cursor: pointer; transition: 0.25s ease; }
 
-/* ============ MENU LATERAL ============ */
-nav {
-  position: fixed;
-  top: 0;
-  left: -260px; /* Largura base aumentada para 260px */
-  width: 260px;
-  height: 100vh;
-  background: var(--bordo);
-  padding-top: 60px; /* Espaço para o header */
-  transition: 0.3s;
-  z-index: 1002;
-}
-
-nav.active {
-  left: 0px;
-}
-
-.nav-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-links li, button {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-nav a, nav li button {
-  color: #fff;
-  text-decoration: none;
-  padding: 8px 24px;
-  font-size: 1rem;
-  transition: background 0.3s;
-  display: block;
-}
-
-nav a:hover {
-  background: var(--bordo-claro);
-}
-
-#close-menu {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #fff;
-  cursor: pointer;
-}
-
-/* Botão de recolher (desktop) */
-#toggle-menu {
-  position: absolute;
-  top: 15px;
-  right: -17px; /* Posicionado fora do painel */
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  background: var(--bordo);
-  border: 2px solid rgba(255,255,255,0.2);
-  display: none; 
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1003;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-#toggle-menu:hover { transform: scale(1.05); }
-
-#toggle-menu svg { transform-origin: center; transition: transform 0.3s ease; }
+.subheader__back:hover { background: rgba(128, 0, 32, 0.06); }
 
 /* Overlay */
 #overlay {
@@ -398,6 +322,157 @@ svg {
       border: 1px dashed rgba(128, 0, 32, 0.15);
     }
 
+    /* =======================
+         RESUMO DE HABILIDADES
+    ======================= */
+    .skills-stats {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--borda);
+    }
+
+    .stat-item {
+      flex: 1;
+      background: var(--card);
+      padding: 1rem;
+      border-radius: var(--raio-sm);
+      border: 1px solid var(--borda);
+      text-align: center;
+    }
+
+    .stat-item .stat-value {
+      display: block;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--bordo);
+    }
+
+    .stat-item .stat-label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--texto-claro);
+      margin-top: 0.25rem;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      .skills-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .skill-card {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio-sm);
+      padding: 1.25rem;
+      box-shadow: var(--sombra);
+      transition: var(--transicao);
+    }
+
+    .skill-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .skill-card strong {
+      border-left: 4px solid var(--verde);
+    }
+
+    .skill-card weak {
+      border-left: 4px solid var(--vermelho);
+    }
+
+    .skill-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .skill-name {
+      flex: 1;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--texto);
+    }
+
+    .skill-percentual {
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .skill-percentual strong {
+      color: var(--bordo);
+    }
+
+    .skill-level-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .skill-level-avanco {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .skill-level-pratica {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .skill-level-reforco {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .skill-level-nao-iniciado {
+      background: #e5e7eb;
+      color: #6b7280;
+    }
+
+    .skill-progress {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .skill-progress-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .skill-progress-bar strong {
+      background: var(--bordo);
+    }
+
+    .skill-progress-bar.avanco { background: var(--verde); }
+    .skill-progress-bar.pratica { background: #f59e0b; }
+    .skill-progress-bar.reforco { background: var(--vermelho); }
+    .skill-progress-bar.nao-iniciado { background: #9ca3af; }
+
+    .skill-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--texto-claro);
+      margin-top: 0.5rem;
+    }
+
     footer {
       color: var(--texto-claro);
       font-size: 0.9rem;
@@ -412,52 +487,11 @@ svg {
 
   #toggle-menu { display: flex; }
 
-  nav {
-    left: 0;
-    width: 260px;
-    border-right: 2px solid var(--bordo);
-    padding-top: 0;
-  }
-
   main {
     margin-left: 260px;
     transition: margin-left 0.3s ease;
     position: sticky;
     left: 25%;
-  }
-
-  nav.collapsed {
-    width: 70px;
-  }
-
-  nav.collapsed ~ main {
-    margin-left: 70px;
-  }
-
-  nav.collapsed a {
-    text-indent: -9999px;
-    white-space: nowrap;
-    overflow: hidden;
-    display: none;
-  }
-
-  nav.collapsed .nav-links li {
-    line-height: 42px;
-    overflow: hidden;
-    display: none;
-  }
-
-  nav.collapsed a {
-    padding-left: 0;
-    padding-right: 0;
-    text-align: center;
-  }
-
-  .logo {
-    position: absolute;
-    top: -10px;
-    left: 265px;
-    width: 175px;
   }
 
       .hero {
@@ -501,38 +535,17 @@ svg {
   </style>
 </head>
 <body>
+  <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="display: none; position: absolute; visibility: hidden; z-index: -99; top: -260px;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
   <header>
     <a href="/">
       <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
     </a>
-    <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
+    <button class="subheader__back" onclick="history.back()">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
   </header>
 
   <section id="overlay"></section>
-
-  <nav id="menu" class="overlay collapsed">
-
-    <button id="close-menu" aria-label="Fechar menu">&times;</button>
-
-    <button id="toggle-menu" aria-label="Recolher menu">
-      <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="white">
-        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-      </svg>
-    </button>
-
-    <ul class="nav-links">
-      <li><a href="/"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M264-216h96v-240h240v240h96v-348L480-726 264-564v348Zm-72 72v-456l288-216 288 216v456H528v-240h-96v240H192Zm288-327Z"/></svg>Home</a></li>
-      <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
-
-      <% if (session.user_aluno) { %>
-          <li><a href="/perfil_aluno"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M234-276q51-39 114-61.5T480-360q69 0 132 22.5T726-276q35-41 54.5-93T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 59 19.5 111t54.5 93Zm246-164q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q53 0 100-15.5t86-44.5q-39-29-86-44.5T480-280q-53 0-100 15.5T294-220q39 29 86 44.5T480-160Zm0-360q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17Zm0-60Zm0 360Z"/></svg>Perfil aluno</a></li>
-          <li><a href="/dashboard_aluno" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h240v-560H200v560Zm320 0h240v-280H520v280Zm0-360h240v-200H520v200Z"/></svg>Dashboard Aluno</a></li>
-          <li><a href="/agenda" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Agenda</a></li>
-          <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
-          <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
-      <% } %>
-    </ul>
-  </nav>
 
   <main class="container">
     <section class="hero">
@@ -585,42 +598,75 @@ svg {
           <div class="card-body">
             <h5 class="card-title">Resumo de Habilidades</h5>
 
+            <!-- Estatísticas globais -->
+            <div class="skills-stats">
+              <div class="stat-item">
+                <span class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length + dashboard.resumoHabilidades.pontosAMelhorar.length %></span>
+                <span class="stat-label">Habilidades praticadas</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><%
+                  const todos = [...dashboard.resumoHabilidades.pontosFortes, ...dashboard.resumoHabilidades.pontosAMelhorar];
+                  if (todos.length === 0) { %>0%<% } else { %>
+                    <%= Math.round(todos.reduce((acc, h) => acc + Number(h.mediaPercentual || 0), 0) / todos.length) %>
+                  <% } %>
+                %></span>
+                <span class="stat-label">Média de aproveitamento</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length %></span>
+                <span class="stat-label">Pontos fortes</span>
+              </div>
+            </div>
+
             <div class="skills-grid">
-              <div class="skill-column strong">
-                <h6><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#90EE90"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg> Pontos Fortes</h6>
-
-                <% if (dashboard.resumoHabilidades.pontosFortes.length > 0) { %>
-                  <ul class="skill-list">
-                    <% dashboard.resumoHabilidades.pontosFortes.forEach(h => { %>
-                      <li class="skill-item strong">
-                        <span><%= h.habilidade %></span>
-                      </li>
-                    <% }); %>
-                  </ul>
-                <% } else { %>
-                  <div class="empty-state">
-                    Continue praticando para descobrirmos seus pontos fortes!
+              <!-- Pontos Fortes -->
+              <% if (dashboard.resumoHabilidades.pontosFortes.length > 0) { %>
+                <% dashboard.resumoHabilidades.pontosFortes.forEach(h => { %>
+                  <div class="skill-card strong">
+                    <div class="skill-header">
+                      <span class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></span>
+                      <span class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></span>
+                    </div>
+                    <div class="skill-progress">
+                      <div class="skill-progress-bar avanco" style="width: <%= Math.round(h.mediaPercentual) %>%"></div>
+                    </div>
+                    <div class="skill-meta">
+                      <span><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></span>
+                      <span class="skill-level-badge skill-level-avanco">Avançado</span>
+                    </div>
                   </div>
-                <% } %>
-              </div>
+                <% }); %>
+              <% } else { %>
+                <div class="empty-state">
+                  Continue praticando para descobrirmos seus pontos fortes!
+                </div>
+              <% } %>
 
-              <div class="skill-column weak">
-                <h6><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#f08080"><path d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z"/></svg> Pontos a Melhorar</h6>
-
-                <% if (dashboard.resumoHabilidades.pontosAMelhorar.length > 0) { %>
-                  <ul class="skill-list">
-                    <% dashboard.resumoHabilidades.pontosAMelhorar.forEach(h => { %>
-                      <li class="skill-item weak">
-                        <span><%= h.habilidade %></span>
-                      </li>
-                    <% }); %>
-                  </ul>
-                <% } else { %>
-                  <div class="empty-state">
-                    Nenhum ponto de melhoria específico no momento. Ótimo trabalho!
+              <!-- Pontos a Melhorar -->
+              <% if (dashboard.resumoHabilidades.pontosAMelhorar.length > 0) { %>
+                <% dashboard.resumoHabilidades.pontosAMelhorar.forEach(h => { %>
+                  <div class="skill-card weak">
+                    <div class="skill-header">
+                      <span class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></span>
+                      <span class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></span>
+                    </div>
+                    <div class="skill-progress">
+                      <div class="skill-progress-bar <%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>" style="width: <%= Math.round(h.mediaPercentual) %>%"></div>
+                    </div>
+                    <div class="skill-meta">
+                      <span><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></span>
+                      <span class="skill-level-badge skill-level-<%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>">
+                        <%= h.mediaPercentual >= 40 ? 'Pratica' : 'Reforço' %>
+                      </span>
+                    </div>
                   </div>
-                <% } %>
-              </div>
+                <% }); %>
+              <% } else { %>
+                <div class="empty-state">
+                  Nenhum ponto de melhoria específico no momento. Ótimo trabalho!
+                </div>
+              <% } %>
             </div>
           </div>
         </div>

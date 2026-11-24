@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="../css/accessibility.css">
+    <link rel="icon" href="../imagens/Regimath_sem fundo cor preto2.png" />
     <style>
     :root {
   --bordo: #800020;
@@ -111,16 +112,8 @@ header {
             border-radius: 4px;
             text-decoration: none;
         }        
-        .nav-links {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: var(--bordo);
-            margin-right: 15px;
-        }
+        .subheader__back { border: none; background: none; color: var(--bordo); font-weight: 600; font-size: 0.9rem; padding: 0.35rem 0.6rem; border-radius: 999px; cursor: pointer; transition: 0.25s ease; }
+        .subheader__back:hover { background: rgba(128, 0, 32, 0.06); }
     </style>
 </head>
 <body>
@@ -129,12 +122,11 @@ header {
         <a href="/">
            <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
          </a>
-         </button>
+         <a class="subheader__back" href="/" aria-label="Voltar à página inicial" style="text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> Home
+          </a>
        </header>
     <main class="container">
-        <div class="nav-links">
-            <a href="/dashboard_prof"><i class="fas fa-arrow-left"></i> Dashboard</a>
-        </div>
         <h2><i class="fas fa-tasks"></i> Atividades Criadas</h2>
         <% if (locals.activities && locals.activities.length > 0) { %>
             <ul>

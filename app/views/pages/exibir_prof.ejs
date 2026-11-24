@@ -148,13 +148,63 @@
         <a href="/">
           <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
         </a>
-        <button class="subheader__back" onclick="history.back()">
+        <button class="subheader__back" id="btn-voltar">
           <i class="fas fa-arrow-left"></i> Voltar
         </button>
       </header>
+      <script>
+        function getReturnTo(){
+          try {
+            const fromUrl = new URLSearchParams(window.location.search).get('returnTo');
+            if(fromUrl){ sessionStorage.setItem('prof_returnTo', fromUrl); return fromUrl; }
+          } catch(e){}
+          return sessionStorage.getItem('prof_returnTo') || null;
+        }
+        function clearCommentForm(){
+          const form = document.getElementById('form-comentario');
+          if(form){
+            const ta = form.querySelector('textarea[name="texto"]');
+            if(ta){ ta.value = ''; }
+            const r = form.querySelectorAll('input[name="nota"]');
+            for(let i=0;i<r.length;i++){ r[i].checked=false; }
+          }
+        }
+        function setupVoltar(){
+          const btn = document.getElementById('btn-voltar');
+          const returnTo = getReturnTo();
+          if(btn){
+            btn.onclick = function(e){
+              e.preventDefault();
+              if(returnTo){
+                window.location.replace(returnTo);
+                return;
+              }
+              const ref = document.referrer;
+              try{
+                if(ref){
+                  const u = new URL(ref);
+                  if(u.origin === location.origin && u.pathname !== location.pathname){
+                    window.location.replace(ref);
+                    return;
+                  }
+                }
+              }catch(ex){}
+              if(ref && ref.indexOf('/pesquisar_profs') !== -1 && ref.indexOf(location.pathname) === -1){
+                window.location.replace('/pesquisar_profs');
+                return;
+              }
+              window.location.replace('/');
+            };
+          }
+        }
+        document.addEventListener('DOMContentLoaded', function(){ clearCommentForm(); setupVoltar(); });
+        window.addEventListener('pageshow', function(){ clearCommentForm(); setupVoltar(); });
+      </script>
 
     <main class="perfil-container">
+        <!-- Coluna Esquerda: Informações do Professor -->
         <section class="perfil-info card">
+            <!-- (Conteúdo do perfil continua igual...) -->
             <section class="profile-header">
                 <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" 
                     alt="Foto de <%= professor.nome %>" 
@@ -198,17 +248,23 @@
             </section>
             
             <% if (professor.link_previa) { %>
-            <a href="<%= professor.link_previa %>" target="_blank" class="btn-secondary btn-previa">
-                <i class="fas fa-video" fill="#000"></i> Assistir Aula Prévia
-            </a>
-            <% } else { %>
-                <a href="#" target="_blank" class="btn-secondary btn-previa">
-                    <i class="fas fa-video"></i> Assistir Aula Prévia
-                </a>
+            <button type="button" class="btn-secondary btn-previa js-previa-link" data-previa-link="<%= professor.link_previa %>">
+                <i class="fas fa-video"></i> Aula Prévia
+            </button>
+            <% } %>
+            <% if (professor.previa_arquivo) { %>
+            <button type="button" class="btn-secondary btn-previa js-previa-arquivo" data-previa-src="/professor/previa/<%= professor.id %>">
+                <i class="fas fa-file-video"></i> Aula Prévia
+            </button>
+            <% } %>
+            <% if (!professor.link_previa && !professor.previa_arquivo) { %>
+                <button class="btn-secondary btn-previa disabled" disabled aria-disabled="true">
+                    <i class="fas fa-video"></i> Aula Prévia Não Disponível
+                </button>
             <% } %>    
 
             <% if (professor.status === 'disponivel') { %>
-                <a href="/chat/with/<%= professor.id %>" class="btn-primary btn-chat">
+                <a href="/chat/with/<%= professor.id %>" class="btn-primary btn-chat" id="btn-contato-chat" data-professor-id="<%= professor.id %>">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--color-card-bg)"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg> Conversar com Professor
                 </a>
             <% } else { %>
@@ -221,9 +277,11 @@
             </a>
         </section>
 
+        <!-- Coluna Direita (Apenas Calendário nas telas grandes) -->
         <aside class="secondary-column">
             <section class="calendario card">
                 <h2 class="section-title"><i class="fas fa-calendar-alt"></i> Horários Disponíveis</h2>
+                <!-- (Conteúdo do calendário continua o mesmo...) -->
                 <ul class="lista-aulas">
                     <% 
                       const horarios = professor.horariosDisponiveis || [];
@@ -292,64 +350,192 @@
                     <% } %>
                 </ul>
             </section>   
+        </aside>
 
-            <section class="comentarios card">
-                <h2 class="section-title"><i class="fas fa-comment-dots"></i> Comentários e Avaliações</h2>
-                
-                <ul class="lista-comentarios">
-                    <% if (professor.comentarios && professor.comentarios.length > 0) { %>
-                        <% professor.comentarios.forEach(comentario => { %>
-                            <li aria-label="Comentário de <%= comentario.usuario %>">
-                                <header class="comentario-header" style="border: none; background: transparent; box-shadow: none;">
-                                    <strong><%= comentario.usuario %></strong>
-                                    <% if (comentario.nota && comentario.nota > 0) { %>
-                                        <section class="comentario-rating" aria-label="Nota: <%= comentario.nota %> de 5 estrelas">
-                                            <% for(let i = 1; i <= 5; i++) { %>
-                                                <i class="fas fa-star" style="color: <%= i <= comentario.nota ? '#f7d106' : '#ddd' %>;"></i>
-                                            <% } %>
-                                        </section>
-                                    <% } %>
-                                </header>
-                                <p class="texto-comentario"><%= comentario.texto %></p>
-                                <small class="data"><%= new Date(comentario.data).toLocaleString('pt-BR', {
-                                    timeZone: 'America/Sao_Paulo'
-                                }) %></small>
-                                <a href="/denuncia?denunciado_id=<%= comentario.aluno_id || professor.id %>&conteudo_tipo=comentario&conteudo_id=<%= comentario.id %>" class="btn-denunciar">
-                                    <i class="fas fa-flag"></i> Denunciar Comentário
-                                </a>
-                            </li>
-                        <% }) %>
-                    <% } else { %>
-                        <p class="empty-state">Seja o primeiro a comentar e avaliar!</p>
-                    <% } %>
-                </ul>
+        <!-- Seção de Comentários isolada em largura total (embaixo) -->
+        <section class="comentarios card full-width-comentarios">
+            <h2 class="section-title"><i class="fas fa-comment-dots"></i> Comentários e Avaliações</h2>
+            
+            <ul class="lista-comentarios">
+                <% if (professor.comentarios && professor.comentarios.length > 0) { %>
+                    <% professor.comentarios.forEach(comentario => { %>
+                        <% const user = session.user_aluno || session.user_prof; %>
+                        <% const isAluno = !!session.user_aluno; %>
+                        <% const isCommentOwner = user && (isAluno
+                            ? comentario.aluno_id && comentario.aluno_id === user.id
+                            : comentario.usuario_nome === user.nome); %>
+                        <li aria-label="Comentário de <%= comentario.usuario %>">
+                            <header class="comentario-header" style="border: none; background: transparent; box-shadow: none;">
+                                <strong><%= comentario.usuario %></strong>
+                                <% if (isCommentOwner) { %>
+                                    <a href="/exibir_prof/<%= professor.id %>/comentario/<%= comentario.id %>/editar" class="btn-editar-comentario" style="float:right; font-size:0.8rem; color:var(--color-primary); text-decoration:none;">
+                                        <i class="fas fa-pen"></i> Editar
+                                    </a>
+                                <% } %>
+                                <% if (comentario.nota && comentario.nota > 0) { %>
+                                    <section class="comentario-rating" aria-label="Nota: <%= comentario.nota %> de 5 estrelas">
+                                        <% for(let i = 1; i <= 5; i++) { %>
+                                            <i class="fas fa-star" style="color: <%= i <= comentario.nota ? '#f7d106' : '#ddd' %>;"></i>
+                                        <% } %>
+                                    </section>
+                                <% } %>
+                            </header>
+                            <p class="texto-comentario"><%= comentario.texto %></p>
+                            <small class="data"><%= new Date(comentario.data).toLocaleString('pt-BR', {
+                                timeZone: 'America/Sao_Paulo'
+                            }) %></small>
+                            <a href="/denuncia?denunciado_id=<%= comentario.aluno_id || professor.id %>&conteudo_tipo=comentario&conteudo_id=<%= comentario.id %>" class="btn-denunciar">
+                                <i class="fas fa-flag"></i> Denunciar Comentário
+                            </a>
+                        </li>
+                    <% }) %>
+                <% } else { %>
+                    <p class="empty-state">Seja o primeiro a comentar e avaliar!</p>
+                <% } %>
+            </ul>
 
-                <% if (typeof session !== 'undefined' && (session.user_aluno || session.user_prof)) { %>
-                    <form action="/exibir_prof/<%= professor.id %>/comentar" method="POST" class="form-comentario">
-                        <section class="rating-input">
-                            <fieldset class="rating">
-                                <legend class="visually-hidden">Avalie o professor</legend>
-                                <input type="radio" id="star5" name="nota" value="5" /><label for="star5" title="5 estrelas"></label>
-                                <input type="radio" id="star4" name="nota" value="4" /><label for="star4" title="4 estrelas"></label>
-                                <input type="radio" id="star3" name="nota" value="3" /><label for="star3" title="3 estrelas"></label>
-                                <input type="radio" id="star2" name="nota" value="2" /><label for="star2" title="2 estrelas"></label>
-                                <input type="radio" id="star1" name="nota" value="1" /><label for="star1" title="1 estrela"></label>
-                            </fieldset>
-                        </section>
-                        <label for="comment-text" class="visually-hidden">Escreva seu comentário</label>
-                        <textarea id="comment-text" name="texto" placeholder="Escreva seu comentário..." required rows="3"></textarea>
+            <% if (typeof session !== 'undefined' && (session.user_aluno || session.user_prof)) { %>
+                <form action="/exibir_prof/<%= professor.id %>/comentar" method="POST" class="form-comentario" id="form-comentario">
+                    <section class="rating-input">
+                        <fieldset class="rating">
+                            <legend class="visually-hidden">Avalie o professor</legend>
+                            <input type="radio" id="star5" name="nota" value="5" /><label for="star5" title="5 estrelas"></label>
+                            <input type="radio" id="star4" name="nota" value="4" /><label for="star4" title="4 estrelas"></label>
+                            <input type="radio" id="star3" name="nota" value="3" /><label for="star3" title="3 estrelas"></label>
+                            <input type="radio" id="star2" name="nota" value="2" /><label for="star2" title="2 estrelas"></label>
+                            <input type="radio" id="star1" name="nota" value="1" /><label for="star1" title="1 estrela"></label>
+                        </fieldset>
+                    </section>
+                    <label for="comment-text" class="visually-hidden">Escreva seu comentário</label>
+                    <textarea id="comment-text" name="texto" placeholder="Escreva seu comentário..." required rows="3"></textarea>
                         <button type="submit" class="btn-primary btn-comment">
                             <i class="fas fa-paper-plane"></i> Enviar Comentário
                         </button>
-                    </form>
-                <% } else { %>
-                    <p class="login-prompt">
-                        Faça <a href="/login" class="link-primary">login</a> para deixar um comentário e avaliação.
-                    </p>
-                <% } %>
-            </section>
+                </form>
+            <% } else if (session.user_admin) { %>
+            
+            <% } else { %>    
+                <p class="login-prompt">
+                    Faça <a href="/login" class="link-primary">login</a> para deixar um comentário e avaliação.
+                </p>
+            <% } %>
+        </section>
     </main>
+    <% if (professor.previa_arquivo || professor.link_previa) { %>
+    <div class="previa-modal" id="previaModal" aria-hidden="true">
+        <div class="previa-modal-backdrop" data-close-previa></div>
+        <div class="previa-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="previaModalTitle">
+            <div class="previa-modal-header">
+                <h2 id="previaModalTitle"><i class="fas fa-file-video"></i> Aula Prévia</h2>
+                <button type="button" class="previa-modal-close" id="previaModalClose" aria-label="Fechar aula prévia">&times;</button>
+            </div>
+            <div class="previa-modal-body">
+                <video id="previaVideoPlayer" controls preload="metadata" playsinline style="display:none;">
+                    Seu navegador não suporta vídeo HTML5.
+                </video>
+                <iframe id="previaLinkFrame" title="Aula prévia" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display:none;"></iframe>
+                <div id="previaLinkFallback" class="previa-link-fallback" style="display:none;">
+                    <p>Este link não permite exibição embutida.</p>
+                    <a id="previaLinkExternal" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir link externamente</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
     <script src="../js/accessibility.js"></script>
+    <script>
+        (() => {
+            const previaModal = document.getElementById('previaModal');
+            const previaVideo = document.getElementById('previaVideoPlayer');
+            const previaFrame = document.getElementById('previaLinkFrame');
+            const previaFallback = document.getElementById('previaLinkFallback');
+            const previaExternal = document.getElementById('previaLinkExternal');
+            const previaClose = document.getElementById('previaModalClose');
+            const getEmbedUrl = (url) => {
+                try {
+                    const u = new URL(url, window.location.origin);
+                    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+                    if (host === 'youtu.be') {
+                        const id = u.pathname.split('/').filter(Boolean)[0];
+                        return id ? `https://www.youtube.com/embed/${id}` : null;
+                    }
+                    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtube-nocookie.com') {
+                        if (u.pathname === '/watch') return u.searchParams.get('v') ? `https://www.youtube.com/embed/${u.searchParams.get('v')}` : null;
+                        const parts = u.pathname.split('/').filter(Boolean);
+                        if (['embed','shorts','live'].includes(parts[0]) && parts[1]) return `https://www.youtube.com/embed/${parts[1]}`;
+                    }
+                    if (host === 'vimeo.com' || host === 'player.vimeo.com') {
+                        const id = u.pathname.split('/').filter(Boolean).find(p => /^\d+$/.test(p));
+                        return id ? `https://player.vimeo.com/video/${id}` : null;
+                    }
+                    if (host === 'drive.google.com') {
+                        const m = u.pathname.match(/\/file\/d\/([^/]+)/);
+                        if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+                    }
+                    if (/\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(u.pathname)) return u.href;
+                    return null;
+                } catch (_) { return null; }
+            };
+            const closePrevia = () => {
+                if (!previaModal) return;
+                previaModal.classList.remove('is-open');
+                previaModal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('no-scroll');
+                if (previaVideo) { previaVideo.pause(); previaVideo.removeAttribute('src'); previaVideo.load(); previaVideo.style.display = 'none'; }
+                if (previaFrame) { previaFrame.removeAttribute('src'); previaFrame.style.display = 'none'; }
+                if (previaFallback) previaFallback.style.display = 'none';
+                if (previaExternal) previaExternal.href = '#';
+            };
+            const openPrevia = ({ src, link }) => {
+                if (!previaModal) return;
+                closePrevia();
+                if (src && previaVideo) {
+                    previaVideo.src = src;
+                    previaVideo.style.display = 'block';
+                } else if (link) {
+                    const embed = getEmbedUrl(link);
+                    if (embed && /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(embed) && previaVideo) {
+                        previaVideo.src = embed;
+                        previaVideo.style.display = 'block';
+                    } else if (embed && previaFrame) {
+                        previaFrame.src = embed;
+                        previaFrame.style.display = 'block';
+                    } else if (previaFallback && previaExternal) {
+                        previaExternal.href = link;
+                        previaFallback.style.display = 'flex';
+                    }
+                }
+                previaModal.classList.add('is-open');
+                previaModal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('no-scroll');
+                if (previaClose) previaClose.focus();
+            };
+            document.querySelectorAll('.js-previa-arquivo').forEach(btn => btn.addEventListener('click', () => openPrevia({ src: btn.dataset.previaSrc })));
+            document.querySelectorAll('.js-previa-link').forEach(btn => btn.addEventListener('click', () => openPrevia({ link: btn.dataset.previaLink })));
+            if (previaClose) previaClose.addEventListener('click', closePrevia);
+            if (previaModal) {
+                previaModal.addEventListener('click', (e) => { if (e.target && e.target.hasAttribute('data-close-previa')) closePrevia(); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && previaModal.classList.contains('is-open')) closePrevia(); });
+            }
+        })();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var btnContato = document.getElementById('btn-contato-chat');
+            if (btnContato) {
+                btnContato.addEventListener('click', function() {
+                    var professorId = btnContato.dataset.professorId;
+                    var payload = JSON.stringify({ professorId: professorId });
+                    try {
+                        if (navigator.sendBeacon) {
+                            navigator.sendBeacon('/api/recomendacao/registrar-contato', new Blob([payload], { type: 'application/json' }));
+                        } else {
+                            fetch('/api/recomendacao/registrar-contato', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true });
+                        }
+                    } catch (e) {}
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

@@ -11,9 +11,10 @@ router.get('/progresso', TrilhaAdaptativaController.obterProgresso);
 // Ex: POST /api/trilha-adaptativa/responder
 router.post('/responder', TrilhaAdaptativaController.processarResposta);
 
-// Rota para o aluno sinalizar que consumiu um CONTEÚDO DE APOIO (vídeo, artigo)
-// Ex: POST /api/trilha-adaptativa/marcar-consumido
-router.post('/marcar-consumido', TrilhaAdaptativaController.marcarConteudoConsumido);
-
+// --- Tutor de IA (premium, consome Passe de Estudos) ---
+// A dica NÃO revela o gabarito: serve às tentativas 1-2, para não anular a
+// repetição. A explicação completa só depois da resolução definitiva.
+router.post('/tutor/dica', TrilhaAdaptativaController.pedirDica);
+router.post('/tutor/explicacao', TrilhaAdaptativaController.explicarErro);
 
 module.exports = router;

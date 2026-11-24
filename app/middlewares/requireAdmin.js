@@ -1,9 +1,9 @@
 const pool = require('../../config/pool');
 
-async function requireAdmin(req, res, next) {/*
+async function requireAdmin(req, res, next) {
     if (!req.session || !req.session.user_admin || !req.session.user_admin.id) {
         console.warn('Attempt to access admin route without session.');
-        return res.status(401).send('Acesso não autorizado. Por favor, faça login.');
+        return res.status(401).send('Acesso não autorizado. Por favor, faça login.' + ' <a href="/admin/login" class="link-secundario">Login</a>');
     }
 
     const adminId = req.session.user_admin.id;
@@ -25,12 +25,13 @@ async function requireAdmin(req, res, next) {/*
         }
 
         req.user = adminFromDb;
-        */next();/*
+        next();
 
     } catch (error) {
         console.error('Error during admin authentication middleware:', error);
         res.status(500).send('Erro interno do servidor ao verificar permissões.');
-    }*/
+    }
 }
+
 
 module.exports = requireAdmin;
