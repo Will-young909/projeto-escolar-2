@@ -28,77 +28,77 @@
         <i class="fas fa-arrow-left"></i>
       </button></a>
       <section class="header-center">
-        <h1>Sala <output class="room-name"><%= room %></output></h1>
-        <section id="statusIndicator" class="connection-status connecting" role="status">
+        <h1>Sala <span class="room-name"><%= room %></span></h1>
+        <div id="statusIndicator" class="connection-status connecting" role="status">
           <i class="fas fa-circle status-icon"></i>
-          <output>Conectando...</output>
-        </section>
-        <section id="qualityIndicator" class="quality-indicator good">
-    <output class="quality-dot"></output>
-    <output id="qualityText">Boa conexão</output>
-</section>
+          <span>Conectando...</span>
+        </div>
+        <div id="qualityIndicator" class="quality-indicator good">
+    <span class="quality-dot"></span>
+    <span id="qualityText">Boa conexão</span>
+</div>
       </section>
-      <section class="header-spacer"></section>
+      <div class="header-spacer"></div>
     </header>
 
     <!-- Vídeos com PIP automático -->
     <section class="videos-section" role="region" aria-label="Vídeos da chamada">
       <!-- Vídeo principal (grande) -->
-      <section class="video-main-wrapper">
+      <div class="video-main-wrapper">
         <video id="remoteVideo" autoplay playsinline class="video-main"></video>
-        <section class="video-placeholder active" id="remotePlaceholder">
+        <div class="video-placeholder active" id="remotePlaceholder">
           <i class="fas fa-user-graduate"></i>
           <p id="remoteStatus">Aguardando parceiro...</p>
-        </section>
-        <section class="video-label">
+        </div>
+        <div class="video-label">
           <i class="fas fa-chalkboard-teacher"></i>
           Parceiro
-        </section>
-      </section>
+        </div>
+      </div>
 
       <!-- Mini vídeo local (PIP) -->
-      <section class="pip-container" id="pipContainer">
-        <section class="video-pip-wrapper">
+      <div class="pip-container" id="pipContainer">
+        <div class="video-pip-wrapper">
           <video id="localVideo" autoplay muted playsinline class="video-pip"></video>
-          <section class="video-placeholder active" id="localPlaceholder">
+          <div class="video-placeholder active" id="localPlaceholder">
             <i class="fas fa-user-slash"></i>
             <p>Câmera desligada</p>
-          </section>
-          <section class="pip-label">
+          </div>
+          <div class="pip-label">
             <i class="fas fa-user-circle"></i> Você
-          </section>
+          </div>
           <button class="pip-drag-handle" aria-label="Arrastar vídeo PIP">
             <i class="fas fa-grip-vertical"></i>
           </button>
-        </section>
-      </section>
+        </div>
+      </div>
     </section>
 
     <!-- Barra de controles otimizada para mobile -->
     <section class="controls-bar" role="toolbar" aria-label="Controles da chamada">
-      <section class="controls-left">
+      <div class="controls-left">
         <button id="btnToggleAudio" class="control-btn audio-btn" title="Microfone" data-status="on" aria-label="Microfone ligado">
           <i class="fas fa-microphone"></i>
         </button>
         <button id="btnToggleCam" class="control-btn video-btn" title="Câmera" data-status="on" aria-label="Câmera ligada">
           <i class="fas fa-video"></i>
         </button>
-      </section>
+      </div>
 
-      <section class="controls-main">
+      <div class="controls-main">
         <button id="btnShareScreen" class="control-btn screen-btn" title="Compartilhar tela" data-status="off" aria-label="Compartilhar tela">
           <i class="fas fa-desktop"></i>
         </button>
-      </section>
-      <section class="controls-right">
+      </div>
+      <div class="controls-right">
         <button id="btnEndCall" class="control-btn end-btn" title="Encerrar chamada" aria-label="Encerrar chamada">
           <i class="fas fa-phone-slash"></i>
         </button>
-      </section>
+      </div>
     </section>
 
     <!-- Toast notifications -->
-    <section id="toastContainer" class="toast-container"></section>
+    <div id="toastContainer" class="toast-container"></div>
   </main>
 
   <script src="../js/accessibility.js"></script>

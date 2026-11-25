@@ -123,8 +123,8 @@
                               <p class="tag <%= aula.status %>">
                                   <%= aula.status.charAt(0).toUpperCase() + aula.status.slice(1) %>
                               </p>
-                              <p class="duracao">Duração: <output class="duration-placeholder"
-                                  data-duracao="<%= aula.gravacao_duracao || 0 %>">Calculando...</output></p>
+                              <p class="duracao">Duração: <span class="duration-placeholder"
+                                  data-duracao="<%= aula.gravacao_duracao || 0 %>">Calculando...</span></p>
                           </section>
 
                           <% if (recStatus === 'disponivel') { %>

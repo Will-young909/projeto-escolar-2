@@ -52,44 +52,44 @@
 
         <!-- Resumo da aula -->
         <section class="aula-summary" aria-label="Resumo da aula">
-            <section class="info-grid">
-                <section class="info-item">
-                    <output class="info-label">Matéria</output>
-                    <output class="info-value"><%= aula.materia %></output>
-                </section>
-                <section class="info-item">
-                    <output class="info-label">Professor</output>
-                    <output class="info-value"><%= aula.professorNome %></output>
-                </section>
-                <section class="info-item">
-                    <output class="info-label">Aluno</output>
-                    <output class="info-value"><%= aula.alunoNome %></output>
-                </section>
-                <section class="info-item">
-                    <output class="info-label">Data</output>
-                    <output class="info-value"><%= new Date(aula.data + 'T00:00:00').toLocaleDateString('pt-BR') %></output>
-                </section>
-                <section class="info-item">
-                    <output class="info-label">Horário</output>
-                    <output class="info-value"><%= aula.horaInicio %><% if (aula.horaFim) { %> – <%= aula.horaFim %><% } %></output>
-                </section>
-                <section class="info-item">
-                    <output class="info-label">Duração</output>
-                    <output class="info-value"><%= aula.duracaoFormatada %><% if (aula.tamanhoMB) { %> <small>(<%= aula.tamanhoMB %> MB)</small><% } %></output>
-                </section>
-            </section>
-            <section class="info-status">
-                <output class="info-label">Status</output>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Matéria</span>
+                    <span class="info-value"><%= aula.materia %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Professor</span>
+                    <span class="info-value"><%= aula.professorNome %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Aluno</span>
+                    <span class="info-value"><%= aula.alunoNome %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Data</span>
+                    <span class="info-value"><%= new Date(aula.data + 'T00:00:00').toLocaleDateString('pt-BR') %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Horário</span>
+                    <span class="info-value"><%= aula.horaInicio %><% if (aula.horaFim) { %> – <%= aula.horaFim %><% } %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Duração</span>
+                    <span class="info-value"><%= aula.duracaoFormatada %><% if (aula.tamanhoMB) { %> <small>(<%= aula.tamanhoMB %> MB)</small><% } %></span>
+                </div>
+            </div>
+            <div class="info-status">
+                <span class="info-label">Status</span>
                 <% if (aula.gravacaoStatus === 'disponivel') { %>
-                    <output class="status-badge disponivel"><i class="fas fa-circle"></i> 🎥 Gravação disponível</output>
+                    <span class="status-badge disponivel"><i class="fas fa-circle"></i> 🎥 Gravação disponível</span>
                 <% } else if (aula.gravacaoStatus === 'processando') { %>
-                    <output class="status-badge processando"><i class="fas fa-spinner fa-spin"></i> 🎥 Processando gravação...</output>
+                    <span class="status-badge processando"><i class="fas fa-spinner fa-spin"></i> 🎥 Processando gravação...</span>
                 <% } else if (aula.gravacaoStatus === 'falhou') { %>
-                    <output class="status-badge falhou"><i class="fas fa-exclamation-triangle"></i> ⚠️ Não foi possível processar a gravação.</output>
+                    <span class="status-badge falhou"><i class="fas fa-exclamation-triangle"></i> ⚠️ Não foi possível processar a gravação.</span>
                 <% } else { %>
-                    <output class="status-badge indisponivel"><i class="fas fa-pause-circle"></i> Gravação indisponível</output>
+                    <span class="status-badge indisponivel"><i class="fas fa-pause-circle"></i> Gravação indisponível</span>
                 <% } %>
-            </section>
+            </div>
         </section>
 
         <!-- Player / Estados -->
@@ -128,12 +128,12 @@
                 </section>
             <% } %>
 
-            <section class="actions">
+            <div class="actions">
                 <% if (aula.podeAssistir) { %>
                     <a href="/gravacao/stream/<%= aula.id %>?download=1" class="btn-primary" download><i class="fas fa-download"></i> Baixar gravação</a>
                 <% } %>
                 <a href="/historico_aulas" class="btn-primary"><i class="fas fa-history"></i> Voltar ao histórico</a>
-            </section>
+            </div>
 
         <% } %>
 

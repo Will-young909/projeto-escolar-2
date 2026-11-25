@@ -81,6 +81,8 @@
         .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .pass-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; transition: all 0.2s ease; }
         .pass-card:hover, .pass-card.featured { border-color: var(--bordo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
+    .pass-card.featured { border-width: 2px; position: relative; }
+    .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--bordo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
         .pass-card h4 { font-size: 1.4rem; color: var(--bordo-claro); margin-bottom: 10px; }
         .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
         .pass-card p { font-size: 0.9rem; color: #333; min-height: 54px; }
@@ -120,11 +122,11 @@
         <h2><i class="fas fa-compass"></i> Explorar Atividades</h2>
         
         <% if (user && user.tipo === 'aluno') { %>
-            <section class="open-ai-generator-wrapper">
+            <div class="open-ai-generator-wrapper">
                 <button id="open-ai-modal-btn"><i class="fas fa-magic"></i> Criar Atividade com IA</button>
-            </section>
+            </div>
 
-            <section class="daily-limit-container">
+            <div class="daily-limit-container">
                 <% if (passeAtivo && passeAtivo.passeAtivo) { %>
                     <% if (passeAtivo.tipo === 'quantidade') { %>
                         <% if (limiteDiario.limiteAtingido) { %>
@@ -132,9 +134,9 @@
                             <p class="limit-text-small">Restam <strong><%= passeAtivo.atividadesRestantes %> atividades</strong> no seu passe.</p>
                         <% } else { %>
                             <p class="limit-text">Você completou <strong><%= limiteDiario.contagem %> de <%= limiteDiario.limite %></strong> atividades diárias gratuitas.</p>
-                            <section class="progress-bar">
-                                <section class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></section>
-                            </section>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></div>
+                            </div>
                             <p class="limit-text-small">Após o limite, você usará seu <strong>Passe de Atividades</strong> (<%= passeAtivo.atividadesRestantes %> restantes).</p>
                         <% } %>
                     <% } else { %>
@@ -142,16 +144,16 @@
                     <% } %>
                 <% } else { %>
                     <p class="limit-text">Você completou <strong><%= limiteDiario.contagem %> de <%= limiteDiario.limite %></strong> atividades diárias.</p>
-                    <section class="progress-bar">
-                        <section class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></section>
-                    </section>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= (limiteDiario.contagem / limiteDiario.limite) * 100 %>%;"></div>
+                    </div>
                 <% } %>
-            </section>
+            </div>
         <% } %>
 
-        <section class="search-container">
+        <div class="search-container">
             <input type="text" id="search-box" placeholder="Pesquisar por título, descrição ou professor...">
-        </section>
+        </div>
 
         <% if (locals.activities && locals.activities.length > 0) { %>
             <section class="activities-grid">
@@ -161,7 +163,7 @@
                 <% locals.activities.forEach(activity => { %>
                     <section class="activity-card <%= activity.realizada ? 'realizada' : '' %>">
                         <% if (activity.realizada) { %>
-                            <output class="activity-badge-realizada"><i class="fas fa-check-circle"></i> Já realizada</output>
+                            <span class="activity-badge-realizada"><i class="fas fa-check-circle"></i> Já realizada</span>
                         <% } %>
                         <h3><%= activity.title %></h3>
                         <p><%= activity.description %></p>
@@ -170,7 +172,7 @@
                         <% if (shouldBlockAndShowModal) { %>
                             <a href="#" class="btn-primary disabled-link" onclick="openPurchaseModal(event)">
                                 Ver Atividade
-                                <output class="tooltip">Limite atingido. Compre um passe!</output>
+                                <span class="tooltip">Limite atingido. Compre um passe!</span>
                             </a>
                         <% } else { %>
                             <a href="/ver_atividade/<%= activity.id %>" class="btn-primary">Ver Atividade</a>
@@ -224,7 +226,7 @@
                     <h2><i class="fas fa-magic"></i> Criar com IA</h2>
                     <button class="close-button" onclick="closeAiModal()">&times;</button>
                 </section>
-                <section class="modal-body">
+                <div class="modal-body">
                     <p class="modal-intro-text">Descreva o que você quer praticar e a IA criará uma atividade para você.</p>
                     <textarea id="ai-prompt" placeholder="Ex: 5 questões de múltipla escolha sobre equações de segundo grau, com alternativas e respostas."></textarea>
                     <button id="btn-generate-ai" class="btn-ai-generate" <%= !(passeAtivo && passeAtivo.passeAtivo) ? 'disabled' : '' %>>
@@ -235,7 +237,7 @@
                     <% } else if (passeAtivo.tipo === 'quantidade') { %>
                         <p class="ai-pass-info">Isso consumirá <strong>1 atividade</strong> do seu passe (<%= passeAtivo.atividadesRestantes %> restantes).</p>
                     <% } %>
-                </section>
+                </div>
             </section>
         </section>
     <% } %>

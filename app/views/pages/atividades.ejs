@@ -66,11 +66,11 @@
     </a>
   </section>
 
-  <section class="ia-generator-container">
+  <div class="ia-generator-container">
     <textarea id="ia-prompt" class="correct-answer-input" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea><br>
     <button style="margin-top: 10px;" id="generate-with-ia" class="btn-primary">Gerar com IA</button>
      <button class="nivel" style="background: none; border: none; align-self: center; justify-self: center;"><a href="/nivel_escolar" style="text-decoration: none; margin-top: 10px; margin-bottom: 10px;" class="btn-primary">Gerar por Nível Escolar</a></button>
-  </section>
+  </div>
 
   <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="<%= locals.activity ? '/atividades/editar/' + activity.id : '/atividades' %>">
     <header class="form-header">
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     block.setAttribute('aria-label', `Questão ${questionCounter}`);
 
     block.innerHTML = `
-      <section class="question-header">
+      <div class="question-header">
         <input 
           type="text" 
           placeholder="Pergunta" 
@@ -140,11 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <option value="short_text" ${questionData && questionData.type === 'short_text' ? 'selected' : ''}>Resposta curta</option>
           <option value="long_text" ${questionData && questionData.type === 'long_text' ? 'selected' : ''}>Parágrafo</option>
         </select>
-      </section>
+      </div>
 
-      <section class="question-content"></section>
+      <div class="question-content"></div>
 
-      <section class="question-footer">
+      <div class="question-footer">
         <button 
           class="btn-icon btn-delete-question" 
           type="button"
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title="Excluir Questão">
           <i class="fas fa-trash"></i>
         </button>
-      </section>
+      </div>
     `;
 
     questionsContainer.appendChild(block);
@@ -218,32 +218,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let optionIndex = 1;
         for (const [, optionValue] of optionEntries) {
           optionsHtml += `
-            <section class="option-item">
+            <div class="option-item">
               <input type="radio" name="questions[${questionId}][correct]" value="${optionIndex}" ${correctIndex === optionIndex - 1 ? 'checked' : ''} aria-label="Alternativa correta ${optionIndex}">
               <input type="text" name="questions[${questionId}][options][${optionIndex}]" placeholder="Opção ${optionIndex}" value="${optionValue}">
               <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
                 <i class="fas fa-times"></i>
               </button>
-            </section>
+            </div>
           `;
           optionIndex++;
         }
       } else {
           optionsHtml = `
-          <section class="option-item">
+          <div class="option-item">
             <input type="radio" name="questions[${questionId}][correct]" value="1" aria-label="Alternativa correta 1">
             <input type="text" name="questions[${questionId}][options][1]" placeholder="Opção 1">
             <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
               <i class="fas fa-times"></i>
             </button>
-          </section>
+          </div>
           `;
       }
         
       contentDiv.innerHTML = `
-        <section class="options-container">
+        <div class="options-container">
           ${optionsHtml}
-        </section>
+        </div>
         <button class="btn-add-option" type="button">Adicionar opção</button>
       `;
     } else if (type === 'short_text' || type === 'long_text') {
@@ -255,23 +255,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }).filter(k => k.text);
 
       const chipsHtml = existingKeywords.map((k, idx) => `
-        <section class="keyword-chip" style="display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;">
+        <div class="keyword-chip" style="display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;">
           <input type="text" value="${String(k.text || '').replace(/"/g, '&quot;')}" class="kw-text" style="width:140px; border:none; outline:none;">
           <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="kw-required" ${k.required ? 'checked' : ''}>Obrig.</label>
           <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;">Peso<input type="number" class="kw-peso" min="0.1" step="0.1" value="${Number(k.peso) || 1}" style="width:58px;"></label>
           <button type="button" class="btn-remove-keyword" aria-label="Remover palavra-chave" style="border:none; background:none; cursor:pointer; font-size:1rem;">×</button>
-        </section>`).join('');
+        </div>`).join('');
 
       contentDiv.innerHTML = `
-        <section class="keyword-manager" data-question-id="${questionId}">
+        <div class="keyword-manager" data-question-id="${questionId}">
           <p style="margin:0 0 8px; font-size:.9rem; color:#555;">Palavras-chave do gabarito (separe por vírgula ou Enter). Marque obrigatórias e defina peso.</p>
-          <section style="display:flex; gap:8px; margin-bottom:8px;">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
             <input type="text" class="correct-answer-input inp-nova-palavra" placeholder="Digite palavras-chave e pressione Enter...">
             <button type="button" class="btn-primary btn-add-keywords" style="padding:8px 12px;">Adicionar</button>
-          </section>
-          <section class="palavras-chave-list">${chipsHtml}</section>
+          </div>
+          <div class="palavras-chave-list">${chipsHtml}</div>
           <input type="hidden" name="questions[${questionId}][correctAnswer]" class="kw-correct-answer" value="${questionData && questionData.correctAnswer ? String(questionData.correctAnswer).replace(/"/g, '&quot;') : ''}">
-        </section>
+        </div>
       `;
 
       const manager = contentDiv.querySelector('.keyword-manager');
@@ -603,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let alertasHtml = '';
       if (linhasInvalidas.length > 0) {
-        alertasHtml = '<section style="color:#d32f2f; margin-bottom:12px;"><strong>Atenção:</strong></section><ul style="margin:0; padding-left:16px; font-size:0.85rem;">';
+        alertasHtml = '<div style="color:#d32f2f; margin-bottom:12px;"><strong>Atenção:</strong></div><ul style="margin:0; padding-left:16px; font-size:0.85rem;">';
         linhasInvalidas.slice(0, 10).forEach(l => {
           alertasHtml += '<li>' + l + '</li>';
         });
@@ -655,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <section style="background:#fff; border-radius:12px; padding:24px; max-width:600px; max-height:80vh; overflow-y:auto;position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:0 4px 20px rgba(0,0,0,0.25);">
     <h2 style="margin-top:0; color:#800020;">Pré-visualização da Importação</h2>
     <p style="margin-bottom:16px;">Confirme as questões que serão adicionadas à atividade:</p>
-    <section id="preview-stats" style="margin-bottom:16px; font-size:0.9rem; color:#666;"></section>
+    <div id="preview-stats" style="margin-bottom:16px; font-size:0.9rem; color:#666;"></div>
     <table id="preview-table" style="width:100%; border-collapse:collapse; margin-bottom:16px;">
       <thead>
         <tr style="border-bottom:2px solid #ddd;">
@@ -667,11 +667,11 @@ document.addEventListener('DOMContentLoaded', () => {
       </thead>
       <tbody id="preview-rows"></tbody>
     </table>
-    <section id="preview-alertas" style="margin-bottom:16px; font-size:0.85rem;"></section>
-    <section style="display:flex; justify-content:flex-end; gap:10px;">
+    <div id="preview-alertas" style="margin-bottom:16px; font-size:0.85rem;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button id="preview-cancelar" style="padding:8px 16px; border:1px solid #ccc; background:#f5f5f5; border-radius:6px; cursor:pointer;">Cancelar</button>
       <button id="preview-importar" style="padding:8px 16px; border:none; background:#800020; color:#fff; border-radius:6px; cursor:pointer;">Importar Questões</button>
-    </section>
+    </div>
   </section>
 </section>
 

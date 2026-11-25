@@ -103,7 +103,7 @@
     </button>
   </header>
 
-  <section id="overlay" aria-hidden="true"></section>
+  <div id="overlay" aria-hidden="true"></div>
 
   <main class="perfil-container">
     <section class="conteudo-principal" aria-label="Edição de perfil administrativo">
@@ -113,8 +113,8 @@
 
         <form action="/perfil_admin/editar" method="POST" class="form-edicao" id="editarPerfilAdminForm" novalidate>
 
-          <section class="form-group">
-            <label for="nome">Nome <output class="required">*</output></label>
+          <div class="form-group">
+            <label for="nome">Nome <span class="required">*</span></label>
             <input
               type="text"
               id="nome"
@@ -126,10 +126,10 @@
               aria-describedby="err-nome"
             />
             <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
-          </section>
+          </div>
 
-          <section class="form-group">
-            <label for="email">E-mail <output class="required">*</output></label>
+          <div class="form-group">
+            <label for="email">E-mail <span class="required">*</span></label>
             <input
               type="email"
               id="email"
@@ -141,12 +141,12 @@
               aria-describedby="err-email"
             />
             <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
-          </section>
+          </div>
 
-          <section class="form-actions">
+          <div class="form-actions">
             <button type="submit" class="btn-salvar"><i class="fas fa-save" aria-hidden="true"></i> Salvar</button>
             <a href="/perfil_adm" class="btn-cancelar">Cancelar</a>
-          </section>
+          </div>
         </form>
       </article>
 
@@ -161,8 +161,8 @@
             <button type="button" class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
             <h3 id="change-password-title" style="color: var(--vinho-escuro);">Alterar Senha</h3>
             <form id="changePasswordForm" action="/alterar-senha" method="POST">
-              <section class="form-group">
-                <label for="current_password">Senha atual <output class="required">*</output></label>
+              <div class="form-group">
+                <label for="current_password">Senha atual <span class="required">*</span></label>
                 <input
                   type="password"
                   id="current_password"
@@ -170,19 +170,19 @@
                   required
                   value="<%= (!user.password && user.initial_password) ? user.initial_password : '' %>"
                 />
-                <section id="currentPasswordError" class="input-error" aria-live="polite"></section>
-              </section>
+                <div id="currentPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
 
-              <section class="form-group">
-                <label for="new_password">Nova senha <output class="required">*</output></label>
+              <div class="form-group">
+                <label for="new_password">Nova senha <span class="required">*</span></label>
                 <input type="password" id="new_password" name="new_password" required minlength="6" />
-                <section id="newPasswordError" class="input-error" aria-live="polite"></section>
-              </section>
+                <div id="newPasswordError" class="input-error" aria-live="polite"></div>
+              </div>
 
-              <section class="btns">
+              <div class="btns">
                 <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
                 <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
-              </section>
+              </div>
             </form>
           </section>
         </section>

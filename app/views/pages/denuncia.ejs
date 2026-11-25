@@ -77,14 +77,14 @@
             <section id="client-errors" class="error-summary" role="alert" tabindex="-1" style="display:none;"></section>
 
             <% if (denunciado && denunciado.nome) { %>
-                <section class="info-denunciado">
+                <div class="info-denunciado">
                     <p><strong>Denunciando:</strong> <%= denunciado.nome %></p>
                     <% if (dados.conteudo_tipo === 'perfil') { %>
                         <small>Você está denunciando o perfil deste usuário.</small>
                     <% } else if (dados.conteudo_tipo === 'comentario') { %>
                         <small>Você está denunciando um comentário feito por este usuário.</small>
                     <% } %>
-                </section>
+                </div>
             <% } %>
 
             <section class="form-group">

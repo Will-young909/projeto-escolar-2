@@ -4146,9 +4146,6 @@ REGRAS INEGOCIÁVEIS:
 
 router.get('/ver_atividade/:id', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
-    if (req.session.user_prof && !req.session.user_aluno) {
-        return res.redirect('/lista_atividades');
-    }
     const activityId = req.params.id;
 
     let usouPasseNaAtividade = false;
@@ -4285,6 +4282,7 @@ router.get('/gerar_atividade', async (req, res) => {
             // O nivel escolhido precisa ser guardado: sem ele a trilha adaptativa
             // nao sabe a que serie o aluno pertence e serve qualquer habilidade.
             newActivity.nivelEscolar = level || null;
+            newActivity.title = data.title || 'Teste de Nivelamento';
             newActivity.description = data.description || 'Este é um teste para avaliar seu conhecimento.';
         } else {
             newActivity.professorId = userProf.id;

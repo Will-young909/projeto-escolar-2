@@ -76,6 +76,10 @@
         <h2 id="dados-titulo"><i class="fas fa-info-circle"></i> Meus Dados</h2>
         <dl class="data-list">
           <section class="data-item">
+            <dt>Registro:</dt>
+            <dd><%= user.id || "N/A" %></dd>
+          </section>
+          <section class="data-item">
             <dt>Tipo:</dt>
             <dd>Aluno</dd>
           </section>
@@ -92,12 +96,12 @@
             <ul class="historico-list">
                 <% locals.historicoProfessores.forEach(professor => { %>
                     <li class="historico-item professor-item" data-id="<%= professor.id %>">
-                        <section class="professor-info">
+                        <div class="professor-info">
                             <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>" class="historico-foto">
                             <p class="historico-link">
                                 <%= professor.nome %>
                             </p>
-                        </section>
+                        </div>
                         <a href="/denuncia?denunciado_id=<%= professor.id %>" class="btn-denuncia" title="Denunciar Professor">
                             <i class="fas fa-exclamation-triangle"></i> Denunciar
                         </a>

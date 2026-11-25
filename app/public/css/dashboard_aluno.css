@@ -180,7 +180,7 @@ svg {
 /* =======================
         TITULAÇÃO
 ======================= */
-section {
+main > section {
   margin-bottom: 2rem;
 }
 

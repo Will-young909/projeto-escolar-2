@@ -31,10 +31,10 @@
     <% if (user && user.tipo === 'professor') { %>
         <section class="payment-request-ui is-collapsed" id="paymentRequestUi">
             <button type="button" class="payment-toggle" id="paymentToggle" aria-expanded="false" aria-controls="paymentRequestBody">
-                <output><i class="fas fa-calendar-check"></i> Agendar aula pelo chat</output>
+                <span><i class="fas fa-calendar-check"></i> Agendar aula pelo chat</span>
                 <i class="fas fa-chevron-down payment-toggle-icon" aria-hidden="true"></i>
             </button>
-            <section class="payment-request-body" id="paymentRequestBody">
+            <div class="payment-request-body" id="paymentRequestBody">
                 <select id="payHorario" class="ui-input desc-input" aria-label="Horário disponível">
                     <option value="">Selecione um horário disponível</option>
                     <% (horariosDisponiveis || []).forEach(h => { %>
@@ -49,7 +49,7 @@
                 <% if (!horariosDisponiveis || horariosDisponiveis.length === 0) { %>
                     <p class="payment-empty-note">Sem horários disponíveis. Cadastre horários no seu perfil.</p>
                 <% } %>
-            </section>
+            </div>
         </section>
     <% } %>
 

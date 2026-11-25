@@ -186,16 +186,16 @@
     <section id="response-modal" class="modal-overlay">
       <section class="modal-content">
         <header class="modal-header">
-          <h2>Responder a <output id="modal-aluno-nome"></output></h2>
+          <h2>Responder a <span id="modal-aluno-nome"></span></h2>
           <button id="modal-close-btn" class="modal-close">&times;</button>
         </header>
         <form id="response-form">
           <input type="hidden" id="modal-feedback-id" name="feedbackId">
           <input type="hidden" id="modal-aluno-id" name="alunoId">
-          <section class="form-group">
+          <div class="form-group">
             <label for="modal-response-text">Sua resposta:</label>
             <textarea id="modal-response-text" name="responseText" placeholder="Escreva uma mensagem privada para o aluno..." required></textarea>
-          </section>
+          </div>
           <footer class="modal-footer">
             <button type="submit" class="btn-primary">Enviar Resposta</button>
           </footer>

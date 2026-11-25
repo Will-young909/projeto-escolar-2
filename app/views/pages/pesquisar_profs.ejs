@@ -202,12 +202,12 @@
                         <% if (currentPage > 1) { %>
                             <li><a href="<%= url %>?page=<%= currentPage - 1 %>&query=<%= encodeURIComponent(query) %>">Anterior</a></li>
                         <% } else { %>
-                            <li class="disabled"><output>Anterior</output></li>
+                            <li class="disabled"><span>Anterior</span></li>
                         <% } %>
 
                         <% for (let i = 1; i <= totalPages; i++) { %>
                             <% if (i === currentPage) { %>
-                                <li class="active"><output><%= i %></output></li>
+                                <li class="active"><span><%= i %></span></li>
                             <% } else { %>
                                 <li><a href="<%= url %>?page=<%= i %>&query=<%= encodeURIComponent(query) %>"><%= i %></a></li>
                             <% } %>
@@ -216,7 +216,7 @@
                         <% if (currentPage < totalPages) { %>
                             <li><a href="<%= url %>?page=<%= currentPage + 1 %>&query=<%= encodeURIComponent(query) %>">Próxima</a></li>
                         <% } else { %>
-                            <li class="disabled"><output>Próxima</output></li>
+                            <li class="disabled"><span>Próxima</span></li>
                         <% } %>
                     </ul>
                 </section>

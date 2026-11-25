@@ -281,12 +281,12 @@
                 <% if (user.historicoAlunos && user.historicoAlunos.length> 0) { %>
                     <% user.historicoAlunos.forEach(aluno=> { %>
                         <li class="aluno-item" data-id="<%= aluno.id %>">
-                            <section class="aluno-info">
+                            <div class="aluno-info">
                             <img src="<%= aluno.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="">
                             <p href="/aluno/<%= aluno.id %>">
                                 <%= aluno.nome %>
                             </p>
-                            </section>
+                            </div>
                             <a href="/denuncia?denunciado_id=<%= aluno.id %>" class="btn-denuncia" title="Denunciar Aluno">
                                 <i class="fas fa-exclamation-triangle"></i> Denunciar
                             </a> 
@@ -477,7 +477,7 @@
                     <input type="time" class="end-time" required ${isLocked ? 'disabled' : ''}>
                     <label>Preço:</label>
                     <input type="number" class="price" placeholder="R$" required ${isLocked ? 'disabled' : ''}>
-                    ${isLocked ? '<output class="slot-badge">Agendado</output>' : '<button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>'}
+                    ${isLocked ? '<span class="slot-badge">Agendado</span>' : '<button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>'}
                 `;
 
                 slotLi.querySelector('.start-time').value = startVal;
