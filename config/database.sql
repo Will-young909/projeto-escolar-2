@@ -10,11 +10,11 @@
 -- • Pré-requisitos conceituais
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS b3yigwtafba02ntosynz
+CREATE DATABASE IF NOT EXISTS b1lixrtur5vjhqxxowvt
 CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 
-USE b3yigwtafba02ntosynz;
+USE b1lixrtur5vjhqxxowvt;
 
 -- ============================================================
 -- CONFIGURAÇÕES

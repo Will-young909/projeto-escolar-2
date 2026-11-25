@@ -5,6 +5,10 @@ const activityDataPath = path.join(__dirname, '../data/atividades.json');
 
 const getActivities = () => {
     const data = fs.readFileSync(activityDataPath, 'utf8');
+    if (!data.trim()) {
+        return { activities: [] };
+    }
+
     return JSON.parse(data);
 };
 
