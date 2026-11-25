@@ -79,7 +79,7 @@ header {
     cursor: pointer;
 }
 
-nav {
+nav#menu {
     position: fixed;
     top: 0;
     left: -260px;
@@ -93,7 +93,7 @@ nav {
     flex-direction: column;
 }
 
-nav.active {
+nav#menu.active {
     left: 0;
 }
 
@@ -594,7 +594,7 @@ main {
 
     #toggle-menu { display: flex; }
 
-    nav {
+    nav#menu {
         left: 0;
         width: 260px;
         border-right: 2px solid var(--color-secondary);
@@ -606,31 +606,31 @@ main {
     }
 
     /* Lógica de Colapso (do home.css) */
-    nav.collapsed {
+    nav#menu.collapsed {
         width: 70px;
     }
 
-    nav.collapsed ~ main {
+    nav#menu.collapsed ~ main {
         margin-left: 70px;
     }
 
     /* (NOVO) Esconde o texto e centraliza o ícone */
-    nav.collapsed .label,
-    nav.collapsed .badge {
+    nav#menu.collapsed .label,
+    nav#menu.collapsed .badge {
         display: none;
     }
 
-    nav.collapsed a {
+    nav#menu.collapsed a {
         justify-content: center;
         padding-left: var(--spacing-sm);
         padding-right: var(--spacing-sm);
     }
     
-    nav.collapsed .nav-links li {
+    nav#menu.collapsed .nav-links li {
         overflow: hidden;
     }
     
-    nav.collapsed #toggle-menu {
+    nav#menu.collapsed #toggle-menu {
         right: -28px; /* Ajusta posição do botão de colapso */
     }
 
