@@ -312,9 +312,9 @@
                                       <section class="aula-info">
                                         <p class="hora">
                                           <i class="far fa-clock"></i>
-                                          <output><%= horario.hora_inicio %></output>
-                                          <output class="separador">-</output>
-                                          <output><%= horario.hora_fim %></output>
+                                          <span><%= horario.hora_inicio %></span>
+                                          <span class="separador">-</span>
+                                          <span><%= horario.hora_fim %></span>
                                         </p>
                               
                                         <% if (isOwner && horario.status === 'agendado') { %>
@@ -322,7 +322,7 @@
                                         <% } %>
                                       </section>
                               
-                                      <section class="aula-actions">
+                                      <div class="aula-actions">
                                         <% if (!isOwner && horario.status === 'disponivel' && session.user_aluno) { %>
                                           <form action="/agendar-horario" method="POST" class="form-agendar">
                                             <input type="hidden" name="profId" value="<%= professor.id %>">
@@ -330,11 +330,11 @@
                                             <button type="submit" class="btn-primary btn-agendar">Agendar</button>
                                           </form>
                                         <% } else if (isOwner && horario.status === 'agendado') { %>
-                                          <output class="status-tag agendado">Agendado</output>
+                                          <span class="status-tag agendado">Agendado</span>
                                         <% } else if (isOwner && horario.status === 'disponivel') { %>
-                                          <output class="status-tag disponivel">Disponível</output>
+                                          <span class="status-tag disponivel">Disponível</span>
                                         <% } %>
-                                      </section>
+                                      </div>
                                     </li>
                                   <% }) %>
                                 </ul>
@@ -424,22 +424,22 @@
     </main>
     <% if (professor.previa_arquivo || professor.link_previa) { %>
     <section class="previa-modal" id="previaModal" aria-hidden="true">
-        <section class="previa-modal-backdrop" data-close-previa></section>
+        <div class="previa-modal-backdrop" data-close-previa></div>
         <section class="previa-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="previaModalTitle">
             <section class="previa-modal-header">
                 <h2 id="previaModalTitle"><i class="fas fa-file-video"></i> Aula Prévia</h2>
                 <button type="button" class="previa-modal-close" id="previaModalClose" aria-label="Fechar aula prévia">&times;</button>
             </section>
-            <section class="previa-modal-body">
+            <div class="previa-modal-body">
                 <video id="previaVideoPlayer" controls preload="metadata" playsinline style="display:none;">
                     Seu navegador não suporta vídeo HTML5.
                 </video>
                 <iframe id="previaLinkFrame" title="Aula prévia" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display:none;"></iframe>
-                <section id="previaLinkFallback" class="previa-link-fallback" style="display:none;">
+                <div id="previaLinkFallback" class="previa-link-fallback" style="display:none;">
                     <p>Este link não permite exibição embutida.</p>
                     <a id="previaLinkExternal" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir link externamente</a>
-                </section>
-            </section>
+                </div>
+            </div>
         </section>
     </section>
     <% } %>

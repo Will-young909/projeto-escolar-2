@@ -127,6 +127,8 @@
     .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .pass-card { border: 1px solid #ddd; border-radius: var(--raio-sm); padding: 20px; text-align: center; transition: all 0.2s ease; }
     .pass-card:hover, .pass-card.featured { border-color: var(--roxo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
+    .pass-card.featured { border-width: 2px; position: relative; }
+    .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--roxo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
     .pass-card h4 { font-size: 1.4rem; color: var(--roxo); margin-bottom: 10px; }
     .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
     .pass-card p { font-size: 0.9rem; color: #6b7280; min-height: 54px; }
@@ -169,7 +171,7 @@
             <% } %>
           </header>
 
-          <% if (tarefa.tarefaTipo === 'REVISAO') { %><section class="revisao-indicator"> <i class="fas fa-history"></i> Hora da revisão! </section><% } %>
+          <% if (tarefa.tarefaTipo === 'REVISAO') { %><div class="revisao-indicator"> <i class="fas fa-history"></i> Hora da revisão! </div><% } %>
           <% if (progresso) { %>
             <section class="feedback-box" aria-label="Progresso da trilha">
               <h3>Progresso da trilha: <%= progresso.progressoGeral %>%</h3>
@@ -202,10 +204,10 @@
                   <p class="skill-row<%= semPratica ? ' sem-pratica' : '' %>">
                     <strong><%= habilidade.habilidade_nome %></strong>:
                     <% if (semPratica) { %>
-                      <output class="skill-pct">ainda não praticada</output>
+                      <span class="skill-pct">ainda não praticada</span>
                     <% } else { %>
-                      <output class="skill-pct"><%= pct %>%</output>
-                      <output class="skill-status"><%= rotulos[habilidade.status_dominio] || habilidade.status_dominio %></output>
+                      <span class="skill-pct"><%= pct %>%</span>
+                      <span class="skill-status"><%= rotulos[habilidade.status_dominio] || habilidade.status_dominio %></span>
                     <% } %>
                   </p>
                 <% }) %>
@@ -215,34 +217,34 @@
               <% } %>
             </section>
           <% } %>
-          <% if (questao.habilidade_nome) { %><output class="skill-badge"> <i class="fas fa-bolt"></i> Habilidade: <%= questao.habilidade_nome %> </output><% } %>
+          <% if (questao.habilidade_nome) { %><span class="skill-badge"> <i class="fas fa-bolt"></i> Habilidade: <%= questao.habilidade_nome %> </span><% } %>
           
           <section class="question-box"> <p><%- questao.titulo || questao.enunciado %></p> </section>
 
           <form id="trilha-form">
             <input type="hidden" name="item_id" value="<%= questao.item_id %>">
-            <section class="options-group" id="options-group">
-              <% if(questao.alternativa_a){ %> <section class="option-card"><input type="radio" name="resposta" id="opcao-a" value="A" required><label for="opcao-a"><output class="option-letter">A</output><output><%- questao.alternativa_a %></output></label></section> <% } %>
-              <% if(questao.alternativa_b){ %> <section class="option-card"><input type="radio" name="resposta" id="opcao-b" value="B" required><label for="opcao-b"><output class="option-letter">B</output><output><%- questao.alternativa_b %></output></label></section> <% } %>
-              <% if(questao.alternativa_c){ %> <section class="option-card"><input type="radio" name="resposta" id="opcao-c" value="C" required><label for="opcao-c"><output class="option-letter">C</output><output><%- questao.alternativa_c %></output></label></section> <% } %>
-              <% if(questao.alternativa_d){ %> <section class="option-card"><input type="radio" name="resposta" id="opcao-d" value="D" required><label for="opcao-d"><output class="option-letter">D</output><output><%- questao.alternativa_d %></output></label></section> <% } %>
-            </section>
-            <section class="actions">
+            <div class="options-group" id="options-group">
+              <% if(questao.alternativa_a){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-a" value="A" required><label for="opcao-a"><span class="option-letter">A</span><span><%- questao.alternativa_a %></span></label></div> <% } %>
+              <% if(questao.alternativa_b){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-b" value="B" required><label for="opcao-b"><span class="option-letter">B</span><span><%- questao.alternativa_b %></span></label></div> <% } %>
+              <% if(questao.alternativa_c){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-c" value="C" required><label for="opcao-c"><span class="option-letter">C</span><span><%- questao.alternativa_c %></span></label></div> <% } %>
+              <% if(questao.alternativa_d){ %> <div class="option-card"><input type="radio" name="resposta" id="opcao-d" value="D" required><label for="opcao-d"><span class="option-letter">D</span><span><%- questao.alternativa_d %></span></label></div> <% } %>
+            </div>
+            <div class="actions">
               <button type="submit" class="submit-btn" id="submit-btn"> <i class="fas fa-paper-plane"></i> Enviar resposta </button>
               <!-- Dica da IA: só enquanto a questão está em aberto (tentativas 1-2).
                    Não revela o gabarito — por isso convive com o formulário. -->
               <button type="button" class="tutor-btn" id="btn-dica" title="Peça uma dica antes de responder">
                 <i class="fas fa-lightbulb"></i> Pedir dica
               </button>
-            </section>
+            </div>
           </form>
-          <section id="tutor-container"></section>
-          <section id="feedback-container"></section>
+          <div id="tutor-container"></div>
+          <div id="feedback-container"></div>
         <% } %>
 
       <% } else { %>
         <section class="finish-state">
-          <section class="finish-icon"> <i class="fas fa-flag-checkered"></i> </section>
+          <div class="finish-icon"> <i class="fas fa-flag-checkered"></i> </div>
           <h2>Trilha concluída!</h2>
           <p> Parabéns, você completou todos os exercícios. Volte mais tarde para novas atividades. </p>
         </section>
@@ -335,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
           console.error('Erro no fetch:', error);
-          feedbackContainer.innerHTML = `<section class="feedback-box"><p>Houve um problema. Tente recarregar a página.</p></section>`;
+          feedbackContainer.innerHTML = `<div class="feedback-box"><p>Houve um problema. Tente recarregar a página.</p></div>`;
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar resposta';
         }
@@ -417,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
       function displayFeedback(result, respostaDada) {
         const { feedback } = result;
         if (!feedback) {
-            feedbackContainer.innerHTML = `<section class="feedback-box"><p>Ocorreu um erro ao processar o feedback.</p></section>`;
+            feedbackContainer.innerHTML = `<div class="feedback-box"><p>Ocorreu um erro ao processar o feedback.</p></div>`;
             return;
         }
         const { acertou, gabarito, explicacao, xpGanho, novoStreak, streakAnterior, planoReforco, podeTentarNovamente, tentativasRestantes } = feedback;
@@ -434,10 +436,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Aviso da sequência perdida. Só aparece quando havia streak de fato:
             // sem essa checagem, quem já estava em 0 veria um aviso mentiroso.
             const streakHTML = streakAnterior > 0
-              ? `<section class="streak-perdido">
+              ? `<div class="streak-perdido">
                    <i class="fas fa-fire"></i>
-                   <output>Você perdeu sua sequência de <strong>${streakAnterior}</strong> acerto(s) seguido(s). Acerte na próxima para recomeçar!</output>
-                 </section>`
+                   <span>Você perdeu sua sequência de <strong>${streakAnterior}</strong> acerto(s) seguido(s). Acerte na próxima para recomeçar!</span>
+                 </div>`
               : '';
 
             feedbackContainer.innerHTML = `
@@ -467,28 +469,28 @@ document.addEventListener('DOMContentLoaded', () => {
         let gamificationHTML = '';
         if (acertou && xpGanho > 0) {
           gamificationHTML = `
-            <section class="gamification-feedback">
-              <output class="gamification-pill xp">
+            <div class="gamification-feedback">
+              <span class="gamification-pill xp">
                 <i class="fas fa-star"></i>
                 <strong>+${xpGanho} XP</strong>
-              </output>
+              </span>
               ${novoStreak > 1 ? `
-                <output class="gamification-pill streak">
+                <span class="gamification-pill streak">
                   <i class="fas fa-fire"></i>
                   <strong>${novoStreak} acertos seguidos!</strong>
-                </output>
+                </span>
               ` : ''}
-            </section>`;
+            </div>`;
         }
 
         // Escada de intervenção: o backend já devolve os passos em texto legível
         // (`planoReforco`), mas nada os exibia — o aluno errava e não recebia o
         // plano de reforço que o motor havia montado.
         const reforcoHTML = (planoReforco && planoReforco.length)
-          ? `<section class="reforco-plano">
+          ? `<div class="reforco-plano">
                <strong><i class="fas fa-stairs"></i> Vamos reforçar esse conteúdo:</strong>
                <ol>${planoReforco.map(passo => `<li>${passo}</li>`).join('')}</ol>
-             </section>`
+             </div>`
           : '';
 
         const feedbackHTML = `

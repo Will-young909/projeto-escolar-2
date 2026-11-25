@@ -546,7 +546,7 @@ svg {
         </button>
   </header>
 
-  <section id="overlay"></section>
+  <div id="overlay"></div>
 
   <main class="container">
     <section class="hero">
@@ -560,14 +560,14 @@ svg {
           <section class="card-body">
             <h5 class="card-title">Nível e Experiência</h5>
 
-            <section class="info-box">
-              <section class="progress-label">
-                <output>Nível atual</output>
+            <div class="info-box">
+              <div class="progress-label">
+                <span>Nível atual</span>
                 <strong><%= dashboard.aluno.nivel %></strong>
-              </section>
+              </div>
 
-              <section class="progress">
-                <section
+              <div class="progress">
+                <div
                   class="progress-bar"
                   role="progressbar"
                   style="width: <%= dashboard.progressoNivel.percentual %>%"
@@ -575,21 +575,21 @@ svg {
                   aria-valuemin="0"
                   aria-valuemax="100">
                   <%= dashboard.progressoNivel.percentual %>%
-                </section>
-              </section>
+                </div>
+              </div>
 
-              <section class="xp-text">
+              <div class="xp-text">
                 <%= dashboard.progressoNivel.xpAtual %> / <%= dashboard.progressoNivel.xpProximoNivel %> XP para o próximo nível
-              </section>
-            </section>
+              </div>
+            </div>
 
-            <section class="streak-box">
-              <section class="streak-emoji"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--card)"><path d="M240-400q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-39 33-69 68.5t-50.5 72Q261-513 250.5-475T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Zm0-492v132q0 34 23.5 57t57.5 23q18 0 33.5-7.5T622-658l18-22q74 42 117 117t43 163q0 134-93 227T480-80q-134 0-227-93t-93-227q0-129 86.5-245T480-840Z"/></svg></section>
-              <section>
+            <div class="streak-box">
+              <div class="streak-emoji"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="var(--card)"><path d="M240-400q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-39 33-69 68.5t-50.5 72Q261-513 250.5-475T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Zm0-492v132q0 34 23.5 57t57.5 23q18 0 33.5-7.5T622-658l18-22q74 42 117 117t43 163q0 134-93 227T480-80q-134 0-227-93t-93-227q0-129 86.5-245T480-840Z"/></svg></div>
+              <div>
                 <p><strong>Streak de estudo:</strong> <%= dashboard.aluno.streak %> dias</p>
                 <small class="text-muted">Continue estudando todos os dias para não perder sua sequência!</small>
-              </section>
-            </section>
+              </div>
+            </div>
           </section>
         </section>
       </section>
@@ -600,75 +600,75 @@ svg {
             <h5 class="card-title">Resumo de Habilidades</h5>
 
             <!-- Estatísticas globais -->
-            <section class="skills-stats">
-              <section class="stat-item">
-                <output class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length + dashboard.resumoHabilidades.pontosAMelhorar.length %></output>
-                <output class="stat-label">Habilidades praticadas</output>
-              </section>
-              <section class="stat-item">
-                <output class="stat-value"><%
+            <div class="skills-stats">
+              <div class="stat-item">
+                <span class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length + dashboard.resumoHabilidades.pontosAMelhorar.length %></span>
+                <span class="stat-label">Habilidades praticadas</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><%
                   const todos = [...dashboard.resumoHabilidades.pontosFortes, ...dashboard.resumoHabilidades.pontosAMelhorar];
                   if (todos.length === 0) { %>0%<% } else { %>
                     <%= Math.round(todos.reduce((acc, h) => acc + Number(h.mediaPercentual || 0), 0) / todos.length) %>
                   <% } %>
-                %></output>
-                <output class="stat-label">Média de aproveitamento</output>
-              </section>
-              <section class="stat-item">
-                <output class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length %></output>
-                <output class="stat-label">Pontos fortes</output>
-              </section>
-            </section>
+                %></span>
+                <span class="stat-label">Média de aproveitamento</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value"><%= dashboard.resumoHabilidades.pontosFortes.length %></span>
+                <span class="stat-label">Pontos fortes</span>
+              </div>
+            </div>
 
-            <section class="skills-grid">
+            <div class="skills-grid">
               <!-- Pontos Fortes -->
               <% if (dashboard.resumoHabilidades.pontosFortes.length > 0) { %>
                 <% dashboard.resumoHabilidades.pontosFortes.forEach(h => { %>
-                  <section class="skill-card strong">
-                    <section class="skill-header">
-                      <output class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></output>
-                      <output class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></output>
-                    </section>
-                    <section class="skill-progress">
-                      <section class="skill-progress-bar avanco" style="width: <%= Math.round(h.mediaPercentual) %>%"></section>
-                    </section>
-                    <section class="skill-meta">
-                      <output><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></output>
-                      <output class="skill-level-badge skill-level-avanco">Avançado</output>
-                    </section>
-                  </section>
+                  <div class="skill-card strong">
+                    <div class="skill-header">
+                      <span class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></span>
+                      <span class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></span>
+                    </div>
+                    <div class="skill-progress">
+                      <div class="skill-progress-bar avanco" style="width: <%= Math.round(h.mediaPercentual) %>%"></div>
+                    </div>
+                    <div class="skill-meta">
+                      <span><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></span>
+                      <span class="skill-level-badge skill-level-avanco">Avançado</span>
+                    </div>
+                  </div>
                 <% }); %>
               <% } else { %>
-                <section class="empty-state">
+                <div class="empty-state">
                   Continue praticando para descobrirmos seus pontos fortes!
-                </section>
+                </div>
               <% } %>
 
               <!-- Pontos a Melhorar -->
               <% if (dashboard.resumoHabilidades.pontosAMelhorar.length > 0) { %>
                 <% dashboard.resumoHabilidades.pontosAMelhorar.forEach(h => { %>
-                  <section class="skill-card weak">
-                    <section class="skill-header">
-                      <output class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></output>
-                      <output class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></output>
-                    </section>
-                    <section class="skill-progress">
-                      <section class="skill-progress-bar <%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>" style="width: <%= Math.round(h.mediaPercentual) %>%"></section>
-                    </section>
-                    <section class="skill-meta">
-                      <output><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></output>
-                      <output class="skill-level-badge skill-level-<%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>">
+                  <div class="skill-card weak">
+                    <div class="skill-header">
+                      <span class="skill-name"><%= h.habilidade_nome || 'Habilidade' %></span>
+                      <span class="skill-percentual"><strong><%= Math.round(h.mediaPercentual) %>%</strong></span>
+                    </div>
+                    <div class="skill-progress">
+                      <div class="skill-progress-bar <%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>" style="width: <%= Math.round(h.mediaPercentual) %>%"></div>
+                    </div>
+                    <div class="skill-meta">
+                      <span><%= h.n_resultados %> resultado<%= h.n_resultados > 1 ? 's' : '' %></span>
+                      <span class="skill-level-badge skill-level-<%= h.mediaPercentual >= 40 ? 'pratica' : 'reforco' %>">
                         <%= h.mediaPercentual >= 40 ? 'Pratica' : 'Reforço' %>
-                      </output>
-                    </section>
-                  </section>
+                      </span>
+                    </div>
+                  </div>
                 <% }); %>
               <% } else { %>
-                <section class="empty-state">
+                <div class="empty-state">
                   Nenhum ponto de melhoria específico no momento. Ótimo trabalho!
-                </section>
+                </div>
               <% } %>
-            </section>
+            </div>
           </section>
         </section>
       </section>

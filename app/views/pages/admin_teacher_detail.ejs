@@ -279,102 +279,102 @@
 
     <!-- Seção de Informações Principais -->
     <section class="detail-card">
-      <section class="detail-grid">
+      <div class="detail-grid">
         <!-- Foto de Perfil -->
-        <section class="profile-img-container">
+        <div class="profile-img-container">
           <% if (professor.foto_perfil || professor.foto) { %>
             <img src="<%= professor.foto_perfil || professor.foto %>" alt="Foto de <%= professor.nome %>">
           <% } else { %>
-            <section style="color: var(--text-muted);">
+            <div style="color: var(--text-muted);">
               <i class="fas fa-user" style="font-size: 3.5rem;"></i>
-            </section>
+            </div>
           <% } %>
-        </section>
+        </div>
 
         <!-- Dados do Usuário -->
-        <section class="info-group">
-          <section class="detail-item">
-            <output class="detail-label">Nome Completo</output>
-            <output class="detail-value"><%= professor.nome %></output>
-          </section>
+        <div class="info-group">
+          <div class="detail-item">
+            <span class="detail-label">Nome Completo</span>
+            <span class="detail-value"><%= professor.nome %></span>
+          </div>
 
-          <section class="detail-item">
-            <output class="detail-label">E-mail</output>
-            <output class="detail-value"><%= professor.email %></output>
-          </section>
+          <div class="detail-item">
+            <span class="detail-label">E-mail</span>
+            <span class="detail-value"><%= professor.email %></span>
+          </div>
 
-          <section class="detail-item">
-            <output class="detail-label">Status de Aprovação</output>
-            <output class="detail-value">
-              <output class="status-badge status-<%= professor.aprovacao_status %>">
+          <div class="detail-item">
+            <span class="detail-label">Status de Aprovação</span>
+            <span class="detail-value">
+              <span class="status-badge status-<%= professor.aprovacao_status %>">
                 <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
                 <%= professor.aprovacao_status %>
-              </output>
-            </output>
-          </section>
+              </span>
+            </span>
+          </div>
 
-          <section class="detail-item">
-            <output class="detail-label">Formação / Titulação</output>
-            <output class="detail-value"><%= professor.formacao || '— (não informada)' %></output>
-          </section>
+          <div class="detail-item">
+            <span class="detail-label">Formação / Titulação</span>
+            <span class="detail-value"><%= professor.formacao || '— (não informada)' %></span>
+          </div>
 
-          <section class="detail-item full-width">
-            <output class="detail-label">Disciplinas</output>
-            <output class="detail-value">
+          <div class="detail-item full-width">
+            <span class="detail-label">Disciplinas</span>
+            <span class="detail-value">
               <% if (professor.disciplinas && professor.disciplinas.length > 0) { %>
                 <%= professor.disciplinas.join(', ') %>
               <% } else { %>
                 — (não informadas)
               <% } %>
-            </output>
-          </section>
+            </span>
+          </div>
 
-          <section class="detail-item full-width">
-            <output class="detail-label">Descrição Profissional</output>
-            <output class="detail-value"><%= professor.descricao || '— (não informada)' %></output>
-          </section>
+          <div class="detail-item full-width">
+            <span class="detail-label">Descrição Profissional</span>
+            <span class="detail-value"><%= professor.descricao || '— (não informada)' %></span>
+          </div>
 
           <% if (professor.link_previa) { %>
-            <section class="detail-item full-width">
-              <output class="detail-label">Link de Prévia (Aula Demo)</output>
-              <output class="detail-value">
+            <div class="detail-item full-width">
+              <span class="detail-label">Link de Prévia (Aula Demo)</span>
+              <span class="detail-value">
                 <a href="<%= professor.link_previa %>" target="_blank" rel="noopener">
                   <i class="fas fa-external-link-alt" style="font-size: 0.8rem; margin-right: 4px;"></i>
                   <%= professor.link_previa %>
                 </a>
-              </output>
-            </section>
+              </span>
+            </div>
           <% } %>
 
-          <section class="detail-item">
-            <output class="detail-label">Perfil Enviado em</output>
-            <output class="detail-value">
+          <div class="detail-item">
+            <span class="detail-label">Perfil Enviado em</span>
+            <span class="detail-value">
               <%= professor.perfil_enviado_em ? new Date(professor.perfil_enviado_em).toLocaleString('pt-BR') : '— (ainda não enviado)' %>
-            </output>
-          </section>
+            </span>
+          </div>
 
-          <section class="detail-item">
-            <output class="detail-label">Cadastrado em</output>
-            <output class="detail-value">
+          <div class="detail-item">
+            <span class="detail-label">Cadastrado em</span>
+            <span class="detail-value">
               <%= professor.criado_em ? new Date(professor.criado_em).toLocaleString('pt-BR') : '—' %>
-            </output>
-          </section>
+            </span>
+          </div>
 
           <% if (professor.motivo_reprovacao) { %>
-            <section class="detail-item full-width" style="background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">
-              <output class="detail-label" style="color: #991b1b;">Motivo da Última Reprovação / Suspensão</output>
-              <output class="detail-value" style="color: #991b1b;"><%= professor.motivo_reprovacao %></output>
-            </section>
+            <div class="detail-item full-width" style="background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">
+              <span class="detail-label" style="color: #991b1b;">Motivo da Última Reprovação / Suspensão</span>
+              <span class="detail-value" style="color: #991b1b;"><%= professor.motivo_reprovacao %></span>
+            </div>
           <% } %>
-        </section>
-      </section>
+        </div>
+      </div>
     </section>
 
     <!-- Seção de Comprovante -->
     <% if (professor.comprovante_formacao) { %>
       <section class="detail-card">
         <h2>Comprovante de Formação</h2>
-        <section class="comprovante-wrapper">
+        <div class="comprovante-wrapper">
           <% if (professor.comprovante_formacao.startsWith('data:image/')) { %>
             <img src="<%= professor.comprovante_formacao %>" alt="Comprovante de Formação" class="comprovante-img">
           <% } else if (professor.comprovante_formacao.startsWith('data:application/pdf')) { %>
@@ -384,54 +384,54 @@
           <% } else { %>
             <p style="color: var(--text-muted);">Comprovante anexado (formato não reconhecido para exibição direta).</p>
           <% } %>
-        </section>
+        </div>
       </section>
     <% } %>
 
     <!-- Seção de Ações Administrativas -->
     <section class="detail-card">
       <h2>Ações Administrativas</h2>
-      <section class="actions-grid">
+      <div class="actions-grid">
         <% if (professor.aprovacao_status !== 'approved') { %>
-          <section class="action-box">
-            <output class="detail-label">Aprovar Cadastro</output>
+          <div class="action-box">
+            <span class="detail-label">Aprovar Cadastro</span>
             <p style="font-size: 0.85rem; color: var(--text-muted);">O professor terá o perfil validado e acesso liberado.</p>
             <form method="POST" action="/admin/teachers/<%= professor.id %>/approve">
               <button type="submit" class="btn-action btn-approve"><i class="fas fa-check"></i> Aprovar Perfil</button>
             </form>
-          </section>
+          </div>
         <% } %>
 
         <% if (professor.aprovacao_status !== 'rejected') { %>
-          <section class="action-box">
-            <output class="detail-label">Reprovar Cadastro</output>
+          <div class="action-box">
+            <span class="detail-label">Reprovar Cadastro</span>
             <form method="POST" action="/admin/teachers/<%= professor.id %>/reject" class="motivo-box">
               <textarea name="reason" placeholder="Informe o motivo da reprovação..." required></textarea>
               <button type="submit" class="btn-action btn-reject"><i class="fas fa-times"></i> Reprovar</button>
             </form>
-          </section>
+          </div>
         <% } %>
 
         <% if (professor.aprovacao_status !== 'suspended') { %>
-          <section class="action-box">
-            <output class="detail-label">Suspender Professor</output>
+          <div class="action-box">
+            <span class="detail-label">Suspender Professor</span>
             <form method="POST" action="/admin/teachers/<%= professor.id %>/suspend" class="motivo-box">
               <textarea name="reason" placeholder="Informe o motivo da suspensão..." required></textarea>
               <button type="submit" class="btn-action btn-suspend"><i class="fas fa-pause"></i> Suspender</button>
             </form>
-          </section>
+          </div>
         <% } %>
 
         <% if (professor.aprovacao_status === 'rejected' || professor.aprovacao_status === 'suspended') { %>
-          <section class="action-box">
-            <output class="detail-label">Reativar Status</output>
+          <div class="action-box">
+            <span class="detail-label">Reativar Status</span>
             <p style="font-size: 0.85rem; color: var(--text-muted);">Retorna o status do professor para pendente de revisão.</p>
             <form method="POST" action="/admin/teachers/<%= professor.id %>/reactivate">
               <button type="submit" class="btn-action btn-reactivate"><i class="fas fa-undo"></i> Reativar para Pendente</button>
             </form>
-          </section>
+          </div>
         <% } %>
-      </section>
+      </div>
     </section>
   </main>
 </body>

@@ -166,10 +166,10 @@
     <section class="container">
         <h1>Resultado da Atividade: <%= atividade.title %></h1>
 
-        <section class="summary">
+        <div class="summary">
             <p><strong>Pontuação:</strong> <%= Number(tentativa.pontuacao_total).toFixed(0) %>%</p>
             <p><strong>Questões Corretas:</strong> <%= respostas.filter(r => r.acertou).length %> de <%= tentativa.total_questoes %></p>
-        </section>
+        </div>
 
         <section class="questions-container">
             <% atividade.questions.forEach((question, index) => { %>
@@ -230,14 +230,14 @@
                         const kwScore = kwDetails.length ? (missingRequired ? 0 : (totalW > 0 ? (matchedW / totalW) * 100 : 0)) : (respostaDoUsuario.acertou ? 100 : 0);
                         const isCorrect = kwScore >= 99.999;
                     %>
-                        <section class="text-answer-section">
+                        <div class="text-answer-section">
                             <p><strong style="color: var(--color-text-dark);">Sua resposta:</strong></p>
-                            <section class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
+                            <div class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
                                 <p><%= isCorrect ? '✔' : '✘' %> <%= userAnswer %></p>
-                            </section>
+                            </div>
 
                             <% if (kwDetails.length > 0) { %>
-                                <section class="keyword-feedback" style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                                <div class="keyword-feedback" style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
                                     <p style="margin:0 0 8px;"><strong>Palavras-chave:</strong></p>
                                     <ul style="list-style:none; padding:0; margin:0; display:grid; gap:6px;">
                                         <% kwDetails.forEach(k => { %>
@@ -246,19 +246,19 @@
                                             </li>
                                         <% }) %>
                                     </ul>
-                                    <section class="keyword-score" style="margin-top:10px; font-weight:600;">
+                                    <div class="keyword-score" style="margin-top:10px; font-weight:600;">
                                         Nota: <%= kwScore.toFixed(1).replace('.', ',') %>% (<%= kwDetails.filter(k => k.found).length %>/<%= kwDetails.length %> palavras-chave)
-                                    </section>
-                                </section>
+                                    </div>
+                                </div>
                             <% } %>
 
                             <% if (correctAnswer) { %>
                                 <p style="margin-top: 15px;"><strong style="color: var(--color-text-dark);">Resposta esperada:</strong></p>
-                                <section class="text-answer-box correct-answer">
+                                <div class="text-answer-box correct-answer">
                                     <p>✔ <%= correctAnswer %></p>
-                                </section>
+                                </div>
                             <% } %>
-                        </section>
+                        </div>
                     <% } %>
 
                     <!-- FUNCIONALIDADE DE IA -->
@@ -266,7 +266,7 @@
                         <button type="button" class="btn-ask-explanation" data-question-index="<%= index %>">
                             <i class="fas fa-lightbulb"></i> Pedir explicação do erro
                         </button>
-                        <section class="explanation-container" id="explanation-container-<%= index %>"></section>
+                        <div class="explanation-container" id="explanation-container-<%= index %>"></div>
                     <% } %>
                 </section>
             <% }); %>
@@ -279,11 +279,11 @@
                     <section id="ai-chat-container">
                         <h3><i class="fas fa-comments"></i> Tire suas dúvidas</h3>
                         <p>Ainda tem perguntas sobre esta atividade? Pergunte à IA!</p>
-                        <section id="chat-history"></section>
-                        <section id="chat-input-area">
+                        <div id="chat-history"></div>
+                        <div id="chat-input-area">
                             <input type="text" id="chat-input" placeholder="Digite sua pergunta...">
                             <button id="send-chat-message" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
-                        </section>
+                        </div>
                     </section>
                 <% } else { %>
                     <section class="unlock-ai-feature">
@@ -302,7 +302,7 @@
         <% if (recs.recomendacoes && recs.recomendacoes.length > 0) { %>
         <section class="teacher-recommendations">
             <section class="recommendation-header">
-                <output class="badge">Recomendação inteligente</output>
+                <span class="badge">Recomendação inteligente</span>
                 <h2>Professores indicados para o seu próximo passo</h2>
                 <p>Usamos os pontos de atenção do seu resultado para priorizar professores com maior aderência ao reforço que você precisa.</p>
             </section>
@@ -335,25 +335,25 @@
         <section id="activatePassModal" class="modal-backdrop">
             <section class="modal">
                 <section class="modal-header"><h3><i class="fas fa-star"></i> Ativar Passe de Estudos</h3></section>
-                <section class="modal-body">
+                <div class="modal-body">
                     <p>Você tem um passe disponível! Deseja ativá-lo para desbloquear a Tutoria Inteligente nesta atividade?</p>
-                </section>
-                <section class="modal-footer">
+                </div>
+                <div class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Agora não</button>
                     <button type="button" id="confirmActivatePass" class="btn-modal btn-confirm">Sim, ativar!</button>
-                </section>
+                </div>
             </section>
         </section>
         <section id="purchasePassModal" class="modal-backdrop">
              <section class="modal">
                 <section class="modal-header"><h3><i class="fas fa-shopping-cart"></i> Adquira um Passe</h3></section>
-                <section class="modal-body">
+                <div class="modal-body">
                     <p>Para acessar a Tutoria Inteligente, você precisa de um Passe de Estudos. Adquira um para continuar!</p>
                     <a href="/comprar-passe/semanal" id="view-pass-options-link" class="btn-primary">Ver Passes de Estudo</a>
-                </section>
-                <section class="modal-footer">
+                </div>
+                <div class="modal-footer">
                      <button type="button" class="btn-modal btn-cancel">Continuar sem IA</button>
-                </section>
+                </div>
             </section>
         </section>
         <section id="passOptionsModal" class="modal-backdrop">

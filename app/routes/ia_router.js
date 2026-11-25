@@ -9,12 +9,18 @@ require('dotenv').config();
 // 🔐 validação
 const USE_GEMINI = process.env.USE_GEMINI === 'true';
 
-if (!USE_GEMINI && !process.env.MISTRAL_API_KEY) {
-  throw new Error('MISTRAL_API_KEY não definida');
+// O servidor nao pode deixar de subir so porque a IA nao esta configurada:
+// o restante do site (aulas, atividades, pagamentos) funciona sem ela.
+// As rotas de IA respondem 503 enquanto a chave nao existir.
+const IA_CONFIGURADA = USE_GEMINI ? !!process.env.GEMINI_API_KEY : !!process.env.MISTRAL_API_KEY;
+if (!IA_CONFIGURADA) {
+  console.warn(`Aviso: ${USE_GEMINI ? 'GEMINI_API_KEY' : 'MISTRAL_API_KEY'} nao definida. Os recursos de IA ficarao indisponiveis.`);
 }
-if (USE_GEMINI && !process.env.GEMINI_API_KEY) {
-  throw new Error('GEMINI_API_KEY não definida');
-}
+
+router.use((req, res, next) => {
+  if (IA_CONFIGURADA) return next();
+  return res.status(503).json({ error: 'Recursos de IA indisponiveis: chave de API nao configurada no servidor.' });
+});
 
 let mistralClientPromise;
 let geminiClientPromise;

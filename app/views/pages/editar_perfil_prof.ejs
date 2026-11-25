@@ -85,7 +85,7 @@
     </a>
   </header>
 
-  <section id="overlay"></section>
+  <div id="overlay"></div>
   
   <main class="perfil-container">
     
@@ -177,7 +177,7 @@
           <section class="form-group" id="form-group-disciplinas">
             <label for="disciplinas">Matérias Lecionadas <p class="required">*</p></label>
 
-            <section id="disciplinas-container"
+            <div id="disciplinas-container"
                  class="<%= erros?.['disciplinas[]'] ? 'invalid' : '' %>"
                  aria-invalid="<%= erros?.['disciplinas[]'] ? 'true' : 'false' %>"
                  aria-describedby="err-disciplinas">
@@ -191,7 +191,7 @@
                   <button type="button" class="remove-discipline">Remover</button>
                 </section>
               <% }) %>
-            </section>
+            </div>
 
             <button type="button" id="add-discipline" class="btn-add">Adicionar matéria</button>
             <p id="err-disciplinas" class="error-feedback"><%= erros?.['disciplinas[]']?.msg || '' %></p>
@@ -200,13 +200,13 @@
           
           <section class="form-group">
             <label>Aula Prévia (escolha apenas uma opção)</label>
-            <section style="display:flex; gap:16px; flex-wrap:wrap; margin:8px 0 12px;">
+            <div style="display:flex; gap:16px; flex-wrap:wrap; margin:8px 0 12px;">
               <label style="font-weight:400;"><input type="radio" name="previa_tipo" value="link" <%= (user.link_previa && !user.previa_arquivo) ? 'checked' : '' %>> Usar link</label>
               <label style="font-weight:400;"><input type="radio" name="previa_tipo" value="arquivo" <%= user.previa_arquivo ? 'checked' : '' %>> Enviar arquivo</label>
               <label style="font-weight:400;"><input type="radio" name="previa_tipo" value="nenhum" <%= (!user.link_previa && !user.previa_arquivo) ? 'checked' : '' %>> Sem aula prévia</label>
-            </section>
+            </div>
 
-            <section id="previa-link-group">
+            <div id="previa-link-group">
               <label for="link_previa">Link da Aula Prévia (Vídeo de Apresentação)</label> <br>
               <input type="url" id="link_previa" name="link_previa" value="<%= dados?.link_previa || user.link_previa || '' %>" placeholder="Ex: https://youtube.com/watch?v=seu-video"
                      class="<%= erros?.link_previa ? 'invalid' : '' %>"
@@ -219,9 +219,9 @@
                 </label>
               <% } %>
               <p id="err-link_previa" class="error-feedback"><%= erros?.link_previa?.msg || '' %></p>
-            </section>
+            </div>
 
-            <section id="previa-arquivo-group" style="margin-top:12px;">
+            <div id="previa-arquivo-group" style="margin-top:12px;">
               <label for="previa_arquivo"><i class="fas fa-file-video"></i> Arquivo da Aula Prévia (vídeo)</label>
               <input type="file" id="previa_arquivo" name="previa_arquivo" accept="video/mp4,video/webm,video/quicktime,video/x-matroska,.mp4,.webm,.mov,.mkv"
                      class="<%= erros?.previa_arquivo ? 'invalid' : '' %>"
@@ -229,16 +229,16 @@
                      aria-describedby="err-previa_arquivo" />
               <small style="display:block; margin-top:4px; color:#555;">Formatos: MP4, WEBM, MOV, MKV. Máx. 100MB.</small>
               <% if (user.previa_arquivo) { %>
-                <section style="margin-top:8px;">
+                <div style="margin-top:8px;">
                   <video src="/professor/previa/<%= user.id %>" controls style="max-width:320px; max-height:200px; border-radius:8px; border:1px solid #ddd;"></video>
                   <label style="display:block; margin-top:6px; font-weight:400;">
                     <input type="checkbox" name="remover_previa_arquivo" value="1" style="width:auto; margin-right:6px;">
                     Remover vídeo enviado
                   </label>
-                </section>
+                </div>
               <% } %>
               <p id="err-previa_arquivo" class="error-feedback"><%= erros?.previa_arquivo?.msg || '' %></p>
-            </section>
+            </div>
 
             <p class="input-dica">Escolha apenas uma forma de aula prévia. Ao salvar link, o arquivo é removido; ao enviar arquivo, o link é removido.</p>
           </section>
@@ -256,9 +256,9 @@
           </section>
 
           <section class="form-actions">
-            <section>
+            <div>
               <button type="submit" class="btn-salvar" id="btn-submit"><i class="fas fa-save"></i> Salvar</button>
-            </section><br>
+            </div><br>
             <a href="/perfil_prof" class="btn-cancelar">Cancelar</a>
           </section>
         </form>

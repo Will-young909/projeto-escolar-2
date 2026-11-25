@@ -28,7 +28,7 @@
     <button id="menu-btn" class="menu-btn" aria-label="Abrir menu principal">☰</button>
   </header>
 
-  <section id="overlay" aria-hidden="true"></section>
+  <div id="overlay" aria-hidden="true"></div>
 
   <nav id="menu" class="overlay collapsed" aria-label="Menu principal">
     <button id="close-menu" aria-label="Fechar menu">&times;</button>
@@ -90,18 +90,18 @@
           <i class="fas fa-user-shield" aria-hidden="true"></i> Informações da Conta
         </h2>
         <dl class="data-list">
-          <section class="data-item">
+          <div class="data-item">
             <dt>Nome</dt>
             <dd class="highlight-data"><%= user.nome || "Não informado" %></dd>
-          </section>
-          <section class="data-item">
+          </div>
+          <div class="data-item">
             <dt>Email</dt>
             <dd><%= user.email || "Não informado" %></dd>
-          </section>
-          <section class="data-item">
+          </div>
+          <div class="data-item">
             <dt>Role</dt>
             <dd><%= user.role || "admin" %></dd>
-          </section>
+          </div>
         </dl>
       </article>
     </section>

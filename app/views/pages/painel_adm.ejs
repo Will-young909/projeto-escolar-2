@@ -27,7 +27,7 @@
   </header>
 
   <!-- Overlay (para mobile) -->
-  <section id="overlay"></section>
+  <div id="overlay"></div>
 
   <!-- Menu lateral -->
   <nav id="menu" aria-label="Menu lateral administrativo">
@@ -105,7 +105,7 @@
                 <button type="submit" class="btn btn-primary" onclick="window.location.hash = '#page-users';">Filtrar</button>
             </form>
 
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -145,7 +145,7 @@
                         <% } %>
                     </tbody>
                 </table>
-            </section>
+            </div>
 
             <% if(pagination.totalPages > 1) { %>
                 <nav class="pagination">
@@ -170,7 +170,7 @@
 
         <section class="card">
             <h2 class="section-title">Professores Ativos (<%= approvedTeachers.length %>)</h2>
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -186,7 +186,7 @@
                             <tr>
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
-                                <td><output class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></output></td>
+                                <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
                                 <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                     <form action="/admin/teachers/<%= teacher.id %>/suspend" method="POST" style="display: inline;">
@@ -198,12 +198,12 @@
                         <% }); %>
                     </tbody>
                 </table>
-            </section>
+            </div>
         </section>
         
         <section class="card">
             <h2 class="section-title">Professores Inativos e Suspensos (<%= inactiveTeachers.length %>)</h2>
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -219,7 +219,7 @@
                             <tr>
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
-                                <td><output class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></output></td>
+                                <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
                                 <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                      <form action="/admin/teachers/<%= teacher.id %>/reactivate" method="POST" style="display: inline;">
@@ -230,7 +230,7 @@
                         <% }); %>
                     </tbody>
                 </table>
-            </section>
+            </div>
         </section>
 
     </section>
@@ -240,7 +240,7 @@
         <section class="card">
             <h2 class="section-title">Repasses Pendentes</h2>
             <p>Pagamentos brutos ficam retidos até a aula ser concluída; depois, o valor líquido do professor fica disponível para repasse.</p>
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table" id="pending-payouts-table">
                     <thead>
                         <tr>
@@ -255,11 +255,11 @@
                         <!-- Linhas de repasses pendentes serão inseridas aqui -->
                     </tbody>
                 </table>
-            </section>
+            </div>
         </section>
         <section class="card">
             <h2 class="section-title">Extrato de Transações</h2>
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table" id="transaction-history-table">
                     <thead>
                         <tr>
@@ -278,7 +278,7 @@
                         <!-- Linhas do histórico de transações serão inseridas aqui -->
                     </tbody>
                 </table>
-            </section>
+            </div>
             <section class="pagination" id="transaction-pagination">
                 <!-- Controles de paginação serão inseridos aqui -->
             </section>
@@ -289,7 +289,7 @@
     <section class="content-page" id="page-moderation">
         <section class="card">
             <h2 class="section-title">Denúncias Recebidas (<%= (denuncias || []).length %>)</h2>
-            <section class="table-wrapper">
+            <div class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -308,7 +308,7 @@
                                     <td>#<%= denuncia.id %></td>
                                     <td><%= denuncia.tipo %></td>
                                     <td><%= denuncia.titulo %></td>
-                                    <td><output class="status-badge status-<%= denuncia.status.toLowerCase().replace(' ', '-') %>"><%= denuncia.status %></output></td>
+                                    <td><span class="status-badge status-<%= denuncia.status.toLowerCase().replace(' ', '-') %>"><%= denuncia.status %></span></td>
                                     <td><%= new Date(denuncia.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                     <td class="actions-buttons">
                                         <button class="btn btn-primary" onclick='openDenunciaModal(<%- JSON.stringify(denuncia) %>)'>Ver Detalhes</button>
@@ -320,35 +320,35 @@
                         <% } %>
                     </tbody>
                 </table>
-            </section>
+            </div>
         </section>
     </section>
 
     <!-- MODAL DA DENÚNCIA -->
     <section id="denuncia-modal" class="modal">
         <section class="modal-content">
-            <section class="close-button-space">
+            <div class="close-button-space">
                 <button type="button" class="close-button" aria-label="Fechar denúncia">&times;</button>
-            </section>
+            </div>
             <h2 id="modal-title"></h2>
             <section class="modal-body">
-                <p><strong>ID da Denúncia:</strong> <output id="modal-id"></output></p>
-                <p><strong>Status:</strong> <output id="modal-status" class="status-badge"></output></p>
-                <p><strong>Tipo:</strong> <output id="modal-tipo"></output></p>
-                <p><strong>Data:</strong> <output id="modal-data"></output></p>
+                <p><strong>ID da Denúncia:</strong> <span id="modal-id"></span></p>
+                <p><strong>Status:</strong> <span id="modal-status" class="status-badge"></span></p>
+                <p><strong>Tipo:</strong> <span id="modal-tipo"></span></p>
+                <p><strong>Data:</strong> <span id="modal-data"></span></p>
                 <p><strong>Descrição:</strong></p>
                 <p id="modal-descricao" class="descricao-box"></p>
-                <p><strong>Item denunciado:</strong> <output id="modal-item-denunciado"></output></p>
+                <p><strong>Item denunciado:</strong> <span id="modal-item-denunciado"></span></p>
 
 
-                <section id="denunciante-info"></section>
-                <section id="denunciado-info"></section>
-                <section id="conteudo-info"></section>
+                <div id="denunciante-info"></div>
+                <div id="denunciado-info"></div>
+                <div id="conteudo-info"></div>
 
                 <p><strong>Conteúdo do Comentário:</strong></p>
                 <p id="modal-comment-content" class="descricao-box"></p>
 
-                <section id="evidencia-info"></section>
+                <div id="evidencia-info"></div>
 
                 <hr>
 
@@ -375,21 +375,21 @@
         <h2 class="section-title">Cadastrar Administrador</h2>
         <p>Cadastre um novo administrador da plataforma (acesso restrito a superadmin).</p>
         <form id="create-admin-form">
-          <section class="form-group">
+          <div class="form-group">
             <label for="new-admin-email">E-mail</label>
             <input type="email" id="new-admin-email" name="email" required placeholder="email@exemplo.com">
-          </section>
-          <section class="form-group">
+          </div>
+          <div class="form-group">
             <label for="new-admin-password">Senha</label>
             <input type="password" id="new-admin-password" name="senha" minlength="6" required placeholder="Mínimo 6 caracteres">
-          </section>
-          <section class="form-group">
+          </div>
+          <div class="form-group">
             <label for="new-admin-role">Role</label>
             <select id="new-admin-role" name="role" required>
               <option value="admin">admin</option>
               <option value="superadmin">superadmin</option>
             </select>
-          </section>
+          </div>
           <p id="create-admin-feedback" style="margin: 8px 0; font-size: 0.9em;"></p>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Cadastrar Administrador</button>
         </form>
@@ -575,8 +575,8 @@
             <input type="hidden" name="denunciaId" value="${denuncia.id}">
             <input type="hidden" name="userId" value="${denuncia.denunciado_id || ''}">
             
-            <section class="form-group-row">
-                <section class="form-group">
+            <div class="form-group-row">
+                <div class="form-group">
                     <label>Mudar Status:</label>
                     <select name="status" class="select">
                         <option value="aberta" ${denuncia.status === 'aberta' ? 'selected' : ''}>Aberta</option>
@@ -584,40 +584,40 @@
                         <option value="resolvida" ${denuncia.status === 'resolvida' ? 'selected' : ''}>Resolvida</option>
                         <option value="rejeitada" ${denuncia.status === 'rejeitada' ? 'selected' : ''}>Rejeitada</option>
                     </select>
-                </section>
+                </div>
                 <button type="button" data-action="status" data-url="/admin/denuncias/${denuncia.id}/status" class="btn btn-primary">Atualizar</button>
-            </section>
+            </div>
             <hr>
-            <section class="form-group">
+            <div class="form-group">
                 <label>Advertir Usuário:</label>
                 <textarea name="message" placeholder="Mensagem de advertência para o usuário..."></textarea>
                 <button type="button" data-action="warn" data-url="/admin/denuncias/${denuncia.id}/warn" class="btn btn-warning">Advertir</button>
-            </section>
+            </div>
             <hr>
-            <section class="form-group">
+            <div class="form-group">
                 <label>Suspender Usuário:</label>
                 <input type="number" name="duration" placeholder="Dias de suspensão (ex: 7)" min="1">
                 <textarea name="reason" placeholder="Motivo da suspensão para o usuário..."></textarea>
                 <button type="button" data-action="suspend" data-url="/admin/denuncias/${denuncia.id}/suspend" class="btn btn-danger">Suspender</button>
-            </section>
+            </div>
             <hr>
-            <section class="form-group">
+            <div class="form-group">
                 <label>Banir Usuário:</label>
                 <textarea name="reasonBan" placeholder="Motivo do banimento para o usuário..."></textarea>
                 <button type="button" data-action="ban" data-url="/admin/denuncias/${denuncia.id}/ban" class="btn btn-danger">Banir Permanentemente</button>
-            </section>
+            </div>
              <hr>
-            <section class="form-group">
+            <div class="form-group">
                 <label>Adicionar Observação Interna:</label>
                 <textarea name="note" placeholder="Observação visível apenas para admins..."></textarea>
                 <button type="button" data-action="note" data-url="/admin/denuncias/${denuncia.id}/note" class="btn btn-primary">Salvar Nota</button>
-            </section>
+            </div>
         `;
         if (denuncia.conteudo_info) {
             try {
                 const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
                 if (info && info.tipo === 'comentario') {
-                    actionsFormEl.insertAdjacentHTML('beforeend', `<hr><section class="form-group" id="delete-comment-group"><label>Conteúdo denunciado:</label><button type="button" data-action="delete-comment" data-url="/admin/denuncias/${denuncia.id}/delete-comment" class="btn btn-danger">Excluir Comentário</button></section>`);
+                    actionsFormEl.insertAdjacentHTML('beforeend', `<hr><div class="form-group" id="delete-comment-group"><label>Conteúdo denunciado:</label><button type="button" data-action="delete-comment" data-url="/admin/denuncias/${denuncia.id}/delete-comment" class="btn btn-danger">Excluir Comentário</button></div>`);
                 }
             } catch (_) {}
         }
@@ -823,7 +823,7 @@
                         <td>${formatCurrency(tx.valor)}</td>
                         <td>${formatCurrency(tx.taxa_plataforma)}</td>
                         <td>${formatCurrency(tx.valor_liquido)}</td>
-                        <td><output class="status-badge status-${tx.status}">${tx.status}</output></td>
+                        <td><span class="status-badge status-${tx.status}">${tx.status}</span></td>
                         <td>${new Date(tx.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td>
                         <td>${tx.aluno_nome || 'N/A'}</td>
                         <td>${tx.professor_nome || 'N/A'}</td>

@@ -142,9 +142,9 @@
                 <% const isTest = activity.isTest || false; %>
                 <form id="activity-form" action="<%= isTest ? '/submit-test/' : '/submit-activity/' %><%= activity.id %>" method="POST">
                     <% activity.questions.forEach((question, index) => { %>
-                        <section class="question">
+                        <div class="question">
                             <p class="math-content"><strong>Questão <%= index + 1 %>:</strong> <%= question.text || question.title %></p>
-                            <section class="options">
+                            <div class="options">
                                 <% if (question.options && Object.keys(question.options).length > 0) { %>
                                     <% Object.entries(question.options).forEach(([key, value]) => { %>
                                         <label>
@@ -160,18 +160,18 @@
                                     <p>Esta é uma questão dissertativa. Responda abaixo:</p>
                                     <textarea name="answers[<%= index %>]" class="form-control" rows="4" required></textarea>
                                 <% } %>
-                            </section>
+                            </div>
 
                             <!-- INÍCIO DA INSERÇÃO: Botão de Dica -->
                             <% if (locals.user && locals.user.tipo === 'aluno') { %>
                                 <button type="button" class="btn-dica" data-question-index="<%= index %>">
                                     <i class="fas fa-lightbulb"></i> Solicitar Dica
                                 </button>
-                                <section class="dica-container" id="dica-container-<%= index %>"></section>
+                                <div class="dica-container" id="dica-container-<%= index %>"></div>
                             <% } %>
                             <!-- FIM DA INSERÇÃO: Botão de Dica -->
 
-                        </section>
+                        </div>
                     <% }); %>
                     <button type="submit" class="btn-primary">Finalizar Atividade</button>
                      <a href="javascript:history.back()" class="btn-primary" style="text-decoration: none; color: var(--branco); text-align: center;">Voltar</a>
@@ -183,7 +183,7 @@
             <section id="result-container" class="result" style="display: none;">
                 <h3>Resultados:</h3>
                 <p id="score"></p>
-                <section id="feedback"></section>
+                <div id="feedback"></div>
             </section>
         </section>
     </main>
@@ -196,14 +196,14 @@
                     <h3><i class="fas fa-star"></i> Benefício Exclusivo</h3>
                     <button type="button" class="close-button">&times;</button>
                 </section>
-                <section class="modal-body">
+                <div class="modal-body">
                     <p>As dicas são um benefício para usuários com <strong>Passe de Estudos</strong>.</p>
                     <p>Você tem um passe disponível! Deseja ativá-lo para esta atividade e ter acesso a todas as dicas?</p>
-                </section>
-                <section class="modal-footer">
+                </div>
+                <div class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Agora não</button>
                     <button type="button" id="confirmActivatePass" class="btn-modal btn-confirm">Sim, ativar!</button>
-                </section>
+                </div>
             </section>
         </section>
 
@@ -230,9 +230,9 @@
                         </a>
                     </section>
                 </section>
-                <section class="modal-footer">
+                <div class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Continuar sem dica</button>
-                </section>
+                </div>
             </section>
         </section>
     <% } %>
@@ -282,18 +282,18 @@
                             if (isCorrect) score++;
                             
                             const correctOptionText = question.options[question.correct];
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${correctOptionText}`}</output>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${correctOptionText}`}</span>`;
                         } else {
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="incorrect">Não respondida.</output>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
                         }
                     } else if (questionType === 'short_text' || questionType === 'long_text') {
                         const userInput = document.querySelector(`[name="${questionName}"]`).value.trim();
                         if (userInput) {
                             isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
                             if (isCorrect) score++;
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</output>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</span>`;
                         } else {
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="incorrect">Não respondida.</output>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
                         }
                     }
                     feedbackContainer.appendChild(feedbackElement);

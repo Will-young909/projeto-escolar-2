@@ -21,14 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- HTML Injection ---
     const accessibilityModalHTML = `
-        <section id="accessibility-modal" class="a11y-modal">
-            <section class="a11y-modal-content">
+        <div id="accessibility-modal" class="a11y-modal">
+            <div class="a11y-modal-content">
                 <button id="a11y-close-modal" class="a11y-close-btn" aria-label="Fechar painel de acessibilidade">&times;</button>
                 <h3 class="a11y-title">Preferências de Acessibilidade</h3>
                 
                 <section class="a11y-group">
                     <h4>Texto e Conteúdo</h4>
-                    <section class="a11y-control-grid">
+                    <div class="a11y-control-grid">
                         <button id="increase-font"><i class="fas fa-font"></i> Aumentar Fonte</button>
                         <button id="decrease-font"><i class="fas fa-font"></i> Diminuir Fonte</button>
                         <button id="increase-letter-spacing"><i class="fas fa-text-width"></i> Aumentar Espaçamento</button>
@@ -36,28 +36,28 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button id="increase-line-height"><i class="fas fa-text-height"></i> Aumentar Linha</button>
                         <button id="decrease-line-height"><i class="fas fa-text-height"></i> Diminuir Linha</button>
                         <button id="underline-links"><i class="fas fa-underline"></i> Sublinhar Links</button>
-                    </section>
+                    </div>
                 </section>
 
                 <section class="a11y-group">
                     <h4>Leitura e Foco</h4>
-                    <section class="a11y-control-grid tts-grid">
+                    <div class="a11y-control-grid tts-grid">
                         <p>Ler Texto Selecionado</p>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggle-read-selection">
-                            <i class="toggle-slider" aria-hidden="true"></i>
+                            <span class="toggle-slider" aria-hidden="true"></span>
                         </label>
-                    </section>
+                    </div>
                 </section>
 
                 <section class="a11y-group">
                     <h4>Esquemas de Cores e Fontes</h4>
-                    <section class="a11y-control-grid">
+                    <div class="a11y-control-grid">
                         <button id="high-contrast"><i class="fas fa-adjust"></i> Alto Contraste</button>
 
                         <button id="reader-font"><i class="fas fa-book-reader"></i> Fonte Amigável</button>
                         <button id="dyslexia-font"><i class="fas fa-eye"></i> Fonte para Dislexia</button>
-                    </section>
+                    </div>
                 </section>
                 
                 <section class="a11y-group">
@@ -65,11 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
                      <button id="reduce-motion"><i class="fas fa-wind"></i> Reduzir Animações</button>
                 </section>
 
-                <section class="a11y-footer">
+                <div class="a11y-footer">
                     <button id="reset-accessibility">Redefinir</button>
-                </section>
-            </section>
-        </section>
+                </div>
+            </div>
+        </div>
     `;
     document.body.insertAdjacentHTML('beforeend', accessibilityModalHTML);
 
