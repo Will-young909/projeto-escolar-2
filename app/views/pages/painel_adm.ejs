@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Painel Administrativo | Regimath</title>
 
   <!-- Fonts & Icons -->
@@ -104,7 +105,7 @@
                 <button type="submit" class="btn btn-primary" onclick="window.location.hash = '#page-users';">Filtrar</button>
             </form>
 
-            <div class="table-wrapper">
+            <section class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -144,7 +145,7 @@
                         <% } %>
                     </tbody>
                 </table>
-            </div>
+            </section>
 
             <% if(pagination.totalPages > 1) { %>
                 <nav class="pagination">
@@ -169,7 +170,7 @@
 
         <section class="card">
             <h2 class="section-title">Professores Ativos (<%= approvedTeachers.length %>)</h2>
-            <div class="table-wrapper">
+            <section class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -185,7 +186,7 @@
                             <tr>
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
-                                <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
+                                <td><output class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></output></td>
                                 <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                     <form action="/admin/teachers/<%= teacher.id %>/suspend" method="POST" style="display: inline;">
@@ -197,12 +198,12 @@
                         <% }); %>
                     </tbody>
                 </table>
-            </div>
+            </section>
         </section>
         
         <section class="card">
             <h2 class="section-title">Professores Inativos e Suspensos (<%= inactiveTeachers.length %>)</h2>
-            <div class="table-wrapper">
+            <section class="table-wrapper">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -218,7 +219,7 @@
                             <tr>
                                 <td><%= teacher.nome %></td>
                                 <td><%= teacher.email %></td>
-                                <td><span class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></span></td>
+                                <td><output class="status-badge status-<%= teacher.aprovacao_status %>"><%= teacher.aprovacao_status %></output></td>
                                 <td><%= new Date(teacher.criado_em).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                 <td class="actions-buttons">
                                      <form action="/admin/teachers/<%= teacher.id %>/reactivate" method="POST" style="display: inline;">
@@ -229,7 +230,7 @@
                         <% }); %>
                     </tbody>
                 </table>
-            </div>
+            </section>
         </section>
 
     </section>
@@ -239,7 +240,7 @@
         <section class="card">
             <h2 class="section-title">Repasses Pendentes</h2>
             <p>Pagamentos brutos ficam retidos até a aula ser concluída; depois, o valor líquido do professor fica disponível para repasse.</p>
-            <div class="table-wrapper">
+            <section class="table-wrapper">
                 <table class="data-table" id="pending-payouts-table">
                     <thead>
                         <tr>
@@ -254,11 +255,11 @@
                         <!-- Linhas de repasses pendentes serão inseridas aqui -->
                     </tbody>
                 </table>
-            </div>
+            </section>
         </section>
         <section class="card">
             <h2 class="section-title">Extrato de Transações</h2>
-            <div class="table-wrapper">
+            <section class="table-wrapper">
                 <table class="data-table" id="transaction-history-table">
                     <thead>
                         <tr>
@@ -277,7 +278,7 @@
                         <!-- Linhas do histórico de transações serão inseridas aqui -->
                     </tbody>
                 </table>
-            </div>
+            </section>
             <section class="pagination" id="transaction-pagination">
                 <!-- Controles de paginação serão inseridos aqui -->
             </section>
@@ -307,7 +308,7 @@
                                     <td>#<%= denuncia.id %></td>
                                     <td><%= denuncia.tipo %></td>
                                     <td><%= denuncia.titulo %></td>
-                                    <td><span class="status-badge status-<%= denuncia.status.toLowerCase().replace(' ', '-') %>"><%= denuncia.status %></span></td>
+                                    <td><output class="status-badge status-<%= denuncia.status.toLowerCase().replace(' ', '-') %>"><%= denuncia.status %></output></td>
                                     <td><%= new Date(denuncia.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) %></td>
                                     <td class="actions-buttons">
                                         <button class="btn btn-primary" onclick='openDenunciaModal(<%- JSON.stringify(denuncia) %>)'>Ver Detalhes</button>
@@ -324,48 +325,48 @@
     </section>
 
     <!-- MODAL DA DENÚNCIA -->
-    <div id="denuncia-modal" class="modal">
-        <div class="modal-content">
-            <div class="close-button-space">
-                <span class="close-button">&times;</span>
-            </div>
+    <section id="denuncia-modal" class="modal">
+        <section class="modal-content">
+            <section class="close-button-space">
+                <button type="button" class="close-button" aria-label="Fechar denúncia">&times;</button>
+            </section>
             <h2 id="modal-title"></h2>
-            <div class="modal-body">
-                <p><strong>ID da Denúncia:</strong> <span id="modal-id"></span></p>
-                <p><strong>Status:</strong> <span id="modal-status" class="status-badge"></span></p>
-                <p><strong>Tipo:</strong> <span id="modal-tipo"></span></p>
-                <p><strong>Data:</strong> <span id="modal-data"></span></p>
+            <section class="modal-body">
+                <p><strong>ID da Denúncia:</strong> <output id="modal-id"></output></p>
+                <p><strong>Status:</strong> <output id="modal-status" class="status-badge"></output></p>
+                <p><strong>Tipo:</strong> <output id="modal-tipo"></output></p>
+                <p><strong>Data:</strong> <output id="modal-data"></output></p>
                 <p><strong>Descrição:</strong></p>
                 <p id="modal-descricao" class="descricao-box"></p>
-                <p><strong>Item denunciado:</strong> <span id="modal-item-denunciado"></span></p>
+                <p><strong>Item denunciado:</strong> <output id="modal-item-denunciado"></output></p>
 
 
-                <div id="denunciante-info"></div>
-                <div id="denunciado-info"></div>
-                <div id="conteudo-info"></div>
+                <section id="denunciante-info"></section>
+                <section id="denunciado-info"></section>
+                <section id="conteudo-info"></section>
 
                 <p><strong>Conteúdo do Comentário:</strong></p>
                 <p id="modal-comment-content" class="descricao-box"></p>
 
-                <div id="evidencia-info"></div>
+                <section id="evidencia-info"></section>
 
                 <hr>
 
-                <div id="historico-denuncia">
+                <section id="historico-denuncia">
                     <h4>Histórico de Ações</h4>
                     <ul id="historico-lista"></ul>
-                </div>
+                </section>
 
                 <hr>
 
-                <div class="admin-actions">
+                <section class="admin-actions">
                     <h4>Ações de Moderação</h4>
                     <p id="denuncia-action-feedback" style="margin: 0 0 8px 0; font-size: 0.9em;"></p>
                     <form id="denuncia-actions-form"></form>
-                </div>
-            </div>
-        </div>
-    </div>
+                </section>
+            </section>
+        </section>
+    </section>
 
     <% if (typeof adminUser !== 'undefined' && adminUser && adminUser.role === 'superadmin') { %>
     <!-- ADMINISTRADORES -->
@@ -574,8 +575,8 @@
             <input type="hidden" name="denunciaId" value="${denuncia.id}">
             <input type="hidden" name="userId" value="${denuncia.denunciado_id || ''}">
             
-            <div class="form-group-row">
-                <div class="form-group">
+            <section class="form-group-row">
+                <section class="form-group">
                     <label>Mudar Status:</label>
                     <select name="status" class="select">
                         <option value="aberta" ${denuncia.status === 'aberta' ? 'selected' : ''}>Aberta</option>
@@ -583,40 +584,40 @@
                         <option value="resolvida" ${denuncia.status === 'resolvida' ? 'selected' : ''}>Resolvida</option>
                         <option value="rejeitada" ${denuncia.status === 'rejeitada' ? 'selected' : ''}>Rejeitada</option>
                     </select>
-                </div>
+                </section>
                 <button type="button" data-action="status" data-url="/admin/denuncias/${denuncia.id}/status" class="btn btn-primary">Atualizar</button>
-            </div>
+            </section>
             <hr>
-            <div class="form-group">
+            <section class="form-group">
                 <label>Advertir Usuário:</label>
                 <textarea name="message" placeholder="Mensagem de advertência para o usuário..."></textarea>
                 <button type="button" data-action="warn" data-url="/admin/denuncias/${denuncia.id}/warn" class="btn btn-warning">Advertir</button>
-            </div>
+            </section>
             <hr>
-            <div class="form-group">
+            <section class="form-group">
                 <label>Suspender Usuário:</label>
                 <input type="number" name="duration" placeholder="Dias de suspensão (ex: 7)" min="1">
                 <textarea name="reason" placeholder="Motivo da suspensão para o usuário..."></textarea>
                 <button type="button" data-action="suspend" data-url="/admin/denuncias/${denuncia.id}/suspend" class="btn btn-danger">Suspender</button>
-            </div>
+            </section>
             <hr>
-            <div class="form-group">
+            <section class="form-group">
                 <label>Banir Usuário:</label>
                 <textarea name="reasonBan" placeholder="Motivo do banimento para o usuário..."></textarea>
                 <button type="button" data-action="ban" data-url="/admin/denuncias/${denuncia.id}/ban" class="btn btn-danger">Banir Permanentemente</button>
-            </div>
+            </section>
              <hr>
-            <div class="form-group">
+            <section class="form-group">
                 <label>Adicionar Observação Interna:</label>
                 <textarea name="note" placeholder="Observação visível apenas para admins..."></textarea>
                 <button type="button" data-action="note" data-url="/admin/denuncias/${denuncia.id}/note" class="btn btn-primary">Salvar Nota</button>
-            </div>
+            </section>
         `;
         if (denuncia.conteudo_info) {
             try {
                 const info = typeof denuncia.conteudo_info === 'string' ? JSON.parse(denuncia.conteudo_info) : denuncia.conteudo_info;
                 if (info && info.tipo === 'comentario') {
-                    actionsFormEl.insertAdjacentHTML('beforeend', `<hr><div class="form-group" id="delete-comment-group"><label>Conteúdo denunciado:</label><button type="button" data-action="delete-comment" data-url="/admin/denuncias/${denuncia.id}/delete-comment" class="btn btn-danger">Excluir Comentário</button></div>`);
+                    actionsFormEl.insertAdjacentHTML('beforeend', `<hr><section class="form-group" id="delete-comment-group"><label>Conteúdo denunciado:</label><button type="button" data-action="delete-comment" data-url="/admin/denuncias/${denuncia.id}/delete-comment" class="btn btn-danger">Excluir Comentário</button></section>`);
                 }
             } catch (_) {}
         }
@@ -822,7 +823,7 @@
                         <td>${formatCurrency(tx.valor)}</td>
                         <td>${formatCurrency(tx.taxa_plataforma)}</td>
                         <td>${formatCurrency(tx.valor_liquido)}</td>
-                        <td><span class="status-badge status-${tx.status}">${tx.status}</span></td>
+                        <td><output class="status-badge status-${tx.status}">${tx.status}</output></td>
                         <td>${new Date(tx.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</td>
                         <td>${tx.aluno_nome || 'N/A'}</td>
                         <td>${tx.professor_nome || 'N/A'}</td>

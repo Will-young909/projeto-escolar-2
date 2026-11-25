@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Editar Perfil | <%= user.nome %> - Regimath</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -112,11 +113,6 @@
                    aria-invalid="<%= erros?.email ? 'true' : 'false' %>"
                    aria-describedby="err-email" />
             <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
-          </section>
-
-          <section class="form-group">
-            <label for="descricao">Descrição</label>
-            <textarea id="descricao" name="descricao" rows="4" placeholder="Conte um pouco sobre você..."><%= dados?.descricao || user.descricao || '' %></textarea>
           </section>
 
           <section class="form-actions">
@@ -293,7 +289,7 @@
       const openBtn = document.getElementById('open-change-password');
       const modal = document.getElementById('change-password-modal');
       const closeBtn = document.getElementById('close-change-password');
-      const cancelBtn = document.getElementById('cancelChangePassword');
+      const cancelBtn = document.getElementById('btn-cancel-change');
       const form = document.getElementById('changePasswordForm');
       const currentInput = document.getElementById('current_password');
       const newInput = document.getElementById('new_password');

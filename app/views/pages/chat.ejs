@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Chat com <%= interlocutorName %> | Regimath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -30,10 +31,10 @@
     <% if (user && user.tipo === 'professor') { %>
         <section class="payment-request-ui is-collapsed" id="paymentRequestUi">
             <button type="button" class="payment-toggle" id="paymentToggle" aria-expanded="false" aria-controls="paymentRequestBody">
-                <span><i class="fas fa-calendar-check"></i> Agendar aula pelo chat</span>
+                <output><i class="fas fa-calendar-check"></i> Agendar aula pelo chat</output>
                 <i class="fas fa-chevron-down payment-toggle-icon" aria-hidden="true"></i>
             </button>
-            <div class="payment-request-body" id="paymentRequestBody">
+            <section class="payment-request-body" id="paymentRequestBody">
                 <select id="payHorario" class="ui-input desc-input" aria-label="Horário disponível">
                     <option value="">Selecione um horário disponível</option>
                     <% (horariosDisponiveis || []).forEach(h => { %>
@@ -48,7 +49,7 @@
                 <% if (!horariosDisponiveis || horariosDisponiveis.length === 0) { %>
                     <p class="payment-empty-note">Sem horários disponíveis. Cadastre horários no seu perfil.</p>
                 <% } %>
-            </div>
+            </section>
         </section>
     <% } %>
 

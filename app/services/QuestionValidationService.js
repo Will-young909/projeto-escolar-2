@@ -293,6 +293,60 @@ function resolverPercentual(texto) {
   return multiplica(base.fracao, divide(percentual.fracao, frac(100)));
 }
 
+/**
+ * Percentual em contexto de variação: "desconto de 15% ... custava R$ 200",
+ * "aumento de 10% ... era 50". Retorna o valor FINAL (após desconto/aumento).
+ * Só aceita quando há exatamente 1 percentual e 1 valor-base monetário/numérico
+ * claro, para evitar inferência ambígua.
+ */
+function resolverPercentualContexto(texto) {
+  const t = String(texto || '');
+  const percRe = /(\d+(?:[.,]\d+)?)\s*(?:%|por\s+cento)/gi;
+  const percs = [];
+  let m;
+  while ((m = percRe.exec(t)) !== null) {
+    const n = normalizarNumero(m[1]);
+    if (n.ok) percs.push({ fracao: n.fracao, texto: m[1], index: m.index });
+  }
+  if (percs.length !== 1) return null;
+
+  const tipoDesconto = /\bdescont\w*|abat\w*|redu[cç]\w*|barate\w*/i.test(t);
+  const tipoAumento = /\baument\w*|acres[cç]\w*|reajust\w*|juros\b|inflac\w*|encarec\w*/i.test(t);
+  if (tipoDesconto === tipoAumento) return null; // ambos ou nenhum: ambíguo
+
+  // Base: preferir valor monetário; senão, número não-percentual mais plausível.
+  const dinheiroRe = /R\$\s*(\d[\d.,]*)/gi;
+  const basesDinheiro = [];
+  while ((m = dinheiroRe.exec(t)) !== null) {
+    const n = normalizarNumero(m[1]);
+    if (n.ok) basesDinheiro.push({ fracao: n.fracao, texto: m[1], index: m.index });
+  }
+
+  let base = null;
+  if (basesDinheiro.length === 1) {
+    base = basesDinheiro[0];
+  } else {
+    const nums = extrairNumeros(t).filter(n => {
+      // Exclui o próprio percentual e números colados ao símbolo %.
+      if (Math.abs(n.posicao - percs[0].index) <= 1) return false;
+      const depois = t.slice(n.posicao + n.texto.length, n.posicao + n.texto.length + 8);
+      if (/^\s*(?:%|por\s+cento)/i.test(depois)) return false;
+      const antes = t.slice(Math.max(0, n.posicao - 3), n.posicao);
+      if (/R\$\s*$/.test(antes)) return true;
+      // Evita anos/contexto pequeno demais.
+      const val = Number(n.texto.replace(',', '.'));
+      return !(Number.isInteger(val) && val >= 1900 && val <= 2100);
+    });
+    if (nums.length === 1) base = nums[0];
+  }
+  if (!base) return null;
+
+  const taxa = divide(percs[0].fracao, frac(100));
+  const delta = multiplica(base.fracao, taxa);
+  const final = tipoDesconto ? subtrai(base.fracao, delta) : soma(base.fracao, delta);
+  return { fracao: final, fonte: tipoDesconto ? 'percentual_desconto' : 'percentual_aumento', numeros: [base.texto, percs[0].texto] };
+}
+
 /** "metade de 10", "um terço de 12" -> 5 / 4. */
 function resolverFracaoExtenso(texto) {
   const re = new RegExp(`(${Object.keys(EXTENSO).join('|')})\\s+(?:de|d[oa])\\s+(\\d+(?:[.,\\d]*)?)`, 'i');
@@ -304,6 +358,16 @@ function resolverFracaoExtenso(texto) {
   return multiplica(base.fracao, fracao.fracao);
 }
 
+/** "3/4 de 80" representa três quartos da base, não apenas a fração 3/4. */
+function resolverFracaoAplicada(texto) {
+  const achado = String(texto).match(/([+-]?\d+(?:[.,]\d+)?)\s*\/\s*([+-]?\d+(?:[.,]\d+)?)\s+(?:de|do|da|dos|das)\s+([+-]?\d+(?:[.,]\d+)?)/i);
+  if (!achado) return null;
+  const fracao = normalizarNumero(`${achado[1]}/${achado[2]}`);
+  const base = normalizarNumero(achado[3]);
+  if (!fracao.ok || !base.ok) return null;
+  return multiplica(fracao.fracao, base.fracao);
+}
+
 /**
  * Determina, de forma determinística, o valor matemático da resposta.
  *
@@ -313,29 +377,42 @@ function resolverFracaoExtenso(texto) {
 function determinarResposta(enunciado, habilidade = '') {
   const texto = String(enunciado || '');
 
+  // Resolver frações aplicadas à base antes da regex de expressão, que sem
+  // esse caso interpretaria "3/4 de 80" como apenas a divisão 3/4.
+  const fracaoAplicada = resolverFracaoAplicada(texto);
+  if (fracaoAplicada) {
+    return { ok: true, fracao: fracaoAplicada, valor: paraDecimal(fracaoAplicada), fonte: 'fracao_aplicada', numeros: extrairNumeros(texto).map(n => n.texto) };
+  }
+
   // 1) Expressão aritmética explícita (caso mais confiável).
   REGEX_EXPRESSAO.lastIndex = 0;
+  const expMatches = [];
   let achado;
   while ((achado = REGEX_EXPRESSAO.exec(texto)) !== null) {
     // Ignora pseudoexpressões como "2024-2025" (faixa de anos).
     if (/^\d{4}-\d{4}$/.test(achado[1])) continue;
-
-    // O REGEX só enxerga dígitos e + - * /, então uma potência é CORTADA:
-    // em "5 + 3 × 2²" ele casa "5 + 3 × 2" e devolveria 11 em vez de 17.
-    // Nesses casos é melhor recusar do que afirmar um número que não foi
-    // realmente calculado — a questão segue sem conferência, mas não morre
-    // por um cálculo inventado.
-    const proximo = texto[achado.index + achado[0].length];
-    if (proximo !== undefined && /[\u00B2\u00B3\u00B4\u2070-\u207F^n^]/.test(proximo)) {
-      return { ok: false, motivo: 'expressão com potência não é avaliada com segurança' };
+    expMatches.push({ expr: achado[1], index: achado.index, end: achado.index + achado[0].length });
+  }
+  if (expMatches.length > 0) {
+    const temPotenciaOuParens = /[()^²³¹⁰⁴⁵⁶⁷⁸⁹]/.test(texto);
+    const temOperadorNaoCapturado = /\d\s+\.\s+[\d(]|\)\s*\.\s+[\d(]/.test(texto); // "2 . (5-3)" estilo
+    const temSinalInicialNegativo = /:\s*-\s*\d/.test(texto) || /^\s*-\s*\d/.test(texto);
+    const fragmentada = expMatches.length > 1 && temPotenciaOuParens;
+    if (temPotenciaOuParens || temOperadorNaoCapturado || temSinalInicialNegativo || fragmentada) {
+      return { ok: false, motivo: 'expressão com potência/parênteses/sintaxe não suportada pelo avaliador seguro' };
     }
-
-    try {
-      const fracao = avaliarExpressao(achado[1]);
-      if (fracao) {
-        return { ok: true, fracao, valor: paraDecimal(fracao), fonte: 'expressao_explicita', numeros: extrairNumeros(achado[1]).map(n => n.texto) };
+    for (const item of expMatches) {
+      const proximo = texto[item.end];
+      if (proximo !== undefined && /[\u00B2\u00B3\u00B4\u2070-\u207F^n]/.test(proximo)) {
+        return { ok: false, motivo: 'expressão com potência não é avaliada com segurança' };
       }
-    } catch { /* não determinística: cai na heurística */ }
+      try {
+        const fracao = avaliarExpressao(item.expr);
+        if (fracao) {
+          return { ok: true, fracao, valor: paraDecimal(fracao), fonte: 'expressao_explicita', numeros: extrairNumeros(item.expr).map(n => n.texto) };
+        }
+      } catch { /* não determinística: cai na heurística */ }
+    }
   }
 
   // 2) Geometria: fórmulas fechadas por figura/grandeza.
@@ -346,6 +423,10 @@ function determinarResposta(enunciado, habilidade = '') {
   const percentual = resolverPercentual(texto);
   if (percentual) {
     return { ok: true, fracao: percentual, valor: paraDecimal(percentual), fonte: 'percentual', numeros: extrairNumeros(texto).map(n => n.texto) };
+  }
+  const percentualCtx = resolverPercentualContexto(texto);
+  if (percentualCtx) {
+    return { ok: true, fracao: percentualCtx.fracao, valor: paraDecimal(percentualCtx.fracao), fonte: percentualCtx.fonte, numeros: percentualCtx.numeros };
   }
   const fracaoExtenso = resolverFracaoExtenso(texto);
   if (fracaoExtenso) {
@@ -946,12 +1027,20 @@ function resolverGeometria(enunciado, habilidade = '') {
 
   // --- Perímetros ---
   if (pedirPerimetro && quadrado && exigir(1, 1)) {
+    const pedirMedidaDoLado = /(?:qual\s+(?:e\s+)?(?:a\s+)?(?:medida\s+)?(?:do|de cada)\s+lado|medida\s+(?:do|de cada)\s+lado)/.test(texto);
+    if (pedirMedidaDoLado) {
+      return responder(divide(nums[0], frac(4)), 'geometria_lado_quadrado_por_perimetro');
+    }
     return responder(multiplica(frac(4), nums[0]), 'geometria_perimetro_quadrado');
   }
   if (pedirPerimetro && triangular && exigir(3, 3)) {
     return responder(nums.reduce((acc, n) => soma(acc, n), frac(0)), 'geometria_perimetro_triangulo');
   }
   if (pedirPerimetro && retangular && exigir(2, 2)) {
+    // Ambíguo: "comprimento 20 e perímetro 70, qual a largura?" tem 2 números,
+    // mas um deles é o próprio perímetro. Não devolver perímetro calculado.
+    const temPerimetroDado = /perimetro\s*(?:igual\s*a|de|:)?\s*\d|perimetro\s*total/i.test(texto);
+    if (temPerimetroDado) return null;
     return responder(multiplica(frac(2), soma(nums[0], nums[1])), 'geometria_perimetro_retangulo');
   }
 

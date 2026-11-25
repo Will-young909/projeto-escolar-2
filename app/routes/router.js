@@ -4146,6 +4146,9 @@ REGRAS INEGOCIÁVEIS:
 
 router.get('/ver_atividade/:id', async (req, res) => {
     const user = req.session.user_aluno || req.session.user_prof;
+    if (req.session.user_prof && !req.session.user_aluno) {
+        return res.redirect('/lista_atividades');
+    }
     const activityId = req.params.id;
 
     let usouPasseNaAtividade = false;
@@ -4205,10 +4208,10 @@ router.get('/nivel_escolar', (req, res) => {
 });
 
 router.get('/gerar_atividade', async (req, res) => {
-    const user = req.session.user_aluno || req.session.user_prof;
-    if (!user) {
-        return res.redirect('/login');
-    }
+    const userAluno = req.session.user_aluno;
+    const userProf = req.session.user_prof;
+    const user = userAluno || userProf;
+    if (!user) return res.redirect('/login');
 
     const { level } = req.query;
     let prompt;
@@ -4254,7 +4257,7 @@ router.get('/gerar_atividade', async (req, res) => {
             prompt = 'um exercício de matemática com 10 questões de múltipla escolha.';
     }
 
-    prompt = `Crie ${prompt} O exercício deve estar no formato JSON esperado, com "title", "description" e uma lista de "questions", onde cada questão tem "options" como um array de strings e "correct" como o índice da resposta correta.`;
+    prompt = `Crie ${prompt} O exercício deve estar no formato JSON esperado, com "title", "description" e uma lista de "questions". Cada questão DEVE ter um enunciado em "title", "habilidade", "dificuldade", exatamente quatro alternativas não vazias e distintas em "options" como objeto numerado ("1", "2", "3", "4"), e "correct" como o número de 1 a 4 da alternativa correta. Nunca retorne uma questão apenas com o enunciado.`;
 
     try {
         // Trava de validação: o teste de nivelamento só é criado se todas as
@@ -4271,19 +4274,27 @@ router.get('/gerar_atividade', async (req, res) => {
 
         const newActivity = {
             id: crypto.randomBytes(8).toString('hex'),
-            alunoId: user.id,
-            isTest: true,
+            title: data.title || 'Atividade Gerada por IA',
+            description: data.description || 'Atividade gerada por nível escolar.',
+            questions: normalizedQuestions
+        };
+
+        if (userAluno) {
+            newActivity.alunoId = userAluno.id;
+            newActivity.isTest = true;
             // O nivel escolhido precisa ser guardado: sem ele a trilha adaptativa
             // nao sabe a que serie o aluno pertence e serve qualquer habilidade.
-            nivelEscolar: level || null,
-            title: data.title || 'Teste de Nivelamento',
-            description: data.description || 'Este é um teste para avaliar seu conhecimento.',
-            questions: normalizedQuestions 
-        };
+            newActivity.nivelEscolar = level || null;
+            newActivity.description = data.description || 'Este é um teste para avaliar seu conhecimento.';
+        } else {
+            newActivity.professorId = userProf.id;
+            newActivity.isTest = false;
+        }
 
         activities.activities.push(newActivity);
         activityStore.saveActivities(activities);
-        res.redirect(`/ver_atividade/${newActivity.id}`);
+        if (userAluno) return res.redirect(`/ver_atividade/${newActivity.id}`);
+        return res.redirect(`/atividades/editar/${newActivity.id}`);
     } catch (error) {
         console.error('Erro ao gerar exercício com IA:', error);
         res.status(500).send('Não foi possível gerar o exercício. Verifique o console para mais detalhes.');

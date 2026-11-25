@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Minhas Aulas Agendadas - RegiMath</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -223,7 +224,8 @@
                         const result = await response.json();
 
                         if (response.ok && result.success) {
-                            Swal.fire("Aula cancelada com sucesso!");
+                            Swal.fire({
+                            text:"Aula cancelada com sucesso!"});
                             card.remove(); // Remove o card da aula da interface
 
                             // Show reimbursement status
@@ -248,11 +250,13 @@
                                 `;
                             }
                         } else {
-                            Swal.fire(result.message || 'Falha ao cancelar a aula. Tente novamente.');
+                            Swal.fire({
+                            text:result.message || 'Falha ao cancelar a aula. Tente novamente.'});
                         }
                     } catch (error) {
                         console.error('Erro ao cancelar aula:', error);
-                        Swal.fire("Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente.");
+                        Swal.fire({
+                            text:"Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente."});
                     }
                 });
             });

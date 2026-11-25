@@ -5,6 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Histórico de Aulas | Regimath</title>
 
     <!-- FONTES + ICONES -->
@@ -58,7 +59,7 @@
               <li><a href="/aulas" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-96q-29.7 0-50.85-21.5Q144-139 144-168v-528q0-29 21.15-50.5T216-768h72v-96h72v96h240v-96h72v96h72q29.7 0 50.85 21.5Q816-725 816-696v528q0 29-21.15 50.5T744-96H216Zm0-72h528v-360H216v360Zm0-432h528v-96H216v96Zm0 0v-96 96Zm264.21 216q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 144q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm-156 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Zm312 0q-15.21 0-25.71-10.29t-10.5-25.5q0-15.21 10.29-25.71t25.5-10.5q15.21 0 25.71 10.29t10.5 25.5q0 15.21-10.29 25.71t-25.5 10.5Z"/></svg>Aulas</a></li>
               <li><a href="/lista_atividades" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M220-180h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60ZM820-180H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Z"/></svg>Atividades</a></li>
               <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
-              <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
+              <li class="a11y-fab pa"><button id="a11y-open-modal-secondary" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
             <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
         <% } %>
       </ul>
@@ -96,7 +97,7 @@
                           (aula.gravacao_url ? 'disponivel' : null);
                   %>
 
-                  <div class="aula-card" data-video-url="<%= recStatus === 'disponivel' ? aula.gravacao_url || aula.gravacao_path : '' %>">
+                  <section class="aula-card" data-video-url="<%= recStatus === 'disponivel' ? aula.gravacao_url || aula.gravacao_path : '' %>">
 
                       <%
                           let recIcon = 'fa-chalkboard-teacher';
@@ -122,8 +123,8 @@
                               <p class="tag <%= aula.status %>">
                                   <%= aula.status.charAt(0).toUpperCase() + aula.status.slice(1) %>
                               </p>
-                              <p class="duracao">Duração: <span class="duration-placeholder"
-                                  data-duracao="<%= aula.gravacao_duracao || 0 %>">Calculando...</span></p>
+                              <p class="duracao">Duração: <output class="duration-placeholder"
+                                  data-duracao="<%= aula.gravacao_duracao || 0 %>">Calculando...</output></p>
                           </section>
 
                           <% if (recStatus === 'disponivel') { %>
@@ -135,7 +136,7 @@
                           <% } %>
                       </section>
 
-                  </div>
+                  </section>
 
               <% }) %>
           </section>

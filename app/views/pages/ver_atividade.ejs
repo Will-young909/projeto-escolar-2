@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title><%= activity.title %> | RegiMath</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            startup: { typeset: false }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" onerror="console.error('[MATHJAX] Não foi possível carregar o renderizador matemático.')"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="/css/atividades.css">
@@ -117,7 +129,7 @@
          </a>
        </header>
     <main class="atividades-container">
-        <div class="form-builder-card" style="max-width: 800px; margin: auto;">
+        <section class="form-builder-card" style="max-width: 800px; margin: auto;">
             <section class="form-header">
                 <h1><%= activity.title %></h1>
                 <p><%= activity.description %></p>
@@ -130,44 +142,36 @@
                 <% const isTest = activity.isTest || false; %>
                 <form id="activity-form" action="<%= isTest ? '/submit-test/' : '/submit-activity/' %><%= activity.id %>" method="POST">
                     <% activity.questions.forEach((question, index) => { %>
-                        <div class="question">
-                            <p><strong>Questão <%= index + 1 %>:</strong> <%= question.text || question.title %></p>
-                            <div class="options">
-                                <% if (question.type === 'multiple_choice' && question.options) { %>
+                        <section class="question">
+                            <p class="math-content"><strong>Questão <%= index + 1 %>:</strong> <%= question.text || question.title %></p>
+                            <section class="options">
+                                <% if (question.options && Object.keys(question.options).length > 0) { %>
                                     <% Object.entries(question.options).forEach(([key, value]) => { %>
                                         <label>
                                             <input type="radio" name="answers[<%= index %>]" value="<%= key %>" required>
-                                            <%= value %>
+                                            <span class="math-content"><%= value %></span>
                                         </label>
                                     <% }); %>
                                 <% } else if (question.type === 'short_text') { %>
                                     <input type="text" name="answers[<%= index %>]" class="form-control" placeholder="Digite sua resposta curta aqui" required>
                                 <% } else if (question.type === 'long_text') { %>
                                     <textarea name="answers[<%= index %>]" class="form-control" rows="4" placeholder="Digite sua resposta completa aqui" required></textarea>
-                                <% /* Fallbacks for old data structures */ %>
-                                <% } else if (question.options) { %>
-                                    <% Object.entries(question.options).forEach(([key, value]) => { %>
-                                        <label>
-                                            <input type="radio" name="answers[<%= index %>]" value="<%= key %>" required>
-                                            <%= value %>
-                                        </label>
-                                    <% }); %>
                                 <% } else { %>
                                     <p>Esta é uma questão dissertativa. Responda abaixo:</p>
                                     <textarea name="answers[<%= index %>]" class="form-control" rows="4" required></textarea>
                                 <% } %>
-                            </div>
+                            </section>
 
                             <!-- INÍCIO DA INSERÇÃO: Botão de Dica -->
                             <% if (locals.user && locals.user.tipo === 'aluno') { %>
                                 <button type="button" class="btn-dica" data-question-index="<%= index %>">
                                     <i class="fas fa-lightbulb"></i> Solicitar Dica
                                 </button>
-                                <div class="dica-container" id="dica-container-<%= index %>"></div>
+                                <section class="dica-container" id="dica-container-<%= index %>"></section>
                             <% } %>
                             <!-- FIM DA INSERÇÃO: Botão de Dica -->
 
-                        </div>
+                        </section>
                     <% }); %>
                     <button type="submit" class="btn-primary">Finalizar Atividade</button>
                      <a href="javascript:history.back()" class="btn-primary" style="text-decoration: none; color: var(--branco); text-align: center;">Voltar</a>
@@ -176,42 +180,42 @@
                 <p>Esta atividade ainda não possui questões.</p>
             <% } %>
 
-            <div id="result-container" class="result" style="display: none;">
+            <section id="result-container" class="result" style="display: none;">
                 <h3>Resultados:</h3>
                 <p id="score"></p>
-                <div id="feedback"></div>
-            </div>
-        </div>
+                <section id="feedback"></section>
+            </section>
+        </section>
     </main>
 
     <!-- INÍCIO DA INSERÇÃO: Modais para Dicas -->
     <% if (locals.user && locals.user.tipo === 'aluno') { %>
-        <div id="activatePassModal" class="modal-backdrop">
-            <div class="modal">
-                <div class="modal-header">
+        <section id="activatePassModal" class="modal-backdrop">
+            <section class="modal">
+                <section class="modal-header">
                     <h3><i class="fas fa-star"></i> Benefício Exclusivo</h3>
                     <button type="button" class="close-button">&times;</button>
-                </div>
-                <div class="modal-body">
+                </section>
+                <section class="modal-body">
                     <p>As dicas são um benefício para usuários com <strong>Passe de Estudos</strong>.</p>
                     <p>Você tem um passe disponível! Deseja ativá-lo para esta atividade e ter acesso a todas as dicas?</p>
-                </div>
-                <div class="modal-footer">
+                </section>
+                <section class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Agora não</button>
                     <button type="button" id="confirmActivatePass" class="btn-modal btn-confirm">Sim, ativar!</button>
-                </div>
-            </div>
-        </div>
+                </section>
+            </section>
+        </section>
 
-        <div id="purchasePassModal" class="modal-backdrop">
-            <div class="modal">
-                <div class="modal-header">
+        <section id="purchasePassModal" class="modal-backdrop">
+            <section class="modal">
+                <section class="modal-header">
                     <h3><i class="fas fa-unlock-alt"></i> Desbloqueie as Dicas</h3>
                     <button type="button" class="close-button">&times;</button>
-                </div>
-                <div class="modal-body">
+                </section>
+                <section class="modal-body">
                     <p>As dicas são um benefício exclusivo dos <strong>Passes de Estudos</strong>. Adquira um para continuar!</p>
-                    <div class="pass-options-modal">
+                    <section class="pass-options-modal">
                         <a href="/comprar-passe/quantidade_10" class="pass-card-modal">
                             <h4>Passe +10 (R$ 10,00)</h4>
                             <p>+10 atividades para usar quando quiser.</p>
@@ -224,18 +228,33 @@
                             <h4>Passe Semanal (R$ 25,00)</h4>
                             <p>Atividades ilimitadas por 7 dias.</p>
                         </a>
-                    </div>
-                </div>
-                <div class="modal-footer">
+                    </section>
+                </section>
+                <section class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Continuar sem dica</button>
-                </div>
-            </div>
-        </div>
+                </section>
+            </section>
+        </section>
     <% } %>
     <!-- FIM DA INSERÇÃO: Modais -->
 
     <script src="../js/accessibility.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mathElements = Array.from(document.querySelectorAll('.math-content'));
+            if (mathElements.length === 0) return;
+
+            const mathJax = window.MathJax;
+            if (!mathJax?.startup?.promise) {
+                console.error('[MATHJAX] O renderizador matemático não foi inicializado.');
+                return;
+            }
+
+            mathJax.startup.promise
+                .then(() => mathJax.typesetPromise(mathElements))
+                .catch(error => console.error('[MATHJAX] Falha ao renderizar o enunciado:', error));
+        });
+
         const isTest = <%- JSON.stringify(activity.isTest || false) %>;
 
         // SCRIPT ANTIGO E IMPORTANTE (AGORA CORRIGIDO)
@@ -263,18 +282,18 @@
                             if (isCorrect) score++;
                             
                             const correctOptionText = question.options[question.correct];
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${correctOptionText}`}</span>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta correta: ${correctOptionText}`}</output>`;
                         } else {
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="incorrect">Não respondida.</output>`;
                         }
                     } else if (questionType === 'short_text' || questionType === 'long_text') {
                         const userInput = document.querySelector(`[name="${questionName}"]`).value.trim();
                         if (userInput) {
                             isCorrect = userInput.toLowerCase() === (question.correctAnswer || '').toLowerCase();
                             if (isCorrect) score++;
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</span>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correto!' : `Incorreto. Resposta esperada: ${question.correctAnswer}`}</output>`;
                         } else {
-                            feedbackElement.innerHTML = `Questão ${index + 1}: <span class="incorrect">Não respondida.</span>`;
+                            feedbackElement.innerHTML = `Questão ${index + 1}: <output class="incorrect">Não respondida.</output>`;
                         }
                     }
                     feedbackContainer.appendChild(feedbackElement);
@@ -396,10 +415,9 @@
                 backdrop.addEventListener('click', function(event) {
                     if (event.target === this) closeModal(this.id);
                 });
-                const closeButton = backdrop.querySelector('.close-button, .btn-cancel');
-                if (closeButton) {
-                    closeButton.addEventListener('click', () => closeModal(backdrop.id));
-                }
+                backdrop.querySelectorAll('.close-button, .btn-cancel').forEach(button => {
+                    button.addEventListener('click', () => closeModal(backdrop.id));
+                });
             });
         }
     </script>

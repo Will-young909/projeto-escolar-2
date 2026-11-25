@@ -17,17 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let preferences = { ...defaultPreferences };
+    const textStyleBaselines = new WeakMap();
 
     // --- HTML Injection ---
     const accessibilityModalHTML = `
-        <div id="accessibility-modal" class="a11y-modal">
-            <div class="a11y-modal-content">
+        <section id="accessibility-modal" class="a11y-modal">
+            <section class="a11y-modal-content">
                 <button id="a11y-close-modal" class="a11y-close-btn" aria-label="Fechar painel de acessibilidade">&times;</button>
                 <h3 class="a11y-title">Preferências de Acessibilidade</h3>
                 
-                <div class="a11y-group">
+                <section class="a11y-group">
                     <h4>Texto e Conteúdo</h4>
-                    <div class="a11y-control-grid">
+                    <section class="a11y-control-grid">
                         <button id="increase-font"><i class="fas fa-font"></i> Aumentar Fonte</button>
                         <button id="decrease-font"><i class="fas fa-font"></i> Diminuir Fonte</button>
                         <button id="increase-letter-spacing"><i class="fas fa-text-width"></i> Aumentar Espaçamento</button>
@@ -35,45 +36,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button id="increase-line-height"><i class="fas fa-text-height"></i> Aumentar Linha</button>
                         <button id="decrease-line-height"><i class="fas fa-text-height"></i> Diminuir Linha</button>
                         <button id="underline-links"><i class="fas fa-underline"></i> Sublinhar Links</button>
-                    </div>
-                </div>
+                    </section>
+                </section>
 
-                <div class="a11y-group">
+                <section class="a11y-group">
                     <h4>Leitura e Foco</h4>
-                    <div class="a11y-control-grid tts-grid">
+                    <section class="a11y-control-grid tts-grid">
                         <p>Ler Texto Selecionado</p>
                         <label class="toggle-switch">
                             <input type="checkbox" id="toggle-read-selection">
-                            <span class="toggle-slider"></span>
+                            <i class="toggle-slider" aria-hidden="true"></i>
                         </label>
-                    </div>
-                </div>
+                    </section>
+                </section>
 
-                <div class="a11y-group">
+                <section class="a11y-group">
                     <h4>Esquemas de Cores e Fontes</h4>
-                    <div class="a11y-control-grid">
+                    <section class="a11y-control-grid">
                         <button id="high-contrast"><i class="fas fa-adjust"></i> Alto Contraste</button>
 
                         <button id="reader-font"><i class="fas fa-book-reader"></i> Fonte Amigável</button>
                         <button id="dyslexia-font"><i class="fas fa-eye"></i> Fonte para Dislexia</button>
-                    </div>
-                </div>
+                    </section>
+                </section>
                 
-                <div class="a11y-group">
+                <section class="a11y-group">
                      <h4>Animações</h4>
                      <button id="reduce-motion"><i class="fas fa-wind"></i> Reduzir Animações</button>
-                </div>
+                </section>
 
-                <div class="a11y-footer">
+                <section class="a11y-footer">
                     <button id="reset-accessibility">Redefinir</button>
-                </div>
-            </div>
-        </div>
+                </section>
+            </section>
+        </section>
     `;
     document.body.insertAdjacentHTML('beforeend', accessibilityModalHTML);
 
     // --- Element Selectors ---
-    const openModalButton = document.getElementById('a11y-open-modal');
+    const openModalButtons = document.querySelectorAll('[id^="a11y-open-modal"]');
     const closeModalButton = document.getElementById('a11y-close-modal');
     const accessibilityModal = document.getElementById('accessibility-modal');
     
@@ -101,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         accessibilityModal.classList.remove('a11y-modal--visible');
     }
 
-    openModalButton.addEventListener('click', openModal);
+    openModalButtons.forEach(button => button.addEventListener('click', openModal));
     closeModalButton.addEventListener('click', (e) => {
         e.stopPropagation();
         closeModal();
@@ -117,14 +118,60 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('accessibilityPreferences', JSON.stringify(preferences));
     }
 
+    function applyTextAdjustments(elements) {
+        const newBaselines = new Map();
+
+        elements.forEach(element => {
+            if (accessibilityModal.contains(element) || textStyleBaselines.has(element)) return;
+
+            const computedStyle = window.getComputedStyle(element);
+            const baseline = {
+                fontSize: parseFloat(computedStyle.fontSize),
+                letterSpacing: parseFloat(computedStyle.letterSpacing) || 0
+            };
+            const parent = element.parentElement;
+            const parentBaseline = newBaselines.get(parent) || textStyleBaselines.get(parent);
+
+            if (parentBaseline && parent) {
+                const parentStyle = window.getComputedStyle(parent);
+                if (computedStyle.fontSize === parentStyle.fontSize) {
+                    baseline.fontSize = parentBaseline.fontSize;
+                }
+                if (computedStyle.letterSpacing === parentStyle.letterSpacing) {
+                    baseline.letterSpacing = parentBaseline.letterSpacing;
+                }
+            }
+
+            newBaselines.set(element, baseline);
+            textStyleBaselines.set(element, baseline);
+        });
+
+        elements.forEach(element => {
+            if (accessibilityModal.contains(element)) return;
+
+            const baseline = textStyleBaselines.get(element);
+            if (!baseline) return;
+
+            element.style.setProperty(
+                '--a11y-adjusted-font-size',
+                `${baseline.fontSize * preferences.fontSize}px`
+            );
+            element.style.setProperty(
+                '--a11y-adjusted-letter-spacing',
+                `${baseline.letterSpacing + preferences.letterSpacing}px`
+            );
+        });
+    }
+
     applyPreferences = () => {
         const bodyStyle = document.body.style;
-        const baseFontSize = 16;
-        
-        bodyStyle.fontSize = `${baseFontSize * preferences.fontSize}px`;
-        bodyStyle.letterSpacing = `${preferences.letterSpacing}px`;
         bodyStyle.lineHeight = preferences.lineHeight;
 
+        const elements = [document.body, ...document.body.querySelectorAll('*')];
+        applyTextAdjustments(elements);
+
+        document.body.classList.toggle('a11y-font-adjusted', preferences.fontSize !== 1);
+        document.body.classList.toggle('a11y-spacing-adjusted', preferences.letterSpacing !== 0);
         document.body.classList.toggle('high-contrast', preferences.highContrast);
 
         document.body.classList.toggle('underline-links', preferences.underlineLinks);
@@ -137,6 +184,20 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleReadSelection.checked = preferences.readSelection;
         }
     }
+
+    const textStyleObserver = new MutationObserver(mutations => {
+        if (preferences.fontSize === 1 && preferences.letterSpacing === 0) return;
+
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType !== Node.ELEMENT_NODE || accessibilityModal.contains(node)) return;
+
+                const elements = [node, ...node.querySelectorAll('*')];
+                applyTextAdjustments(elements);
+            });
+        });
+    });
+    textStyleObserver.observe(document.body, { childList: true, subtree: true });
 
     loadPreferences = () => {
         const savedPreferences = localStorage.getItem('accessibilityPreferences');

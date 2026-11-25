@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Minhas Notificações - RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -77,55 +78,55 @@
               <li><a href="/lista_atividades" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M220-180h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60Zm0-160h-60v-60h60v60ZM820-180H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Zm0-160H340v-60h480v60Z"/></svg>Atividades</a></li>
               <li><a href="/historico_aulas" class="pa"><i class="fa-solid fa-chalkboard-user fa-lg" style="color: #ffffff;"></i> Histórico de Aulas</a></li>
               <li><a href="/historico_chats" class="pa"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff"><path d="M240-400h320v-80H240v80Zm0-120h480v-80H240v80Zm0-120h480v-80H240v80ZM80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z"/></svg>Histórico de Chats</a></li>
-              <li class="a11y-fab pa"><button id="a11y-open-modal" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
+              <li class="a11y-fab pa"><button id="a11y-open-modal-secondary" aria-label="Abrir painel de acessibilidade" style="background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer;"><i class="fas fa-universal-access"></i>Acessibilidade</button></li>
             <li><a href="/logout"><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#fff"><path d="M216-144q-29.7 0-50.85-21.15Q144-186.3 144-216v-528q0-29.7 21.15-50.85Q186.3-816 216-816h264v72H216v528h264v72H216Zm432-168-51-51 81-81H384v-72h294l-81-81 51-51 168 168-168 168Z"/></svg>Sair</a></li>
         <% } %>
       </ul>
   </nav>
 
   <main class="notif-page main-content-wrapper">
-    <div class="notif-header">
-      <h1><i class="fas fa-bell"></i> Minhas Notificações <span id="unread-badge" class="badge-unread" style="<%= naoLidas ? '' : 'display:none;' %>"><%= naoLidas %></span></h1>
-      <div class="notif-actions">
+    <section class="notif-header">
+      <h1><i class="fas fa-bell"></i> Minhas Notificações <output id="unread-badge" class="badge-unread" style="<%= naoLidas ? '' : 'display:none;' %>"><%= naoLidas %></output></h1>
+      <section class="notif-actions">
         <button class="notif-btn secondary" id="btn-mark-all"><i class="fas fa-check-double"></i> Marcar todas como lidas</button>
         <a class="notif-btn primary" href="<%= session.user_aluno ? '/agenda' : '/aulas' %>"><i class="fas fa-arrow-left"></i> Voltar</a>
-      </div>
-    </div>
+      </section>
+    </section>
 
-    <div class="notif-filters" id="notif-filters">
+    <section class="notif-filters" id="notif-filters">
       <button class="filter-chip active" data-filter="all">Todas</button>
       <button class="filter-chip" data-filter="unread">Não lidas</button>
       <button class="filter-chip" data-filter="resolved">Resolvidas</button>
       <!-- <% Object.keys(tipos || {}).forEach(k => { %>
         <button class="filter-chip" data-filter="type:<%= k %>"><%= tipos[k].label %></button>
       <% }) %>-->
-    </div>
+    </section>
 
-    <div class="notif-list" id="notif-list">
+    <section class="notif-list" id="notif-list">
       <% if (!notificacoes || notificacoes.length === 0) { %>
-        <div class="notif-empty"><i class="fas fa-bell-slash"></i><p>Nenhuma notificação por enquanto.</p></div>
+        <section class="notif-empty"><i class="fas fa-bell-slash"></i><p>Nenhuma notificação por enquanto.</p></section>
       <% } %>
       <% (notificacoes || []).forEach(n => { const meta = n.meta || {label:n.tipo, icon:'fa-bell', cor:'#800020'}; %>
         <article class="notif-card <%= n.lida ? 'lida' : '' %> <%= n.resolvida ? 'resolvida' : '' %>" data-id="<%= n.id %>" data-type="<%= n.tipo %>" data-read="<%= n.lida ? '1' : '0' %>" data-resolved="<%= n.resolvida ? '1' : '0' %>">
-          <div class="notif-icon" style="background:<%= meta.cor %>"><i class="fas <%= meta.icon %>"></i></div>
-          <div class="notif-body">
-            <div class="notif-meta">
-              <span class="notif-type" style="color:<%= meta.cor %>"><%= meta.label %></span>
-              <span>•</span>
-              <span><%= n.criado_em ? new Date(n.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '' %></span>
-              <% if (n.resolvida) { %><span>• Resolvida</span><% } else if (!n.lida) { %><span>• Nova</span><% } %>
-            </div>
+          <section class="notif-icon" style="background:<%= meta.cor %>"><i class="fas <%= meta.icon %>"></i></section>
+          <section class="notif-body">
+            <section class="notif-meta">
+              <output class="notif-type" style="color:<%= meta.cor %>"><%= meta.label %></output>
+              <output>•</output>
+              <output><%= n.criado_em ? new Date(n.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '' %></output>
+              <% if (n.resolvida) { %><output>• Resolvida</output><% } else if (!n.lida) { %><output>• Nova</output><% } %>
+            </section>
             <p class="notif-msg"><%= n.mensagem %></p>
-            <div class="notif-card-actions">
+            <section class="notif-card-actions">
               <!-- <% if (n.link_relacionado) { %><a href="<%= n.link_relacionado %>"><i class="fas fa-external-link-alt"></i> Abrir</a><% } %>-->
               <% if (!n.lida) { %><button data-action="read"><i class="fas fa-check"></i> Marcar lida</button><% } %>
               <% if (!n.resolvida) { %><button data-action="resolve"><i class="fas fa-box-archive"></i> Resolver</button><% } %>
               <% if (n.resolvida) { %><button data-action="delete" class="danger"><i class="fas fa-trash"></i> Excluir</button><% } %>
-            </div>
-          </div>
+            </section>
+          </section>
         </article>
       <% }) %>
-    </div>
+    </section>
   </main>
 
   <script src="/js/accessibility.js"></script>
@@ -209,7 +210,7 @@
           if (res.ok) { if (card.dataset.read === '0') updateBadge(-1); card.dataset.read='1'; card.dataset.resolved='1'; card.classList.add('lida','resolvida'); card.querySelector('[data-action="read"]')?.remove(); btn.outerHTML = '<button data-action="delete" class="danger"><i class="fas fa-trash"></i> Excluir</button>'; }
         } else if (action === 'delete') {
           const res = await fetch(`/minhas-notificacoes/${id}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } });
-          if (res.ok) { card.remove(); if (!list.querySelector('.notif-card')) list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash"></i><p>Nenhuma notificação por enquanto.</p></div>'; }
+          if (res.ok) { card.remove(); if (!list.querySelector('.notif-card')) list.innerHTML = '<section class="notif-empty"><i class="fas fa-bell-slash"></i><p>Nenhuma notificação por enquanto.</p></section>'; }
         }
       } finally { if (btn.isConnected) btn.disabled = false; }
     });
@@ -226,7 +227,7 @@
           const article = document.createElement('article');
           article.className = 'notif-card';
           article.dataset.id = n.id; article.dataset.type = n.tipo; article.dataset.read='0'; article.dataset.resolved='0';
-          article.innerHTML = `<div class="notif-icon" style="background:${meta.cor}"><i class="fas ${meta.icon}"></i></div><div class="notif-body"><div class="notif-meta"><span class="notif-type" style="color:${meta.cor}">${meta.label}</span><span>•</span><span>${new Date(n.criado_em || Date.now()).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</span><span>• Nova</span></div><p class="notif-msg"></p><div class="notif-card-actions">${n.link_relacionado?`<a href="${n.link_relacionado}"><i class="fas fa-external-link-alt"></i> Abrir</a>`:''}<button data-action="read"><i class="fas fa-check"></i> Marcar lida</button><button data-action="resolve"><i class="fas fa-box-archive"></i> Resolver</button></div></div>`;
+          article.innerHTML = `<section class="notif-icon" style="background:${meta.cor}"><i class="fas ${meta.icon}"></i></section><section class="notif-body"><section class="notif-meta"><output class="notif-type" style="color:${meta.cor}">${meta.label}</output><output>•</output><output>${new Date(n.criado_em || Date.now()).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</output><output>• Nova</output></section><p class="notif-msg"></p><section class="notif-card-actions">${n.link_relacionado?`<a href="${n.link_relacionado}"><i class="fas fa-external-link-alt"></i> Abrir</a>`:''}<button data-action="read"><i class="fas fa-check"></i> Marcar lida</button><button data-action="resolve"><i class="fas fa-box-archive"></i> Resolver</button></section></section>`;
           article.querySelector('.notif-msg').textContent = n.mensagem || '';
           list.prepend(article);
           updateBadge(1);

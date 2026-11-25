@@ -13,7 +13,7 @@
       if (!link) return null;
       let badge = link.querySelector('.notif-nav-badge');
       if (!badge) {
-        badge = document.createElement('span');
+        badge = document.createElement('output');
         badge.className = 'notif-nav-badge';
         badge.style.cssText = 'background:#e74c3c;color:#fff;border-radius:999px;padding:1px 6px;font-size:.72rem;margin-left:6px;display:none;vertical-align:middle;';
         link.appendChild(badge);
@@ -32,16 +32,16 @@
     function injectToast(n) {
       let container = document.getElementById('notif-toast-container');
       if (!container) {
-        container = document.createElement('div');
+        container = document.createElement('section');
         container.id = 'notif-toast-container';
         container.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:10px;max-width:min(360px,calc(100vw - 32px));';
         document.body.appendChild(container);
       }
       const meta = n.meta || { label: n.tipo || 'Notificação', icon: 'fa-bell', cor: '#800020' };
-      const toast = document.createElement('div');
+      const toast = document.createElement('section');
       toast.style.cssText = `background:#fff;border-left:5px solid ${meta.cor};box-shadow:0 8px 24px rgba(0,0,0,.15);border-radius:10px;padding:12px 14px;font-family:Poppins,sans-serif;animation:notifSlideIn .25s ease;`;
-      toast.innerHTML = `<div style="font-weight:700;color:${meta.cor};margin-bottom:4px;"><i class="fas ${meta.icon}"></i> ${meta.label}</div><div style="font-size:.92rem;color:#333;line-height:1.4;"></div>${n.link_relacionado ? `<a href="${n.link_relacionado}" style="display:inline-block;margin-top:8px;font-size:.85rem;color:#800020;font-weight:600;text-decoration:none;">Abrir</a>`:''}`;
-      toast.querySelector('div:nth-child(2)').textContent = n.mensagem || '';
+      toast.innerHTML = `<section style="font-weight:700;color:${meta.cor};margin-bottom:4px;"><i class="fas ${meta.icon}"></i> ${meta.label}</section><section style="font-size:.92rem;color:#333;line-height:1.4;"></section>${n.link_relacionado ? `<a href="${n.link_relacionado}" style="display:inline-block;margin-top:8px;font-size:.85rem;color:#800020;font-weight:600;text-decoration:none;">Abrir</a>`:''}`;
+      toast.querySelector('section:nth-child(2)').textContent = n.mensagem || '';
       container.appendChild(toast);
       setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity .3s'; setTimeout(()=>toast.remove(),300); }, 6000);
     }

@@ -22,8 +22,9 @@ header {
 /* Container principal */
 .container {
     max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    width: calc(100% - 2rem);
+    margin: 1.5rem auto;
+    padding: 0;
 }
 
 h1 {
@@ -36,7 +37,7 @@ h1 {
 .plan-card {
     background: white;
     border-radius: 10px;
-    padding: 2.5rem;
+    padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin: 2rem 0;
     text-align: center;
@@ -49,14 +50,14 @@ h1 {
 
 /* Preço */
 .price {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin: 1.5rem 0;
     color: #2ecc71;
     font-weight: bold;
 }
 
 .currency {
-    font-size: 2rem;
+    font-size: 1.5rem;
     vertical-align: super;
 }
 
@@ -93,13 +94,14 @@ h1 {
     background: #2ecc71;
     color: white;
     border: none;
-    padding: 1rem 2.5rem;
+    padding: 1rem;
     border-radius: 5px;
-    font-size: 1.2rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: 600;
     margin: 1rem 0;
+    width: 100%;
 }
 
 .checkout-btn:hover {
@@ -128,27 +130,27 @@ h1 {
     margin: 1.5rem 0;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
+@media (min-width: 48rem) {
     .container {
-        padding: 0 1.5rem;
+        margin: 2rem auto;
     }
 
     .plan-card {
-        padding: 1.5rem;
+        padding: 2.5rem;
     }
 
     .price {
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
 
     .currency {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
 
     .checkout-btn {
-        width: 100%;
-        padding: 1rem;
+        width: auto;
+        padding: 1rem 2.5rem;
+        font-size: 1.2rem;
     }
 }
 

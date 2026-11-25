@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>
         Perfil: <%= professor.nome %> | Regimath
     </title>
@@ -311,9 +312,9 @@
                                       <section class="aula-info">
                                         <p class="hora">
                                           <i class="far fa-clock"></i>
-                                          <span><%= horario.hora_inicio %></span>
-                                          <span class="separador">-</span>
-                                          <span><%= horario.hora_fim %></span>
+                                          <output><%= horario.hora_inicio %></output>
+                                          <output class="separador">-</output>
+                                          <output><%= horario.hora_fim %></output>
                                         </p>
                               
                                         <% if (isOwner && horario.status === 'agendado') { %>
@@ -321,7 +322,7 @@
                                         <% } %>
                                       </section>
                               
-                                      <div class="aula-actions">
+                                      <section class="aula-actions">
                                         <% if (!isOwner && horario.status === 'disponivel' && session.user_aluno) { %>
                                           <form action="/agendar-horario" method="POST" class="form-agendar">
                                             <input type="hidden" name="profId" value="<%= professor.id %>">
@@ -329,11 +330,11 @@
                                             <button type="submit" class="btn-primary btn-agendar">Agendar</button>
                                           </form>
                                         <% } else if (isOwner && horario.status === 'agendado') { %>
-                                          <span class="status-tag agendado">Agendado</span>
+                                          <output class="status-tag agendado">Agendado</output>
                                         <% } else if (isOwner && horario.status === 'disponivel') { %>
-                                          <span class="status-tag disponivel">Disponível</span>
+                                          <output class="status-tag disponivel">Disponível</output>
                                         <% } %>
-                                      </div>
+                                      </section>
                                     </li>
                                   <% }) %>
                                 </ul>
@@ -422,25 +423,25 @@
         </section>
     </main>
     <% if (professor.previa_arquivo || professor.link_previa) { %>
-    <div class="previa-modal" id="previaModal" aria-hidden="true">
-        <div class="previa-modal-backdrop" data-close-previa></div>
-        <div class="previa-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="previaModalTitle">
-            <div class="previa-modal-header">
+    <section class="previa-modal" id="previaModal" aria-hidden="true">
+        <section class="previa-modal-backdrop" data-close-previa></section>
+        <section class="previa-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="previaModalTitle">
+            <section class="previa-modal-header">
                 <h2 id="previaModalTitle"><i class="fas fa-file-video"></i> Aula Prévia</h2>
                 <button type="button" class="previa-modal-close" id="previaModalClose" aria-label="Fechar aula prévia">&times;</button>
-            </div>
-            <div class="previa-modal-body">
+            </section>
+            <section class="previa-modal-body">
                 <video id="previaVideoPlayer" controls preload="metadata" playsinline style="display:none;">
                     Seu navegador não suporta vídeo HTML5.
                 </video>
                 <iframe id="previaLinkFrame" title="Aula prévia" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="display:none;"></iframe>
-                <div id="previaLinkFallback" class="previa-link-fallback" style="display:none;">
+                <section id="previaLinkFallback" class="previa-link-fallback" style="display:none;">
                     <p>Este link não permite exibição embutida.</p>
                     <a id="previaLinkExternal" href="#" target="_blank" rel="noopener noreferrer" class="btn-primary">Abrir link externamente</a>
-                </div>
-            </div>
-        </div>
-    </div>
+                </section>
+            </section>
+        </section>
+    </section>
     <% } %>
     <script src="../js/accessibility.js"></script>
     <script>

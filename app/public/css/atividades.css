@@ -211,6 +211,11 @@ BLOCO DE QUESTÃO
   padding-top: var(--spacing-xs);
 }
 
+.question-math-preview {
+  padding: var(--spacing-xs) 0;
+  color: var(--color-text-secondary);
+}
+
 /* Respostas de texto */
 .text-answer-placeholder {
   border-bottom: 1px dotted var(--color-text-secondary);

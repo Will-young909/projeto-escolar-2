@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Editar Perfil Admin | <%= user.nome %> - Regimath</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
@@ -102,7 +103,7 @@
     </button>
   </header>
 
-  <div id="overlay" aria-hidden="true"></div>
+  <section id="overlay" aria-hidden="true"></section>
 
   <main class="perfil-container">
     <section class="conteudo-principal" aria-label="Edição de perfil administrativo">
@@ -112,8 +113,8 @@
 
         <form action="/perfil_admin/editar" method="POST" class="form-edicao" id="editarPerfilAdminForm" novalidate>
 
-          <div class="form-group">
-            <label for="nome">Nome <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="nome">Nome <output class="required">*</output></label>
             <input
               type="text"
               id="nome"
@@ -125,10 +126,10 @@
               aria-describedby="err-nome"
             />
             <p id="err-nome" class="error-feedback"><%= erros?.nome?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-group">
-            <label for="email">E-mail <span class="required">*</span></label>
+          <section class="form-group">
+            <label for="email">E-mail <output class="required">*</output></label>
             <input
               type="email"
               id="email"
@@ -140,12 +141,12 @@
               aria-describedby="err-email"
             />
             <p id="err-email" class="error-feedback"><%= erros?.email?.msg || '' %></p>
-          </div>
+          </section>
 
-          <div class="form-actions">
+          <section class="form-actions">
             <button type="submit" class="btn-salvar"><i class="fas fa-save" aria-hidden="true"></i> Salvar</button>
             <a href="/perfil_adm" class="btn-cancelar">Cancelar</a>
-          </div>
+          </section>
         </form>
       </article>
 
@@ -155,13 +156,13 @@
         <button id="open-change-password" type="button" class="btn-alterar-senha">Alterar Senha</button>
 
         <!-- Modal: Alterar Senha -->
-        <div id="change-password-modal" class="modal" aria-hidden="true">
-          <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
+        <section id="change-password-modal" class="modal" aria-hidden="true">
+          <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="change-password-title">
             <button type="button" class="modal-close" id="close-change-password" aria-label="Fechar">&times;</button>
             <h3 id="change-password-title" style="color: var(--vinho-escuro);">Alterar Senha</h3>
             <form id="changePasswordForm" action="/alterar-senha" method="POST">
-              <div class="form-group">
-                <label for="current_password">Senha atual <span class="required">*</span></label>
+              <section class="form-group">
+                <label for="current_password">Senha atual <output class="required">*</output></label>
                 <input
                   type="password"
                   id="current_password"
@@ -169,22 +170,22 @@
                   required
                   value="<%= (!user.password && user.initial_password) ? user.initial_password : '' %>"
                 />
-                <div id="currentPasswordError" class="input-error" aria-live="polite"></div>
-              </div>
+                <section id="currentPasswordError" class="input-error" aria-live="polite"></section>
+              </section>
 
-              <div class="form-group">
-                <label for="new_password">Nova senha <span class="required">*</span></label>
+              <section class="form-group">
+                <label for="new_password">Nova senha <output class="required">*</output></label>
                 <input type="password" id="new_password" name="new_password" required minlength="6" />
-                <div id="newPasswordError" class="input-error" aria-live="polite"></div>
-              </div>
+                <section id="newPasswordError" class="input-error" aria-live="polite"></section>
+              </section>
 
-              <div class="btns">
+              <section class="btns">
                 <button type="submit" class="btn-salvar" id="btn-change-password">Alterar</button>
                 <button type="button" class="btn-cancelar" id="btn-cancel-change">Cancelar</button>
-              </div>
+              </section>
             </form>
-          </div>
-        </div>
+          </section>
+        </section>
       </article>
 
     </section>

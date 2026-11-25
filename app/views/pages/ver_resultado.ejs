@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Resultado da Atividade | RegiMath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -135,8 +136,6 @@
         .pass-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .pass-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; text-align: center; transition: all 0.2s ease; }
         .pass-card:hover, .pass-card.featured { border-color: var(--bordo); transform: translateY(-5px); box-shadow: 0 4px 10px rgba(128, 0, 32, 0.1); }
-        .pass-card.featured { border-width: 2px; position: relative; }
-        .pass-card.featured::before { content: 'MAIS POPULAR'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--bordo); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
         .pass-card h4 { font-size: 1.4rem; color: var(--bordo-claro); margin-bottom: 10px; }
         .pass-card .price { font-size: 1.8rem; font-weight: 600; color: #333; margin-bottom: 15px; }
         .pass-card p { font-size: 0.9rem; color: var(--cinza-texto); min-height: 54px; }
@@ -164,18 +163,18 @@
           <img src="/imagens/RM_bordo.png" alt="Regimath Logo" class="logo">
         </a>
     </header>
-    <div class="container">
+    <section class="container">
         <h1>Resultado da Atividade: <%= atividade.title %></h1>
 
-        <div class="summary">
+        <section class="summary">
             <p><strong>Pontuação:</strong> <%= Number(tentativa.pontuacao_total).toFixed(0) %>%</p>
             <p><strong>Questões Corretas:</strong> <%= respostas.filter(r => r.acertou).length %> de <%= tentativa.total_questoes %></p>
-        </div>
+        </section>
 
-        <div class="questions-container">
+        <section class="questions-container">
             <% atividade.questions.forEach((question, index) => { %>
                 <% const respostaDoUsuario = respostas[index] || {}; %>
-                <div class="question-card">
+                <section class="question-card">
                     <h2>Questão <%= index + 1 %>: <%= question.text || question.title %></h2>
                     <% if (question.options) { %>
                         <ul class="options">
@@ -231,14 +230,14 @@
                         const kwScore = kwDetails.length ? (missingRequired ? 0 : (totalW > 0 ? (matchedW / totalW) * 100 : 0)) : (respostaDoUsuario.acertou ? 100 : 0);
                         const isCorrect = kwScore >= 99.999;
                     %>
-                        <div class="text-answer-section">
+                        <section class="text-answer-section">
                             <p><strong style="color: var(--color-text-dark);">Sua resposta:</strong></p>
-                            <div class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
+                            <section class="text-answer-box user-answer <%= isCorrect ? 'correct' : 'incorrect' %>">
                                 <p><%= isCorrect ? '✔' : '✘' %> <%= userAnswer %></p>
-                            </div>
+                            </section>
 
                             <% if (kwDetails.length > 0) { %>
-                                <div class="keyword-feedback" style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
+                                <section class="keyword-feedback" style="margin-top:12px; padding:12px; border:1px solid #e5e7eb; border-radius:8px; background:#fff;">
                                     <p style="margin:0 0 8px;"><strong>Palavras-chave:</strong></p>
                                     <ul style="list-style:none; padding:0; margin:0; display:grid; gap:6px;">
                                         <% kwDetails.forEach(k => { %>
@@ -247,19 +246,19 @@
                                             </li>
                                         <% }) %>
                                     </ul>
-                                    <div class="keyword-score" style="margin-top:10px; font-weight:600;">
+                                    <section class="keyword-score" style="margin-top:10px; font-weight:600;">
                                         Nota: <%= kwScore.toFixed(1).replace('.', ',') %>% (<%= kwDetails.filter(k => k.found).length %>/<%= kwDetails.length %> palavras-chave)
-                                    </div>
-                                </div>
+                                    </section>
+                                </section>
                             <% } %>
 
                             <% if (correctAnswer) { %>
                                 <p style="margin-top: 15px;"><strong style="color: var(--color-text-dark);">Resposta esperada:</strong></p>
-                                <div class="text-answer-box correct-answer">
+                                <section class="text-answer-box correct-answer">
                                     <p>✔ <%= correctAnswer %></p>
-                                </div>
+                                </section>
                             <% } %>
-                        </div>
+                        </section>
                     <% } %>
 
                     <!-- FUNCIONALIDADE DE IA -->
@@ -267,51 +266,51 @@
                         <button type="button" class="btn-ask-explanation" data-question-index="<%= index %>">
                             <i class="fas fa-lightbulb"></i> Pedir explicação do erro
                         </button>
-                        <div class="explanation-container" id="explanation-container-<%= index %>"></div>
+                        <section class="explanation-container" id="explanation-container-<%= index %>"></section>
                     <% } %>
-                </div>
+                </section>
             <% }); %>
-        </div>
+        </section>
         
         <!-- SEÇÃO DE TUTORIA COM IA -->
         <% if (user && user.tipo === 'aluno') { %>
-            <div class="ai-tutor-section">
+            <section class="ai-tutor-section">
                 <% if (locals.aiTutorUnlocked) { %>
-                    <div id="ai-chat-container">
+                    <section id="ai-chat-container">
                         <h3><i class="fas fa-comments"></i> Tire suas dúvidas</h3>
                         <p>Ainda tem perguntas sobre esta atividade? Pergunte à IA!</p>
-                        <div id="chat-history"></div>
-                        <div id="chat-input-area">
+                        <section id="chat-history"></section>
+                        <section id="chat-input-area">
                             <input type="text" id="chat-input" placeholder="Digite sua pergunta...">
                             <button id="send-chat-message" class="btn-primary"><i class="fas fa-paper-plane"></i></button>
-                        </div>
-                    </div>
+                        </section>
+                    </section>
                 <% } else { %>
-                    <div class="unlock-ai-feature">
+                    <section class="unlock-ai-feature">
                         <h3><i class="fas fa-bolt"></i> Desbloqueie a Tutoria Inteligente!</h3>
                         <p>Use seu Passe de Estudos para obter explicações detalhadas sobre seus erros e tirar dúvidas com a nossa IA.</p>
                         <button id="unlock-ai-button" class="btn-unlock-ai">
                             <i class="fas fa-key"></i> Liberar Tutoria com IA
                         </button>
-                    </div>
+                    </section>
                 <% } %>
-            </div>
+            </section>
         <% } %>
 
         <!-- RECOMENDAÇÕES DE PROFESSORES -->
         <% const recs = recomendacoesProfessores || { focos: [], recomendacoes: [] }; %>
         <% if (recs.recomendacoes && recs.recomendacoes.length > 0) { %>
         <section class="teacher-recommendations">
-            <div class="recommendation-header">
-                <span class="badge">Recomendação inteligente</span>
+            <section class="recommendation-header">
+                <output class="badge">Recomendação inteligente</output>
                 <h2>Professores indicados para o seu próximo passo</h2>
                 <p>Usamos os pontos de atenção do seu resultado para priorizar professores com maior aderência ao reforço que você precisa.</p>
-            </div>
-            <div class="recommendation-grid">
+            </section>
+            <section class="recommendation-grid">
                 <% recs.recomendacoes.forEach(professor => { %>
                     <article class="teacher-card">
                         <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto de <%= professor.nome %>">
-                            <div>
+                            <section>
                                 <h3><%= professor.nome %></h3>
                                 <p class="match-score"><%= professor.score %>% de aderência estimada</p>                               
                                 <ul>
@@ -320,74 +319,74 @@
                                     <% }); %>
                                 </ul>
                                 <a href="/exibir_prof/<%= professor.id %>" class="recommendation-button btn-ver-perfil" data-professor-id="<%= professor.id %>" data-tentativa-id="<%= tentativa.id || '' %>" data-posicao="<%= recs.recomendacoes.indexOf(professor) + 1 %>" data-score="<%= professor.score %>">Ver professor</a>
-                            </div>
+                            </section>
                     </article>
                 <% }); %>
-            </div>
+            </section>
         </section>
         <% } %>
 
         <a href="/historico_formularios" class="back-button">Voltar ao Histórico</a>
         <a href="/explorar_atividades" class="back-button">Voltar para as atividades</a>
-    </div>
+    </section>
 
     <!-- MODAIS -->
     <% if (user && user.tipo === 'aluno') { %>
-        <div id="activatePassModal" class="modal-backdrop">
-            <div class="modal">
-                <div class="modal-header"><h3><i class="fas fa-star"></i> Ativar Passe de Estudos</h3></div>
-                <div class="modal-body">
+        <section id="activatePassModal" class="modal-backdrop">
+            <section class="modal">
+                <section class="modal-header"><h3><i class="fas fa-star"></i> Ativar Passe de Estudos</h3></section>
+                <section class="modal-body">
                     <p>Você tem um passe disponível! Deseja ativá-lo para desbloquear a Tutoria Inteligente nesta atividade?</p>
-                </div>
-                <div class="modal-footer">
+                </section>
+                <section class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel">Agora não</button>
                     <button type="button" id="confirmActivatePass" class="btn-modal btn-confirm">Sim, ativar!</button>
-                </div>
-            </div>
-        </div>
-        <div id="purchasePassModal" class="modal-backdrop">
-             <div class="modal">
-                <div class="modal-header"><h3><i class="fas fa-shopping-cart"></i> Adquira um Passe</h3></div>
-                <div class="modal-body">
+                </section>
+            </section>
+        </section>
+        <section id="purchasePassModal" class="modal-backdrop">
+             <section class="modal">
+                <section class="modal-header"><h3><i class="fas fa-shopping-cart"></i> Adquira um Passe</h3></section>
+                <section class="modal-body">
                     <p>Para acessar a Tutoria Inteligente, você precisa de um Passe de Estudos. Adquira um para continuar!</p>
                     <a href="/comprar-passe/semanal" id="view-pass-options-link" class="btn-primary">Ver Passes de Estudo</a>
-                </div>
-                <div class="modal-footer">
+                </section>
+                <section class="modal-footer">
                      <button type="button" class="btn-modal btn-cancel">Continuar sem IA</button>
-                </div>
-            </div>
-        </div>
-        <div id="passOptionsModal" class="modal-backdrop">
-            <div class="modal" style="max-width: 800px;">
-                <div class="modal-header">
+                </section>
+            </section>
+        </section>
+        <section id="passOptionsModal" class="modal-backdrop">
+            <section class="modal" style="max-width: 800px;">
+                <section class="modal-header">
                     <h3><i class="fas fa-ticket-alt"></i> Passe de Estudos</h3>
                     <button type="button" class="close-button">&times;</button>
-                </div>
-                <div class="modal-body">
+                </section>
+                <section class="modal-body">
                     <p class="modal-intro-text">Escolha o Passe de Estudos ideal para você e continue aprendendo!</p>
-                    <div class="pass-options">
-                        <div class="pass-card">
+                    <section class="pass-options">
+                        <section class="pass-card">
                             <h4>Passe +10</h4>
                             <p>+10 atividades para usar quando quiser.</p>
                             <p class="price">R$ 10,00</p>
                             <a href="/comprar-passe/quantidade_10" class="btn-purchase">Comprar Agora</a>
-                        </div>
-                        <div class="pass-card featured">
+                        </section>
+                        <section class="pass-card">
                             <h4>Passe Diário</h4>
                             <p>Atividades ilimitadas pelas próximas 24 horas.</p>
                             <p class="price">R$ 15,00</p>
                             <a href="/comprar-passe/diario" class="btn-purchase">Comprar Agora</a>
-                        </div>
-                        <div class="pass-card">
+                        </section>
+                        <section class="pass-card">
                             <h4>Passe Semanal</h4>
                             <p>Atividades ilimitadas por 7 dias.</p>
                             <p class="price">R$ 25,00</p>
                             <a href="/comprar-passe/semanal" class="btn-purchase">Comprar Agora</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+        </section>
     <% } %>
 
     <script src="../js/accessibility.js"></script>
@@ -488,9 +487,9 @@
 
         if (chatHistory) {
             const addMessageToHistory = (message, sender) => {
-                const msgDiv = document.createElement('div');
+                const msgDiv = document.createElement('section');
                 msgDiv.classList.add('chat-message', sender);
-                const bubbleDiv = document.createElement('div');
+                const bubbleDiv = document.createElement('section');
                 bubbleDiv.classList.add('chat-bubble', sender);
                 bubbleDiv.textContent = message;
                 msgDiv.appendChild(bubbleDiv);

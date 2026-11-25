@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Feedbacks</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -183,23 +184,23 @@
 
     <!-- Modal de Resposta -->
     <section id="response-modal" class="modal-overlay">
-      <div class="modal-content">
+      <section class="modal-content">
         <header class="modal-header">
-          <h2>Responder a <span id="modal-aluno-nome"></span></h2>
+          <h2>Responder a <output id="modal-aluno-nome"></output></h2>
           <button id="modal-close-btn" class="modal-close">&times;</button>
         </header>
         <form id="response-form">
           <input type="hidden" id="modal-feedback-id" name="feedbackId">
           <input type="hidden" id="modal-aluno-id" name="alunoId">
-          <div class="form-group">
+          <section class="form-group">
             <label for="modal-response-text">Sua resposta:</label>
             <textarea id="modal-response-text" name="responseText" placeholder="Escreva uma mensagem privada para o aluno..." required></textarea>
-          </div>
+          </section>
           <footer class="modal-footer">
             <button type="submit" class="btn-primary">Enviar Resposta</button>
           </footer>
         </form>
-      </div>
+      </section>
     </section>
   </main>
 

@@ -180,7 +180,7 @@ h1 {
 /* cards de resumo (aulas / assinaturas) */
 .ganhos-cards {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   gap: 0.9rem;
   margin-bottom: 1.6rem;
 }
@@ -251,7 +251,7 @@ h1 {
   margin-bottom: 0.1rem;
 }
 
-.linha-mov__info span {
+.linha-mov__info output {
   font-size: 0.8rem;
   color: var(--cinza-texto);
 }
@@ -422,13 +422,13 @@ h1 {
   font-size: 0.8rem;
 }
 
-.fb-card__nota span:first-child {
+.fb-card__nota output:first-child {
   display: block;
   font-weight: 700;
   color: var(--bordo);
 }
 
-.fb-card__nota span:last-child {
+.fb-card__nota output:last-child {
   color: var(--amarelo);
   font-size: 0.75rem;
 }
@@ -484,11 +484,6 @@ h1 {
 
   .page {
     padding: 1.5rem 1.5rem 2.5rem;
-  }
-
-  .ganhos-filtros,
-  .fb-filtros {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ganhos-cards {

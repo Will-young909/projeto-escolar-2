@@ -39,7 +39,7 @@ function normalizeActivityQuestions(activity) {
             ...question,
             title: question.title || question.text || question.enunciado || 'Questão',
             text: question.text || question.title || question.enunciado || 'Questão',
-            type: question.type || (options ? 'multiple_choice' : 'short_text'),
+            type: options ? 'multiple_choice' : (question.type || 'short_text'),
             options,
             correct: correctKey,
             correctAnswer,

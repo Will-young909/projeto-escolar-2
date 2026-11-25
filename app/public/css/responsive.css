@@ -1,0 +1,92 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  inline-size: 100%;
+}
+
+body {
+  min-inline-size: 0;
+  margin: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+iframe,
+svg {
+  max-inline-size: 100%;
+}
+
+img,
+video {
+  block-size: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  max-inline-size: 100%;
+  font: inherit;
+}
+
+output {
+  font: inherit;
+}
+
+:where(main, section, article, aside, nav, header, footer) {
+  min-inline-size: 0;
+}
+
+:where(
+  .container,
+  .main-content-wrapper,
+  .main-content,
+  .page,
+  .dashboard,
+  .perfil-container,
+  .atividades-container,
+  .checkout-container,
+  .notif-page
+) {
+  inline-size: calc(100% - 2rem);
+  margin-inline: auto;
+}
+
+@media (min-width: 48rem) {
+  :where(
+    .container,
+    .main-content-wrapper,
+    .main-content,
+    .page,
+    .dashboard,
+    .perfil-container,
+    .atividades-container,
+    .checkout-container,
+    .notif-page
+  ) {
+    inline-size: min(calc(100% - 3rem), 72rem);
+  }
+}
+
+@media (min-width: 64rem) {
+  :where(
+    .container,
+    .main-content-wrapper,
+    .main-content,
+    .page,
+    .dashboard,
+    .perfil-container,
+    .atividades-container,
+    .checkout-container,
+    .notif-page
+  ) {
+    inline-size: min(calc(100% - 4rem), 80rem);
+  }
+}

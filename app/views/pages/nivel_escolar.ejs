@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Nível Escolar | RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -64,7 +65,7 @@
   </header>
 
   <main class="atividades-container">
-    <div class="ia-generator-container card">
+    <section class="ia-generator-container card">
       <h2>Escolha o nível escolar?</h2>
       <form id="level-form" action="/gerar_atividade" method="GET">
         <select name="level" id="level-select">
@@ -83,7 +84,7 @@
         </select>
         <button type="submit" class="btn-primary">Gerar Atividade</button>
       </form>
-    </div>
+    </section>
   </main>
   <script src="../js/accessibility.js"></script>
 </body>

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Dashboard do Aluno | RegiMath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -127,17 +128,17 @@
     <% const recsProfessores = recomendacoesProfessores || { focos: [], recomendacoes: [] }; %>
     <section class="recommendations card">
       <section class="recommendations-heading">
-        <div>
+        <section>
           <h2><i class="fas fa-user-graduate"></i> Professores recomendados para você</h2>
           <p>Baseado nos seus últimos resultados e nas habilidades que mais precisam de reforço.</p>
-        </div>
+        </section>
       </section>
       <a href="/pesquisar_profs?recomendados=1" class="link">Ver recomendações <i class="fas fa-arrow-right"></i></a>
 
       <% if (recsProfessores.focos && recsProfessores.focos.length > 0) { %>
         <section class="recommendation-focuses" aria-label="Habilidades priorizadas">
           <% recsProfessores.focos.slice(0, 3).forEach(foco => { %>
-            <span><%= foco.descricao %> (<%= Number(foco.percentual).toFixed(0) %>%)</span>
+            <output><%= foco.descricao %> (<%= Number(foco.percentual).toFixed(0) %>%)</output>
           <% }); %>
         </section>
       <% } %>
@@ -159,38 +160,6 @@
       <% } else { %>
         <p class="empty-state">Faça um teste de nivelamento para receber recomendações personalizadas de professores.</p>
       <% } %>
-    </section>
-
-    
-    <section class="notifications card">
-        <h2><i class="fas fa-bell"></i> Notificações Recentes</h2>
-        <% const notificacoes = user.notificacoes || []; %>
-        <% if (notificacoes.length > 0) { %>
-            <ul class="notification-list">
-                <% notificacoes.slice(0, 5).forEach(notif => { %>
-                    <li class="notification-item notification-type-<%= notif.tipo %>">
-                        <% if (notif.tipo === 'aula_cancelada') { %>
-                            <div class="notification-icon"><i class="fas fa-calendar-times"></i></div>
-                            <div class="notification-content">
-                                <p><strong>Aula Cancelada:</strong> A aula com <strong><%= notif.professor %></strong> no dia <%= (() => { const [y,m,d] = String(notif.aula.data).slice(0,10).split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('pt-BR'); })() %> às <%= notif.aula.hora %> foi cancelada.</p>
-                                <% if (notif.motivo) { %>
-                                    <p class="motivo"><strong>Motivo:</strong> <%= notif.motivo %></p>
-                                <% } %>
-                                <small class="timestamp"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></small>
-                            </div>
-                        <% } else { %>
-                             <div class="notification-icon"><i class="fas fa-triangle-exclamation"></i></div>
-                            <div class="notification-content">
-                                <%- notif.mensagem.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') %>
-                                <small class="timestamp"><%= new Date(notif.criado_em).toLocaleString('pt-BR') %></small>
-                            </div>
-                        <% } %>
-                    </li>
-                <% }); %>
-            </ul>
-        <% } else { %>
-            <p class="empty-state">Nenhuma notificação recente.</p>
-        <% } %>
     </section>
 
     <% 

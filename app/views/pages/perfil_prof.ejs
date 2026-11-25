@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Perfil de Professor - <%= user.nome %>
     </title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -280,12 +281,12 @@
                 <% if (user.historicoAlunos && user.historicoAlunos.length> 0) { %>
                     <% user.historicoAlunos.forEach(aluno=> { %>
                         <li class="aluno-item" data-id="<%= aluno.id %>">
-                            <div class="aluno-info">
+                            <section class="aluno-info">
                             <img src="<%= aluno.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="">
                             <p href="/aluno/<%= aluno.id %>">
                                 <%= aluno.nome %>
                             </p>
-                            </div>
+                            </section>
                             <a href="/denuncia?denunciado_id=<%= aluno.id %>" class="btn-denuncia" title="Denunciar Aluno">
                                 <i class="fas fa-exclamation-triangle"></i> Denunciar
                             </a> 
@@ -302,7 +303,7 @@
         <article class="modal-content">
             <header class="modal-header">
                 <h3 id="modal-date"></h3>
-                <p class="close-button">&times;</p>
+                <button type="button" class="close-button" aria-label="Fechar horários">&times;</button>
             </header>
             <ul id="time-slots-container">
                 <!-- Time slots will be dynamically added here -->
@@ -392,11 +393,11 @@
                 titulo.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
                 calendarContainer.appendChild(titulo);
 
-                const diasContainer = document.createElement('div');
+                const diasContainer = document.createElement('section');
                 diasContainer.classList.add('dias');
                 const nomesDias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
                 nomesDias.forEach(nome => {
-                    const header = document.createElement('div');
+                    const header = document.createElement('section');
                     header.classList.add('dia-header');
                     header.textContent = nome;
                     diasContainer.appendChild(header);
@@ -404,7 +405,7 @@
 
                 const firstDayOfMonth = new Date(year, month, 1).getDay();
                 for (let i = 0; i < firstDayOfMonth; i++) {
-                    const emptyDay = document.createElement('div');
+                    const emptyDay = document.createElement('section');
                     emptyDay.classList.add('dia-vazio');
                     diasContainer.appendChild(emptyDay);
                 }
@@ -413,7 +414,7 @@
                 const hoje = new Date();
                 hoje.setHours(0, 0, 0, 0);
                 for (let d = 1; d <= lastDayOfMonth; d++) {
-                    const dia = document.createElement('div');
+                    const dia = document.createElement('section');
                     dia.classList.add('dia');
                     dia.textContent = d;
                     const fullDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -476,7 +477,7 @@
                     <input type="time" class="end-time" required ${isLocked ? 'disabled' : ''}>
                     <label>Preço:</label>
                     <input type="number" class="price" placeholder="R$" required ${isLocked ? 'disabled' : ''}>
-                    ${isLocked ? '<span class="slot-badge">Agendado</span>' : '<button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>'}
+                    ${isLocked ? '<output class="slot-badge">Agendado</output>' : '<button type="button" class="remove-slot-btn"><i class="fas fa-trash-alt"></i></button>'}
                 `;
 
                 slotLi.querySelector('.start-time').value = startVal;

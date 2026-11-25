@@ -3,14 +3,12 @@
 /**
  * Cliente HTTP para chamadas internas (loopback) à própria API.
  *
- * O servidor sobe em HTTPS com certificado autoassinado (`certs/regimath-*.pem`).
- * O `fetch` global do Node (undici) rejeita esse certificado e falha com
- * `TypeError: fetch failed` (causa: `UNABLE_TO_VERIFY_LEAF_SIGNATURE`).
+ * O servidor principal usa HTTP; APP_SCHEME pode ser definido explicitamente
+ * quando o listener local estiver configurado para HTTPS.
  *
- * Por isso usamos o módulo `https` nativo, que permite desativar a verificação
- * **apenas naquela requisição** (`rejectUnauthorized: false`). Isso evita
- * `process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'`, que desligaria a validação
- * de TLS para o processo inteiro (e para toda chamada externa de IA).
+ * Para HTTPS, usamos o módulo nativo e limitamos a opção de certificado
+ * autoassinado a essa requisição, sem desativar a validação TLS do processo
+ * inteiro.
  */
 
 const http = require('http');
@@ -21,7 +19,7 @@ const DEFAULT_TIMEOUT_MS = 30000;
 /** URL base da própria API, derivada das variáveis de ambiente. */
 function getBaseUrl() {
   const port = process.env.APP_PORT || 3000;
-  const scheme = String(process.env.APP_SCHEME || 'https').toLowerCase() === 'http' ? 'http' : 'https';
+  const scheme = String(process.env.APP_SCHEME || 'http').toLowerCase() === 'http' ? 'http' : 'https';
   return `${scheme}://localhost:${port}`;
 }
 

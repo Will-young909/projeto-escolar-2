@@ -491,7 +491,7 @@ section h2 {
   margin-bottom: 1rem;
 }
 
-.recommendation-focuses span {
+.recommendation-focuses output {
   background: var(--cinza-fundo);
   color: var(--bordo);
   border-radius: 999px;

@@ -190,7 +190,7 @@ h1 {
     object-fit: cover;
 }
 
-.teacher-card div h3 {
+.teacher-card section h3 {
     margin: 0;
     color: var(--color-text-dark);
 }

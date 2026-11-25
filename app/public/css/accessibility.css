@@ -416,6 +416,16 @@ input:checked + .toggle-slider:before {
 
 /* === Font & Other Adjustments (remain the same) === */
 
+body.a11y-font-adjusted,
+body.a11y-font-adjusted [style*="--a11y-adjusted-font-size"]:not(#accessibility-modal):not(#accessibility-modal *) {
+    font-size: var(--a11y-adjusted-font-size) !important;
+}
+
+body.a11y-spacing-adjusted,
+body.a11y-spacing-adjusted [style*="--a11y-adjusted-letter-spacing"]:not(#accessibility-modal):not(#accessibility-modal *) {
+    letter-spacing: var(--a11y-adjusted-letter-spacing) !important;
+}
+
 .underline-links a { text-decoration: underline !important; }
 .reader-font { font-family: 'Open Sans', sans-serif !important; }
 .dyslexia-font { font-family: 'OpenDyslexic', sans-serif !important; }

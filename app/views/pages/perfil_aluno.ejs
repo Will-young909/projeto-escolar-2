@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/responsive.css">
   <title>Perfil | <%= user.nome %> - Regimath</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -82,10 +83,6 @@
             <dt>Email:</dt>
             <dd class="highlight-data"><%= user.email || "Não informado" %></dd>
           </section>
-          <section class="data-item">
-            <dt>Registro:</dt>
-            <dd><%= user.id || "N/A" %></dd>
-          </section>
         </dl>
       </article>
 
@@ -95,12 +92,12 @@
             <ul class="historico-list">
                 <% locals.historicoProfessores.forEach(professor => { %>
                     <li class="historico-item professor-item" data-id="<%= professor.id %>">
-                        <div class="professor-info">
+                        <section class="professor-info">
                             <img src="<%= professor.foto_perfil || '/imagens/imagem_perfil.jpg' %>" alt="Foto do professor <%= professor.nome %>" class="historico-foto">
                             <p class="historico-link">
                                 <%= professor.nome %>
                             </p>
-                        </div>
+                        </section>
                         <a href="/denuncia?denunciado_id=<%= professor.id %>" class="btn-denuncia" title="Denunciar Professor">
                             <i class="fas fa-exclamation-triangle"></i> Denunciar
                         </a>

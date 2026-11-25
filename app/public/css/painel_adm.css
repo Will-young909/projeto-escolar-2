@@ -410,6 +410,9 @@ main {
     position: absolute;
     top: 14px;
     right: 16px;
+    padding: 0;
+    border: 0;
+    background: none;
     font-size: 1.8rem;
     line-height: 1;
     color: var(--color-text-secondary);

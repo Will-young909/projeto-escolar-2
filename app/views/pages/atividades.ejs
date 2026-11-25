@@ -3,8 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
   <title><%= locals.activity ? 'Editar Atividade' : 'Criar Atividade' %> | RegiMath</title>
 
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      startup: { typeset: false }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" onerror="console.error('[MATHJAX] Não foi possível carregar o renderizador matemático.')"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="/css/atividades.css">
@@ -27,7 +39,7 @@
 
 <main class="atividades-container">
   <!-- Barra de ações -->
-  <div class="actions-toolbar" aria-label="Ferramentas de atividade">
+  <section class="actions-toolbar" aria-label="Ferramentas de atividade">
     <button 
       id="add-question" 
       class="btn-icon" 
@@ -52,13 +64,13 @@
     <a href="/lista_atividades" class="btn-icon" aria-label="Ver atividades salvas">
         <i class="fas fa-list-alt"></i>
     </a>
-  </div>
+  </section>
 
-  <div class="ia-generator-container">
+  <section class="ia-generator-container">
     <textarea id="ia-prompt" class="correct-answer-input" placeholder="Descreva o tipo de exercício que você deseja criar (ex: um exercício de matemática sobre equações de segundo grau com 3 questões de múltipla escolha)..."></textarea><br>
     <button style="margin-top: 10px;" id="generate-with-ia" class="btn-primary">Gerar com IA</button>
      <button class="nivel" style="background: none; border: none; align-self: center; justify-self: center;"><a href="/nivel_escolar" style="text-decoration: none; margin-top: 10px; margin-bottom: 10px;" class="btn-primary">Gerar por Nível Escolar</a></button>
-  </div>
+  </section>
 
   <form id="activity-form" class="form-builder-card" autocomplete="off" method="POST" action="<%= locals.activity ? '/atividades/editar/' + activity.id : '/atividades' %>">
     <header class="form-header">
@@ -111,13 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
     block.setAttribute('aria-label', `Questão ${questionCounter}`);
 
     block.innerHTML = `
-      <div class="question-header">
+      <section class="question-header">
         <input 
           type="text" 
           placeholder="Pergunta" 
           name="questions[${questionCounter}][title]"
           value="${questionData && questionData.title ? questionData.title : ''}"
           required>
+        <section class="question-math-preview" aria-label="Prévia matemática" hidden></section>
         
         <select 
           class="question-type-selector" 
@@ -127,11 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <option value="short_text" ${questionData && questionData.type === 'short_text' ? 'selected' : ''}>Resposta curta</option>
           <option value="long_text" ${questionData && questionData.type === 'long_text' ? 'selected' : ''}>Parágrafo</option>
         </select>
-      </div>
+      </section>
 
-      <div class="question-content"></div>
+      <section class="question-content"></section>
 
-      <div class="question-footer">
+      <section class="question-footer">
         <button 
           class="btn-icon btn-delete-question" 
           type="button"
@@ -139,10 +152,34 @@ document.addEventListener('DOMContentLoaded', () => {
           title="Excluir Questão">
           <i class="fas fa-trash"></i>
         </button>
-      </div>
+      </section>
     `;
 
     questionsContainer.appendChild(block);
+
+    const titleInput = block.querySelector('.question-header input');
+    const mathPreview = block.querySelector('.question-math-preview');
+    let previewTypeset = Promise.resolve();
+    const updateMathPreview = () => {
+      const text = titleInput.value;
+      const hasMath = /\$(?:[^$]+)\$|\\\([\s\S]+?\\\)/.test(text);
+      const mathJax = window.MathJax;
+
+      mathPreview.hidden = !hasMath;
+
+      if (!mathJax?.startup?.promise) {
+        mathPreview.textContent = hasMath ? text : '';
+        return;
+      }
+
+      previewTypeset = previewTypeset.then(() => mathJax.startup.promise).then(() => {
+        mathJax.typesetClear([mathPreview]);
+        mathPreview.textContent = hasMath ? text : '';
+        return hasMath ? mathJax.typesetPromise([mathPreview]) : undefined;
+      }).catch(error => console.error('[MATHJAX] Falha ao renderizar a prévia matemática:', error));
+    };
+    titleInput.addEventListener('input', updateMathPreview);
+    updateMathPreview();
 
     const typeSelector = block.querySelector('.question-type-selector');
     typeSelector.addEventListener('change', () => updateQuestionContent(typeSelector, null));
@@ -165,36 +202,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (type === 'multiple_choice') {
       let optionsHtml = '';
-      if (questionData && questionData.options && questionData.options.length > 0) {
+      const optionEntries = Array.isArray(questionData?.options)
+        ? questionData.options.map((value, index) => [String(index + 1), value])
+        : questionData?.options && typeof questionData.options === 'object'
+          ? Object.entries(questionData.options)
+          : [];
+      const correct = String(questionData?.correct ?? '').trim();
+      const correctIndex = /^[1-4]$/.test(correct)
+        ? Number(correct) - 1
+        : /^[A-D]$/i.test(correct)
+          ? correct.toUpperCase().charCodeAt(0) - 65
+          : optionEntries.findIndex(([key]) => key === correct);
+
+      if (optionEntries.length > 0) {
         let optionIndex = 1;
-        for(const optionValue of questionData.options) {
+        for (const [, optionValue] of optionEntries) {
           optionsHtml += `
-            <div class="option-item">
-              <input type="radio" name="questions[${questionId}][correct]" value="${optionIndex}" ${questionData.correct == optionIndex ? 'checked' : ''} aria-label="Alternativa correta ${optionIndex}">
+            <section class="option-item">
+              <input type="radio" name="questions[${questionId}][correct]" value="${optionIndex}" ${correctIndex === optionIndex - 1 ? 'checked' : ''} aria-label="Alternativa correta ${optionIndex}">
               <input type="text" name="questions[${questionId}][options][${optionIndex}]" placeholder="Opção ${optionIndex}" value="${optionValue}">
               <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
                 <i class="fas fa-times"></i>
               </button>
-            </div>
+            </section>
           `;
           optionIndex++;
         }
       } else {
           optionsHtml = `
-          <div class="option-item">
+          <section class="option-item">
             <input type="radio" name="questions[${questionId}][correct]" value="1" aria-label="Alternativa correta 1">
             <input type="text" name="questions[${questionId}][options][1]" placeholder="Opção 1">
             <button class="btn-icon btn-remove-option" type="button" aria-label="Remover opção">
               <i class="fas fa-times"></i>
             </button>
-          </div>
+          </section>
           `;
       }
         
       contentDiv.innerHTML = `
-        <div class="options-container">
+        <section class="options-container">
           ${optionsHtml}
-        </div>
+        </section>
         <button class="btn-add-option" type="button">Adicionar opção</button>
       `;
     } else if (type === 'short_text' || type === 'long_text') {
@@ -206,23 +255,23 @@ document.addEventListener('DOMContentLoaded', () => {
           }).filter(k => k.text);
 
       const chipsHtml = existingKeywords.map((k, idx) => `
-        <div class="keyword-chip" style="display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;">
+        <section class="keyword-chip" style="display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;">
           <input type="text" value="${String(k.text || '').replace(/"/g, '&quot;')}" class="kw-text" style="width:140px; border:none; outline:none;">
           <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="kw-required" ${k.required ? 'checked' : ''}>Obrig.</label>
           <label style="font-size:.8rem; display:flex; gap:4px; align-items:center;">Peso<input type="number" class="kw-peso" min="0.1" step="0.1" value="${Number(k.peso) || 1}" style="width:58px;"></label>
           <button type="button" class="btn-remove-keyword" aria-label="Remover palavra-chave" style="border:none; background:none; cursor:pointer; font-size:1rem;">×</button>
-        </div>`).join('');
+        </section>`).join('');
 
       contentDiv.innerHTML = `
-        <div class="keyword-manager" data-question-id="${questionId}">
+        <section class="keyword-manager" data-question-id="${questionId}">
           <p style="margin:0 0 8px; font-size:.9rem; color:#555;">Palavras-chave do gabarito (separe por vírgula ou Enter). Marque obrigatórias e defina peso.</p>
-          <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <section style="display:flex; gap:8px; margin-bottom:8px;">
             <input type="text" class="correct-answer-input inp-nova-palavra" placeholder="Digite palavras-chave e pressione Enter...">
             <button type="button" class="btn-primary btn-add-keywords" style="padding:8px 12px;">Adicionar</button>
-          </div>
-          <div class="palavras-chave-list">${chipsHtml}</div>
+          </section>
+          <section class="palavras-chave-list">${chipsHtml}</section>
           <input type="hidden" name="questions[${questionId}][correctAnswer]" class="kw-correct-answer" value="${questionData && questionData.correctAnswer ? String(questionData.correctAnswer).replace(/"/g, '&quot;') : ''}">
-        </div>
+        </section>
       `;
 
       const manager = contentDiv.querySelector('.keyword-manager');
@@ -248,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const required = /\*$/.test(text);
           const clean = text.replace(/^\*+|\*+$/g, '').trim();
           if (!clean) return;
-          const chip = document.createElement('div');
+          const chip = document.createElement('section');
           chip.className = 'keyword-chip';
           chip.style.cssText = 'display:inline-flex; gap:6px; align-items:center; border:1px solid #d1d5db; border-radius:999px; padding:4px 8px; margin:4px 6px 0 0; background:#fff;';
           chip.innerHTML = `<input type="text" value="${clean.replace(/"/g, '&quot;')}" class="kw-text" style="width:140px; border:none; outline:none;"><label style="font-size:.8rem; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="kw-required" ${required ? 'checked' : ''}>Obrig.</label><label style="font-size:.8rem; display:flex; gap:4px; align-items:center;">Peso<input type="number" class="kw-peso" min="0.1" step="0.1" value="1" style="width:58px;"></label><button type="button" class="btn-remove-keyword" aria-label="Remover palavra-chave" style="border:none; background:none; cursor:pointer; font-size:1rem;">×</button>`;
@@ -281,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const questionId = questionBlock.id.split('-')[1];
       const optionCount = optionsContainer.querySelectorAll('.option-item').length + 1;
 
-      const newOption = document.createElement('div');
+      const newOption = document.createElement('section');
       newOption.classList.add('option-item');
       newOption.innerHTML = `
         <input type="radio" name="questions[${questionId}][correct]" value="${optionCount}" aria-label="Alternativa correta ${optionCount}">
@@ -379,7 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (missingGabarito) {
         alertMessage += '\n- Forneça um gabarito para as questões de resposta curta ou parágrafo.';
       }
-      Swal.fire(alertMessage);
+      Swal.fire({
+                            text:alertMessage});
     }
   });
 
@@ -387,7 +437,8 @@ document.addEventListener('DOMContentLoaded', () => {
   generateWithIaBtn.addEventListener('click', async () => {
     const prompt = iaPromptTextarea.value.trim();
     if (!prompt) {
-      Swal.fire("Por favor, descreva o exercício que deseja criar.");
+      Swal.fire({
+                            text:"Por favor, descreva o exercício que deseja criar."});
       return;
     }
 
@@ -428,7 +479,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       console.error('Erro ao gerar exercício com IA:', error);
-      Swal.fire("Não foi possível gerar o exercício. Verifique o console para mais detalhes.");
+      Swal.fire({
+                            text:"Não foi possível gerar o exercício. Verifique o console para mais detalhes."});
     } finally {
       generateWithIaBtn.disabled = false;
       generateWithIaBtn.textContent = 'Gerar com IA';
@@ -551,7 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let alertasHtml = '';
       if (linhasInvalidas.length > 0) {
-        alertasHtml = '<div style="color:#d32f2f; margin-bottom:12px;"><strong>Atenção:</strong></div><ul style="margin:0; padding-left:16px; font-size:0.85rem;">';
+        alertasHtml = '<section style="color:#d32f2f; margin-bottom:12px;"><strong>Atenção:</strong></section><ul style="margin:0; padding-left:16px; font-size:0.85rem;">';
         linhasInvalidas.slice(0, 10).forEach(l => {
           alertasHtml += '<li>' + l + '</li>';
         });
@@ -599,11 +651,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <!-- Modal de preview de importação CSV -->
-<div id="import-preview-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;">
-  <div style="background:#fff; border-radius:12px; padding:24px; max-width:600px; max-height:80vh; overflow-y:auto;position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:0 4px 20px rgba(0,0,0,0.25);">
+<section id="import-preview-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000;">
+  <section style="background:#fff; border-radius:12px; padding:24px; max-width:600px; max-height:80vh; overflow-y:auto;position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); box-shadow:0 4px 20px rgba(0,0,0,0.25);">
     <h2 style="margin-top:0; color:#800020;">Pré-visualização da Importação</h2>
     <p style="margin-bottom:16px;">Confirme as questões que serão adicionadas à atividade:</p>
-    <div id="preview-stats" style="margin-bottom:16px; font-size:0.9rem; color:#666;"></div>
+    <section id="preview-stats" style="margin-bottom:16px; font-size:0.9rem; color:#666;"></section>
     <table id="preview-table" style="width:100%; border-collapse:collapse; margin-bottom:16px;">
       <thead>
         <tr style="border-bottom:2px solid #ddd;">
@@ -615,13 +667,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </thead>
       <tbody id="preview-rows"></tbody>
     </table>
-    <div id="preview-alertas" style="margin-bottom:16px; font-size:0.85rem;"></div>
-    <div style="display:flex; justify-content:flex-end; gap:10px;">
+    <section id="preview-alertas" style="margin-bottom:16px; font-size:0.85rem;"></section>
+    <section style="display:flex; justify-content:flex-end; gap:10px;">
       <button id="preview-cancelar" style="padding:8px 16px; border:1px solid #ccc; background:#f5f5f5; border-radius:6px; cursor:pointer;">Cancelar</button>
       <button id="preview-importar" style="padding:8px 16px; border:none; background:#800020; color:#fff; border-radius:6px; cursor:pointer;">Importar Questões</button>
-    </div>
-  </div>
-</div>
+    </section>
+  </section>
+</section>
 
 
 </body>

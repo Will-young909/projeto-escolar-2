@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Buscar Professor(a) | Regimath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -201,12 +202,12 @@
                         <% if (currentPage > 1) { %>
                             <li><a href="<%= url %>?page=<%= currentPage - 1 %>&query=<%= encodeURIComponent(query) %>">Anterior</a></li>
                         <% } else { %>
-                            <li class="disabled"><span>Anterior</span></li>
+                            <li class="disabled"><output>Anterior</output></li>
                         <% } %>
 
                         <% for (let i = 1; i <= totalPages; i++) { %>
                             <% if (i === currentPage) { %>
-                                <li class="active"><span><%= i %></span></li>
+                                <li class="active"><output><%= i %></output></li>
                             <% } else { %>
                                 <li><a href="<%= url %>?page=<%= i %>&query=<%= encodeURIComponent(query) %>"><%= i %></a></li>
                             <% } %>
@@ -215,7 +216,7 @@
                         <% if (currentPage < totalPages) { %>
                             <li><a href="<%= url %>?page=<%= currentPage + 1 %>&query=<%= encodeURIComponent(query) %>">Próxima</a></li>
                         <% } else { %>
-                            <li class="disabled"><span>Próxima</span></li>
+                            <li class="disabled"><output>Próxima</output></li>
                         <% } %>
                     </ul>
                 </section>

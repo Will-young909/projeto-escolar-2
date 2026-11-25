@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/responsive.css">
     <title>Lista de Atividades | RegiMath</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -132,10 +133,10 @@ header {
             <ul>
                 <% locals.activities.forEach(activity => { %>
                     <li class="li">
-                        <div>
+                        <section>
                             <h3><%= activity.title %></h3>
                             <p><%= activity.description %></p>
-                        </div>
+                        </section>
                         <a href="/atividades/editar/<%= activity.id %>" class="btn-edit">Editar</a>
                     </li>
                 <% }); %>
