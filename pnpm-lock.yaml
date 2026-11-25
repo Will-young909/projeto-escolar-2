@@ -77,6 +77,9 @@ importers:
       redis:
         specifier: ^5.12.1
         version: 5.12.4
+      sheetjs:
+        specifier: ^2.0.0
+        version: 2.0.0
       socket.io:
         specifier: ^4.8.1
         version: 4.8.4
@@ -2671,6 +2674,10 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  sheetjs@2.0.0:
+    resolution: {integrity: sha512-/zxauUZFsJaClP16zlYHWuD/K9VDOHsZlbunZFVUwz9tqBZeUNhSKw7ubC1s6LdiCJYG+7IFY8IEJ+9hLQwDmw==}
+    engines: {node: '>=0.8'}
 
   side-channel-list@1.0.1:
     resolution: {integrity: sha512-mjn/0bi/oUURjc5Xl7IaWi/OJJJumuoJFQJfDDyO46+hBWsfaVM65TBHq2eoZBhzl9EchxOijpkbRC8SVBQU0w==}
@@ -5995,6 +6002,8 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  sheetjs@2.0.0: {}
 
   side-channel-list@1.0.1:
     dependencies:
